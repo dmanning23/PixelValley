@@ -2,7 +2,7 @@ from langchain.schema.messages import SystemMessage, HumanMessage
 from langchain.chat_models import ChatOpenAI
 import json
 from Simulation.agent import Agent
-from Simulation.setting import Setting
+from Simulation.scenario import Scenario
 from openai import OpenAI
 from langchain.schema.messages import SystemMessage, HumanMessage
 from langchain.chat_models import ChatOpenAI
@@ -87,14 +87,14 @@ class AgentGenerator():
         result = llm.invoke(messages)
         return result.content
     
-    def GenerateCharacters(self, setting, llm = None):
+    def GenerateCharacters(self, scenario, llm = None):
         if not llm:
             #create the client API
             llm = OpenAI()
 
         messages = [
-            {'role': 'system', 'content': "Given the following name and description of a location, generate a list of characters that could be found in that setting."},
-            {'role': 'user', 'content': f"{setting.name}: {setting.description}"}
+            {'role': 'system', 'content': "Given the following name and description of a location, generate a list of characters that could be found in that scenario."},
+            {'role': 'user', 'content': f"{scenario.name}: {scenario.description}"}
         ]
 
         #Create the list of function definitions that are available to the LLM

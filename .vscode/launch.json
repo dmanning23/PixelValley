@@ -9,7 +9,7 @@
             "type": "python",
             "request": "launch",
             "module": "streamlit",
-            "args": ["run", "app.py"],
+            "args": ["run", "streamlit_app.py"],
             "justMyCode": true,
         }
     ]

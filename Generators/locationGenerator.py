@@ -92,14 +92,14 @@ class LocationGenerator():
             #return response_message.content
             return None
 
-    def Generate(self, setting, llm = None):
+    def Generate(self, scenario, llm = None):
         if not llm:
             #create the client API
             llm = OpenAI()
 
         messages = [
-            {'role': 'system', 'content': "Given the following setting, generate a list of physical locations"},
-            {'role': 'user', 'content': setting.name}
+            {'role': 'system', 'content': "Given the following scenario, generate a list of physical locations"},
+            {'role': 'user', 'content': scenario.name}
         ]
 
         #Create the list of function definitions that are available to the LLM

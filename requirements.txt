@@ -1,5 +1,6 @@
 openai
 streamlit
+streamlit-authenticator
 tiktoken
 langchain
 py-linq
