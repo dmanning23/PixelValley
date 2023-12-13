@@ -6,7 +6,7 @@ class StateTransition:
         self.action = action
         self.targetState = targetState
 
-    def Describe(self):
+    def __str__(self) -> str:
         return f"start: {self.startState}, action: {self.action}, end: {self.targetState}"
 
 class FiniteStateMachine:
@@ -45,13 +45,13 @@ class FiniteStateMachine:
                 #return the result
                 return transition.output
 
-    def Describe(self):
+    def __str__(self) -> str:
         result = f"""Current state: {self.currentState}\n
 Previous state: {self.currentState}\n
 Possible states: {self.states}\n
 All available actions: {self.actions}\n
 Transitions:\n\n"""
         for transition in self.transitions:
-            result = result + f"{transition.Describe()}\n\n"
+            result = result + f"{transition}\n\n"
 
         return result

@@ -74,7 +74,11 @@ class LocationGenerator():
             function_called = response_message.function_call.name
             
             #Extract the arguments from the AI payload
-            function_args  = json.loads(response_message.function_call.arguments)
+            try:
+                function_args  = json.loads(response_message.function_call.arguments)
+            except:
+                #TODO: some sort of json error occurred
+                return None
             
             #Create a list of all the available functions
             available_functions = {
@@ -189,7 +193,7 @@ class LocationGenerator():
                 if location.name != child.name: #The OpenAI api has a tendency to return the same thing we just fed it :/
                     location.locations.append(child)
                     #Recurse into child locations
-                    self.GenerateChildLocations(child, level, llm)
+                    self.GenerateChildLocations(location=child, level=level, maxLevel=maxLevel, llm=llm)
 
     def GenerateItems(self, location, llm = None):
         itemGen = ItemGenerator()

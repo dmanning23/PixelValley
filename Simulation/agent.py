@@ -19,5 +19,5 @@ class Agent:
         self.gender = gender
         self.description = description
 
-    def Describe(self):
+    def __str__(self) -> str:
         return f"{self.name} is a {self.age} year old {self.gender}. {self.description}"

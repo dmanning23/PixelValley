@@ -34,8 +34,9 @@ class ScenarioRepository():
             ScenarioRepository.Create(userId, scenario)
         elif UserAccessRepository.HasAccess(userId, scenario._id):
             #check if the user has access
-            model = ScenarioModel(id=scenario._id, name=scenario.name, description=scenario.description)
-            #TODO: get all the location IDs
+            model = ScenarioModel(id=scenario._id,
+                                  name=scenario.name,
+                                  description=scenario.description)
             model.save()
         else:
             #TODO: throw an error
@@ -48,7 +49,6 @@ class ScenarioRepository():
         if UserAccessRepository.HasAccess(userId, scenarioId):
             model = ScenarioModel.objects.get(id=scenarioId)
             scenario = Scenario(model.name, model.description, _id = model.id)
-            #TODO: get all the locations and add to the scenario
             return scenario
 
     """

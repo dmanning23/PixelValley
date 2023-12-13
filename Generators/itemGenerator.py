@@ -107,11 +107,29 @@ class ItemGenerator():
             messages = messages,
             functions = functions, #Pass in the list of functions available to the LLM
             function_call = 'auto')
-        items = self._parseResponse(response.choices[0].message)
+        try:
+            items = self._parseResponse(response.choices[0].message)
+        except:
+            #TODO: some sort of json error occurred
+            pass
+
         if items is None:
             return [] #if it gets here, there was a problem with the description
         else:
             return items
+        
+    def PopulateLocations(self, location, llm=None):
+        #Create the items for the location
+        location.items = self.GenerateItems(location, llm)
+        items = location.items
+
+        #Recurse into the child locations
+        if location.locations is not None:
+            for childLocation in location.locations:
+                items = items + self.PopulateLocations(self, childLocation, llm)
+
+        #return all the items that were created for this location as well as child locations
+        return items
         
     def GenerateFiniteStateMachine(self, item, llm = None):
         if item.canInteract:

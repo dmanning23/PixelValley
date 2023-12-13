@@ -16,69 +16,138 @@ from Simulation.item import Item
 from Simulation.scenario import Scenario
 from Generators.finiteStateMachineGenerator import FiniteStateMachineGenerator
 from Repository.scenarioRepository import ScenarioRepository
+from Repository.locationRepository import LocationRepository
+from Repository.itemRepository import ItemRepository
 from Repository.userAccessRepository import UserAccessRepository
 
-def writeLocation(location, generator, level = 0):
-    st.header(f"{level}: {location.describe()}")
+def initializeScenario():
+    if "scenario" in st.session_state and st.session_state['scenario'] is not None:
+        scenario = st.session_state["scenario"]
+        displayScenario(scenario)
+
+    else:
+        st.subheader("Select an existing scenario, or create a new one")
+
+        #Get the user's scenarios
+        userId = st.session_state["userId"]
+        scenarios = ScenarioRepository.GetScenarios(userId)
+        if scenarios:
+            selectContainer = st.container()
+            with selectContainer:
+                with st.form(key="select scenario", clear_on_submit=True):
+                    selectedScenario  = st.selectbox("Select an existing scenario:", scenarios)
+                    select_button = st.form_submit_button(label="Select")
+                    if select_button:
+                        fetchScenario(userId, selectedScenario._id)
+
+        createContainer = st.container()
+        with createContainer:
+            with st.form(key="create scenario", clear_on_submit=True):
+                user_input  = st.text_area(label="Enter a short description of the scenario: ", key="input", height = 100)
+                create_button = st.form_submit_button(label="Create")
+
+                if create_button:
+                    if not user_input:
+                        user_input = f"A cozy little village"
+                    createScenario(userId, user_input)
+
+def fetchScenario(userId, scenarioId):
+    
+    #load up the scenario
+    with st.spinner("Loading scenario..."):
+        scenario = ScenarioRepository.Get(userId, scenarioId)
+
+    #load the locations
+    with st.spinner("Loading locations..."):
+        scenario.locations = LocationRepository.FetchScenario(scenario._id)
+
+    #load the items
+    with st.spinner("Loading items..."):
+        for location in scenario.locations:
+            ItemRepository.FetchLocation(location)
+
+    #TODO: load the agents
+    with st.spinner("Loading agents..."):
+        pass
+
+    #store the scenario
+    st.session_state["scenario"] = scenario
+    st.rerun()
+
+def createScenario(userId, scenarioDescription):
+    with st.spinner("Creating scenario..."):
+        #expand the setting
+        settingGen = ScenarioGenerator()
+        scenario = settingGen.Generate(scenarioDescription)
+
+    with st.spinner("Populating locations..."):
+        #create the initial list of locations
+        locationGen = LocationGenerator()
+        scenario.locations = locationGen.Generate(scenario)
+
+        #decompose each location into children if application
+        for location in scenario.locations:
+            locationGen.GenerateChildLocations(location)
+
+        items = []
+        itemGen = ItemGenerator()
+        for location in scenario.locations:
+            with st.spinner(F"Populating items for {location.name}..."):
+                items = items + itemGen.PopulateLocations(location)
+
+    with st.spinner("Reticulating splines..."):
+        for item in items:
+            itemGen.GenerateFiniteStateMachine(item)
+
+    #TODO: create all the villagers
+    with st.spinner("Creating villagers..."):
+        pass
+
+    with st.spinner("Saving scenario..."):
+        #Store the scenario
+        ScenarioRepository.CreateOrUpdate(userId, scenario)
+
+    with st.spinner("Saving locations..."):
+        for location in scenario.locations:
+            LocationRepository.CreateOrUpdateLocations(location, scenario._id)
+
+    with st.spinner("Saving items..."):
+        for location in scenario.locations:
+            ItemRepository.CreateOrUpdateFromLocation(location)
+
+    #TODO: save all the villagers
+    with st.spinner("Saving villagers..."):
+        pass
+
+    #store the scenario
+    st.session_state["scenario"] = scenario
+    st.rerun()
+
+def displayScenario(scenario):
+
+    #output the user's prompt
+    st.markdown(scenario.name)
+    st.markdown(scenario.description)
+
+    for location in scenario.locations:
+        writeLocation(location)
+
+    #TODO: write out villagers
+
+def writeLocation(location, level = 0):
+    #write the location
+    st.header(location)
+
+    #write all the items
+    st.subheader(f"Items in {location.name}:")
+    for item in location.items:
+        st.write(item)
+
     if location.locations:
         level = level + 1
         st.subheader(f"Child locations of {location.name}:")
         for child in location.locations:
-            writeLocation(child, generator, level)
-
-def createScenario():
-    userId = st.session_state["userId"]
-
-    st.subheader("Select an existing scenario, or create a new one")
-    #Get the user's scenarios
-    scenarios = ScenarioRepository.GetScenarios(userId)
-    if scenarios:
-        container = st.container()
-        with container:
-            with st.form(key="select scenario", clear_on_submit=True):
-                selectedScenario  = st.selectbox("Select an existing scenario:", scenarios)
-                select_button = st.form_submit_button(label="Select")
-                if select_button:
-                    #TODO: load up the scenario
-                    scenario = ScenarioRepository.Get(userId, selectedScenario._id)
-
-    #Get the user's input
-    container = st.container()
-    with container:
-        with st.form(key="create scenario", clear_on_submit=True):
-            user_input  = st.text_area(label="Enter a short description of the scenario: ", key="input", height = 100)
-            create_button = st.form_submit_button(label="Create")
-
-        client = OpenAI()
-        if create_button:
-            descriptions = []
-            if user_input:
-                descriptions.append(user_input)
-            else:
-                #If the user doesn't enter any input, use a default prompt
-                descriptions.append(f"A cozy little village")
-                
-            with st.spinner("Thinking..."):
-                for description in descriptions:
-                    #output the user's prompt
-                    st.markdown(description)
-
-                    #expand the setting
-                    settingGen = ScenarioGenerator()
-                    setting = settingGen.Generate(description)
-                    st.markdown(setting.description)
-                    #Store the scenario
-                    ScenarioRepository.CreateOrUpdate(userId, setting)
-
-                    #create the various locations
-                    #create the initial list of locations
-                    #locationGen = LocationGenerator()
-                    #locations = locationGen.Generate(setting)
-
-                    #decompose each location into children if application
-                    #for location in locations:
-                       #locationGen.GenerateChildLocations(location)
-                        #writeLocation(location, locationGen)
+            writeLocation(child, level)
 
 def stateMachine():
     #Get the user's input
@@ -101,7 +170,7 @@ def stateMachine():
                 #expand the state machine
                 fsmGenerator = FiniteStateMachineGenerator()
                 stateMachine = fsmGenerator.GenerateStateMachine(user_input)
-                st.markdown(stateMachine.Describe())
+                st.markdown(stateMachine)
 
 def item():
     #Get the user's input
@@ -113,23 +182,43 @@ def item():
 
         client = OpenAI()
         if submit_button:
-            if user_input is None:
+            if not user_input:
                 #If the user doesn't enter any input, use a default prompt
                 user_input = f"coffee pot"
                 
-            with st.spinner("Thinking..."):
+            with st.spinner("Creating item..."):
                 #expand the item
                 itemGenerator = ItemGenerator()
                 description = itemGenerator.Generate(user_input)
+
+            with st.spinner("Reticulating splines..."):
                 fsmGenerator = FiniteStateMachineGenerator()
                 stateMachine = fsmGenerator.GenerateStateMachine(user_input)
 
-                #Create the item
-                item = Item(user_input, description, stateMachine=stateMachine)
+            #Create the item
+            item = Item(user_input, description, stateMachine=stateMachine)
 
-                #Output the item
-                st.markdown(item.Describe())
+            #Output the item
+            st.markdown(item)
 
+            #store the item?
+            ItemRepository.Create(item, locationId="6579f88e3f9d19b41993c082")
+            item._id = None
+            ItemRepository.Create(item, characterId="6579f88e3f9d19b41993c082")
+
+            GetItems()
+
+def GetItems():
+    #get the item?
+    st.subheader("Fetch by location:")
+    items = ItemRepository.GetItems(locationId="6579f88e3f9d19b41993c082")
+    for thing in items:
+        st.write(thing)
+
+    items = ItemRepository.GetItems(characterId="6579f88e3f9d19b41993c082")
+    st.subheader("Fetch by character inventory:")
+    for thing in items:
+        st.write(thing)
 
 def items():
     #Get the user's input
@@ -164,7 +253,7 @@ def items():
                     for item in items:
                         #If the item can be interacted with, generate a state machine for it
                         generator.GenerateStateMachine(item, llm)
-                        st.markdown(f"{item.Describe()}\n\n")
+                        st.markdown(f"{item}\n\n")
 
 def characters():
     container = st.container()
@@ -209,7 +298,7 @@ In this cozy little village, time seems to slow down, allowing for a simple and 
                     characters = agentGen.GenerateCharacters(setting)
 
                     for character in characters:
-                        st.markdown(character.Describe())
+                        st.markdown(character)
 
 def storeScenario():
 
@@ -243,13 +332,14 @@ def main():
      #spin up mongoDB
     connect(host=mongoUri, db="pixelValley") #connect for mongoengine
 
-    createScenario()
+    initializeScenario()
     #stateMachine()
     #item()
+    #GetItems()
     #items()
     #characters()
     #storeScenario()
     #updateScenario()
 
 def clearSession():
-    pass
+    st.session_state["scenario"]=None

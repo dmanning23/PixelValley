@@ -16,4 +16,4 @@ class ScenarioGenerator:
     
     def GenerateLocations(self, scenario, llm= None):
         locationGen = LocationGenerator()
-        self.locations = locationGen.Generate(scenario.name)
+        self.locations = locationGen.Generate(scenario.name, llm)
