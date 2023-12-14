@@ -126,7 +126,7 @@ class ItemGenerator():
         #Recurse into the child locations
         if location.locations is not None:
             for childLocation in location.locations:
-                items = items + self.PopulateLocations(self, childLocation, llm)
+                items = items + self.PopulateLocations(childLocation, llm)
 
         #return all the items that were created for this location as well as child locations
         return items

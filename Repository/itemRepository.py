@@ -45,12 +45,13 @@ class ItemRepository:
         location.items = ItemRepository.GetItems(locationId=location._id)
         if location.locations is not None:
             for childLocation in location.locations:
-                ItemRepository.PopulateLocation(childLocation)
+                ItemRepository.FetchLocation(childLocation)
 
     @staticmethod
     def CreateOrUpdateFromLocation(location):
-        for item in location.items:
-            ItemRepository.CreateOrUpdate(item, locationId=location._id)
+        if location.items is not None:
+            for item in location.items:
+                ItemRepository.CreateOrUpdate(item, locationId=location._id)
 
         #write out child items
         if location.locations is not None:

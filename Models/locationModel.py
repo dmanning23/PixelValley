@@ -4,6 +4,7 @@ from Simulation.location import Location
 class LocationModel(Document):
     scenarioId = ObjectIdField()
     parentLocationId = ObjectIdField()
+    canSubdivide = BooleanField()
     name = StringField()
     description = StringField()
 
@@ -14,8 +15,10 @@ class LocationModel(Document):
         self.parentLocationId = parentLocationId
         self.name = location.name
         self.description = location.description
+        self.canSubdivide = location.canSubdivide 
 
     def Hydrate(self):
         return Location(self.name,
                         self.description,
+                        canSubdivide=self.canSubdivide,
                         _id = self.id)
