@@ -1,8 +1,6 @@
 import json
 from Simulation.location import Location
 from openai import OpenAI
-from langchain.schema.messages import SystemMessage, HumanMessage
-from langchain.chat_models import ChatOpenAI
 from Generators.itemGenerator import ItemGenerator
 
 class LocationGenerator():
@@ -84,7 +82,6 @@ class LocationGenerator():
             available_functions = {
                 "generate_locations": self._generate_locations,
                 "can_subdivide": self._can_subdivide,
-                #TODO add more functions here?
             }
             
             fuction_to_call = available_functions[function_called]

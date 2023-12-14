@@ -77,15 +77,6 @@ class AgentGenerator():
             #The LLM didn't call a function but provided a response
             #return response_message.content
             return None
-
-    def Generate(self, description, llm = None):
-        if llm is None:
-            llm = ChatOpenAI()
-        messages = [
-            SystemMessage(content="Expand the following description of an item."),
-            HumanMessage(content=description),]
-        result = llm.invoke(messages)
-        return result.content
     
     def GenerateCharacters(self, scenario, llm = None):
         if not llm:

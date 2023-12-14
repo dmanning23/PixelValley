@@ -1,5 +1,4 @@
 from Models.locationModel import LocationModel
-from Simulation.location import Location
 from py_linq import *
 
 class LocationRepository:

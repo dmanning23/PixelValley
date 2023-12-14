@@ -21,6 +21,7 @@ class Location:
                  canSubdivide = False,
                  locations=None,
                  items=None,
+                 agents = None,
                  _id = None):
         if _id is not None:
             self._id = _id
@@ -29,6 +30,16 @@ class Location:
         self.canSubdivide = canSubdivide
         self.locations = locations
         self.items = items
+        self.agents = agents
 
     def __str__(self) -> str:
         return f"{self.name}: {self.description}"
+
+    def GetLocations(self):
+        locations = []
+        if self.locations is not None:
+            locations = self.locations
+            for location in self.locations:
+                locations = locations + location.GetLocations()
+
+        return locations

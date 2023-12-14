@@ -1,6 +1,4 @@
 from Models.itemModel import ItemModel
-from Simulation.location import Location
-from Simulation.item import Item
 from py_linq import *
 
 class ItemRepository:

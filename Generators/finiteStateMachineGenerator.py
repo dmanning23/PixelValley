@@ -1,8 +1,5 @@
 import json
-from Simulation.location import Location
 from openai import OpenAI
-from langchain.schema.messages import SystemMessage, HumanMessage
-from langchain.chat_models import ChatOpenAI
 from Simulation.finiteStateMachine import FiniteStateMachine
 
 class FiniteStateMachineGenerator():
@@ -75,7 +72,6 @@ class FiniteStateMachineGenerator():
             #Create a list of all the available functions
             available_functions = {
                 "generate_finite_state_machine": self._generate_finite_state_machine,
-                #TODO add more functions here?
             }
             
             fuction_to_call = available_functions[function_called]
