@@ -4,3 +4,4 @@ streamlit-authenticator
 tiktoken
 langchain
 py-linq
+numpy

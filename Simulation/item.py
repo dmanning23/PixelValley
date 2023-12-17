@@ -28,12 +28,7 @@ class Item:
         self.stateMachine = stateMachine
 
     def __str__(self) -> str:
-        description = f"""{self.name}\n
+        return f"""{self.name}\n
 {self.description}\n
 It is {"interactive" if self.canInteract else "non-interactive"}\n
 It {"can" if self.canBePickedUp else "can not"} be picked up\n"""
-        
-        if self.stateMachine is not None:
-            description = description + f"\n{self.stateMachine}"
-
-        return description

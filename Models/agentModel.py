@@ -10,6 +10,7 @@ class AgentModel(Document):
     homeScenarioId = ObjectIdField()
     currentScenarioId = ObjectIdField()
     locationId = ObjectIdField()
+    currentTime = IntField()
 
     def Set(self, agent, homeScenarioId, currentScenarioId=None, locationId=None):
         if hasattr(agent, "_id"):
@@ -19,6 +20,7 @@ class AgentModel(Document):
         self.gender = agent.gender
         self.description = agent.description
         self.homeScenarioId = homeScenarioId
+        self.currentTime = agent.currentTime
         if currentScenarioId is None:
             self.currentScenarioId = homeScenarioId
         else:
@@ -30,4 +32,5 @@ class AgentModel(Document):
                      self.age,
                      self.gender,
                      self.description,
-                     self.id)
+                     self.id,
+                     currentTime=self.currentTime)

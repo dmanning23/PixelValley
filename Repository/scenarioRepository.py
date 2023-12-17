@@ -69,6 +69,6 @@ class ScenarioRepository():
             modelCollection = Enumerable(scenarioModels)
 
             #convert each model to the simulation object
-            return modelCollection.select(lambda x: Scenario(x.name, x.description, _id = x.id))
+            return modelCollection.select(lambda x: Scenario(x.name, x.description, _id = x.id)).to_list()
         except InvalidQueryError as e:
             return []

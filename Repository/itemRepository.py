@@ -36,7 +36,7 @@ class ItemRepository:
         modelCollection = Enumerable(models)
 
         #convert each model to the simulation object
-        return modelCollection.select(lambda x: x.Hydrate())
+        return modelCollection.select(lambda x: x.Hydrate()).to_list()
     
     @staticmethod
     def FetchLocation(location):

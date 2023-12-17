@@ -18,4 +18,12 @@ class Scenario:
             locations = locations + location.GetLocations()
 
         return locations
+    
+    def GetAgents(self):
+        agents = []
+        if self.agents is not None:
+            agents = agents + self.agents
+        for location in self.locations:
+            agents = agents + location.GetAgents()
 
+        return agents

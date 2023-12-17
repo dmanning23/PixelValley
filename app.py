@@ -1,30 +1,26 @@
 import os
 import streamlit as st
-from openai import OpenAI
 from keys import openAIapikey
 from keys import mongoUri
-import json
 from random import *
-import sys
 from mongoengine import *
+
 from Generators.scenarioGenerator import ScenarioGenerator
 from Generators.locationGenerator import LocationGenerator
 from Generators.itemGenerator import ItemGenerator
 from Generators.agentGenerator import AgentGenerator
-from Simulation.location import Location
-from Simulation.item import Item
-from Simulation.scenario import Scenario
-from Generators.finiteStateMachineGenerator import FiniteStateMachineGenerator
+
 from Repository.scenarioRepository import ScenarioRepository
 from Repository.locationRepository import LocationRepository
 from Repository.agentRepository import AgentRepository
 from Repository.itemRepository import ItemRepository
-from Repository.userAccessRepository import UserAccessRepository
+
+from Memory.memoryRepository import MemoryRepository
+from Memory.observationStream import ObservationStream
 
 def main():
 
     #Set up the api key for OpenAI
-    #os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
     os.environ["OPENAI_API_KEY"] = openAIapikey
 
      #spin up mongoDB
@@ -84,7 +80,8 @@ def fetchScenario(userId, scenarioId):
     #load the agents
     with st.spinner("Loading agents..."):
         #load the agents into the scenario
-        scenario.agents = AgentRepository.GetAgents(currentScenarioId=scenario._id)
+        scenario.agents = AgentRepository.GetOutsideAgents(scenario._id)
+        #load the agents into all the locations
         for location in scenario.locations:
             AgentRepository.FetchLocation(location)
 
@@ -122,16 +119,24 @@ def createScenario(userId, scenarioDescription):
     #create all the villagers
     with st.spinner("Creating villagers..."):
         agentGen = AgentGenerator()
-        scenario.agents = agentGen.GenerateCharacters(scenario)
+        agents = agentGen.GenerateCharacters(scenario)
         #place each villager somewhere
-        for agent in scenario.agents:
-            #get a random location
-            locationIndex = randint(0, len(scenario.locations))
-            #make sure there is an agent list
-            if scenario.locations[locationIndex].agents is None:
-                scenario.locations[locationIndex].agents = []
-            #add to the agent list
-            scenario.locations[locationIndex].agents.append(agent)
+        for agent in agents:
+            #put the agent outside?
+            isOutside = randint(0, 3)
+            if isOutside < 1:
+                if scenario.agents is None:
+                    scenario.agents = []
+                scenario.agents.append(agent)
+            else:
+                #get a random location
+                locationIndex = randint(0, len(scenario.locations))
+                #make sure there is an agent list
+                if scenario.locations[locationIndex].agents is None:
+                    scenario.locations[locationIndex].agents = []
+                #add to the agent list
+                scenario.locations[locationIndex].agents.append(agent)
+            
 
     with st.spinner("Saving scenario..."):
         #Store the scenario
@@ -158,14 +163,43 @@ def createScenario(userId, scenarioDescription):
 
 def displayScenario(scenario):
 
+    #Create some observational memories
+    observe_button = st.button(label="Create Observations")
+    if observe_button:
+        #create all the stuff we need to make observations
+        #create the memory repository
+        memRepo = MemoryRepository()
+
+        #create the observation stream
+        obsStream = ObservationStream(memRepo)
+
+        #make some observations
+        obsStream.CreateScenarioObservations(scenario)
+
+    clear_button = st.button(label="Clear memory")
+    if clear_button:
+        memRepo = MemoryRepository()
+        memRepo.collection.delete_many({"time": { "$lt": 10 }})
+
+    #increment the time for each agent
+    time_button = st.button(label="Increment Time")
+    if time_button:
+        for agent in scenario.GetAgents():
+            agent.IncrementTime()
+            AgentRepository.CreateOrUpdate(agent, homeScenarioId=scenario._id)
+
     #output the user's prompt
     st.markdown(scenario.name)
     st.markdown(scenario.description)
 
+    st.subheader(f"Villagers in {scenario.name}:")
+    for agent in scenario.GetAgents():
+        st.write(agent)
+
+    st.subheader(f"Villagers that are standing outside:")
     if scenario.agents is not None:
-        st.subheader(f"Villagers in {scenario.name}:")
         for agent in scenario.agents:
-            st.write(agent)
+            st.write(agent.name)
 
     for location in scenario.locations:
         writeLocation(location)
@@ -179,6 +213,8 @@ def writeLocation(location, level = 0):
     if location.items is not None:
         for item in location.items:
             st.write(item)
+            if item.stateMachine is not None:
+                st.write(item.stateMachine)
 
     #write all the villagers
     if location.agents is not None:

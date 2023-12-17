@@ -55,3 +55,7 @@ Transitions:\n\n"""
             result = result + f"{transition}\n\n"
 
         return result
+    
+    def availableActions(self):
+        #Based on the current state, what actions are available?
+        return self.transitions.where(lambda x: x.startState == self.currentState).to_list()

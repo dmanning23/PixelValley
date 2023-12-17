@@ -43,3 +43,16 @@ class Location:
                 locations = locations + location.GetLocations()
 
         return locations
+    
+    def GetAgents(self):
+        #Add my agents
+        agents = []
+        if self.agents is not None:
+            agents = agents + self.agents
+
+        #Add agents of all child locations
+        if self.locations is not None:
+            for location in self.locations:
+                agents = agents + location.GetAgents()
+
+        return agents

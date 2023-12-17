@@ -38,7 +38,7 @@ class ItemModel(Document):
                     _id = self.id)
         
         if self.stateMachine is not None:
-            item.stateMachine = self.stateMachine.Hydrate(),
+            item.stateMachine = self.stateMachine.Hydrate()
 
         return item
 
