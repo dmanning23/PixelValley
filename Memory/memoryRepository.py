@@ -7,6 +7,7 @@ from langchain.chat_models import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
 import re
 import numpy as np
+from py_linq import *
 
 DB_NAME = "pixelValley"
 COLLECTION_NAME = "memoryStream"
@@ -27,7 +28,7 @@ class MemoryRepository:
         self.embeddings = embeddings
 
         #setup the connection for doing vector search on the embeddings
-        vectorIndex = MongoDBAtlasVectorSearch.from_connection_string(
+        self.vectorIndex = MongoDBAtlasVectorSearch.from_connection_string(
             mongoUri,
             DB_NAME + "." + COLLECTION_NAME,
             OpenAIEmbeddings(disallowed_special=()),
@@ -39,7 +40,7 @@ class MemoryRepository:
         self.llm = llm
 
         #setup the prompt for memory importance
-        prompt = ChatPromptTemplate.from_template("You are: {agent}\n On a scale of 1.0 to 10.0, where 1 is pureliy mundane(e.g. brushing teeth, making bed) and 10 is extremely poignant (e.g. a breakup, college acceptance), rate the likely poignancy of the following peice of memory.\nMemory: {memory}\nRating: <fill in>")
+        prompt = ChatPromptTemplate.from_template("You are: {agent}\n On a scale of 1.0 to 10.0, where 1 is pureliy mundane(e.g. brushing teeth, making bed) and 10 is a life-altering core memory (e.g. a breakup, college acceptance), rate the likely poignancy of the following peice of memory.\nMemory: {memory}\nRating: <fill in>")
         self.chain = prompt | self.llm
 
     def CreateMemory(self, agent, description):
@@ -50,10 +51,10 @@ class MemoryRepository:
                             description = description,
                             time = agent.currentTime)
             #set the importance of the memory
-            memory.importance = self.GetMemoryImportance(agent, memory)
+            memory.importance = self._getMemoryImportance(agent, memory)
 
             #set the embedding for the memory
-            memory.embedding = self.GetMemoryEmbedding(memory)
+            memory.embedding = self._getMemoryEmbedding(memory)
 
             #Save the memory
             self.collection.insert_one(memory.__dict__)
@@ -63,7 +64,7 @@ class MemoryRepository:
             memory.time = agent.currentTime
             self.collection.update_one({"_id": memory._id}, {"$set": {"time": memory.time}})
 
-    def GetMemoryImportance(self, agent, memory):
+    def _getMemoryImportance(self, agent, memory):
         try:
             #ask the LLM how important it thinks this memory is
             response = self.chain.invoke({"agent": agent, "memory": memory.description})
@@ -79,5 +80,73 @@ class MemoryRepository:
             #llm problems, floating point conversion problems, etc?
             return 0.1
 
-    def GetMemoryEmbedding(self, memory):
+    def _getMemoryEmbedding(self, memory):
         return self.embeddings.embed_query(memory.description)
+    
+    def GetRecentMemories(self, agent, numMemories):
+        #get the most recent X number of memories for an agent
+        result = self.collection.find({"agentId": agent._id}).sort("time", -1).limit(numMemories)
+
+        #parse into Memory objects
+        memories = Enumerable(result).select(lambda x: Memory(**x))
+        return memories.to_list()
+
+    def GetImportantMemories(self, agent, numMemories):
+        #get the most important X number of memories for an agent
+        result = self.collection.find({"agentId": agent._id}).sort("importance", -1).limit(numMemories)
+        memories = Enumerable(result).select(lambda x: Memory(**x))
+        return memories.to_list()
+
+    def GetRelevantMemories(self, agent, numMemories, query):
+        #Get the embedding vector of the query
+        queryEmbedding = self.embeddings.embed_query(query)
+
+        #yall ready for this? Fire up the mongoDB aggregate pipeline to search the memoryStream database
+        agg = [ 
+            {
+                #Get the most relevant memories based on the query embedding
+                '$vectorSearch':
+                {
+                    'index': 'vector_index',
+                    'path': 'embedding',
+                    'queryVector': queryEmbedding,
+                    'numCandidates': 150,
+                    'limit': numMemories
+                }
+            },
+            {
+                #Only get memories for this agent!!!
+                '$match':
+                {
+                    'agentId': agent._id
+                }
+            },
+            {
+                #Return the whole memory and add the relevance
+                '$project':
+                {
+                    '_id': 1, 
+                    'agentId': 1,
+                    'description': 1,
+                    'time': 1, 
+                    'importance': 1, 
+                    'embedding': 1,
+                    'relevance': { '$meta': 'vectorSearchScore' }
+                }
+            }
+        ]
+
+        documents = self.collection.aggregate(pipeline=agg)
+
+        #given a query, get the most relevant X number of memores for an agent
+        #documents = self.vectorIndex.similarity_search_with_score(query=query, k=numMemories)
+        memories = []
+        for document in documents:
+            #convert to a memory object
+            memory = Memory(**document)
+            #set the relevence
+            memories.append(memory)
+        return memories
+
+
+    

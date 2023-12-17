@@ -5,7 +5,7 @@ class Memory():
     _timeWeight = 3.0
     _timeDecay = 0.005
 
-    def __init__(self, _id = None, agentId = None, description = None, time = 0, importance = 0.0, embedding=0.0):
+    def __init__(self, _id = None, agentId = None, description = None, time = 0, importance = 0.0, embedding=0.0, relevance=None):
 
         if _id is not None:
             self._id = _id
@@ -22,6 +22,9 @@ class Memory():
 
         #The vector embedding of this memory. Must be between 0.0 - 1.0
         self.embedding = embedding
+
+        if relevance is not None:
+            self.relevance = relevance
 
     def score(self, currentTime):
         #normalize the time

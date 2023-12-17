@@ -17,6 +17,7 @@ from Repository.itemRepository import ItemRepository
 
 from Memory.memoryRepository import MemoryRepository
 from Memory.observationStream import ObservationStream
+from Memory.retrievalStream import RetrievalStream
 
 def main():
 
@@ -108,12 +109,12 @@ def createScenario(userId, scenarioDescription):
         itemGen = ItemGenerator()
         for location in scenario.locations:
             with st.spinner(F"Populating items for {location.name}..."):
-                #items = items + itemGen.PopulateLocations(location)
+                items = items + itemGen.PopulateLocations(location)
                 pass
 
     with st.spinner("Reticulating splines..."):
         for item in items:
-            #itemGen.GenerateFiniteStateMachine(item)
+            itemGen.GenerateFiniteStateMachine(item)
             pass
 
     #create all the villagers
@@ -188,6 +189,13 @@ def displayScenario(scenario):
             agent.IncrementTime()
             AgentRepository.CreateOrUpdate(agent, homeScenarioId=scenario._id)
 
+    retrieve_button = st.button(label="Retrieve Memories")
+    if retrieve_button:
+        for agent in scenario.GetAgents():
+            memRepo = MemoryRepository()
+            retrieval = RetrievalStream(memRepo)
+            memories = retrieval.RetrieveMemories(agent, f"What is {agent.name} passionate about?")
+
     #output the user's prompt
     st.markdown(scenario.name)
     st.markdown(scenario.description)
@@ -206,7 +214,7 @@ def displayScenario(scenario):
 
 def writeLocation(location, level = 0):
     #write the location
-    st.header(location)
+    st.header(f"{level}: {location}")
 
     #write all the items
     st.subheader(f"Items in {location.name}:")
