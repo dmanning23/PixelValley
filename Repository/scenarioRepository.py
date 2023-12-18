@@ -13,7 +13,8 @@ class ScenarioRepository():
     @staticmethod
     def Create(userId, scenario):
         #create the model object
-        model = ScenarioModel(name=scenario.name, description=scenario.description)
+        model = ScenarioModel()
+        model.Set(scenario)
 
         #store the model in the database
         ScenarioModel.objects.insert(model)
@@ -34,9 +35,9 @@ class ScenarioRepository():
             ScenarioRepository.Create(userId, scenario)
         elif UserAccessRepository.HasAccess(userId, scenario._id):
             #check if the user has access
-            model = ScenarioModel(id=scenario._id,
-                                  name=scenario.name,
-                                  description=scenario.description)
+            model = ScenarioModel()
+            model.Set(scenario)
+
             model.save()
         else:
             #TODO: throw an error
@@ -48,7 +49,7 @@ class ScenarioRepository():
     def Get(userId, scenarioId):
         if UserAccessRepository.HasAccess(userId, scenarioId):
             model = ScenarioModel.objects.get(id=scenarioId)
-            scenario = Scenario(model.name, model.description, _id = model.id)
+            scenario = model.Hydrate()
             return scenario
 
     """
@@ -69,6 +70,6 @@ class ScenarioRepository():
             modelCollection = Enumerable(scenarioModels)
 
             #convert each model to the simulation object
-            return modelCollection.select(lambda x: Scenario(x.name, x.description, _id = x.id)).to_list()
+            return modelCollection.select(lambda x: x.Hydrate()).to_list()
         except InvalidQueryError as e:
             return []

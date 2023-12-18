@@ -5,3 +5,4 @@ tiktoken
 langchain
 py-linq
 numpy
+pandas

@@ -95,7 +95,7 @@ def createScenario(userId, scenarioDescription):
     with st.spinner("Creating scenario..."):
         #expand the setting
         settingGen = ScenarioGenerator()
-        scenario = settingGen.Generate(scenarioDescription)
+        scenario = settingGen.GenerateScenario(scenarioDescription)
 
     with st.spinner("Populating locations..."):
         #create the initial list of locations
@@ -132,7 +132,7 @@ def createScenario(userId, scenarioDescription):
                 scenario.agents.append(agent)
             else:
                 #get a random location
-                locationIndex = randint(0, len(scenario.locations))
+                locationIndex = randint(0, len(scenario.locations) - 1)
                 #make sure there is an agent list
                 if scenario.locations[locationIndex].agents is None:
                     scenario.locations[locationIndex].agents = []
