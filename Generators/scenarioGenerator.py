@@ -7,10 +7,6 @@ from openai import OpenAI
 
 class ScenarioGenerator:
 
-    def GenerateLocations(self, scenario, llm= None):
-        locationGen = LocationGenerator()
-        self.locations = locationGen.Generate(scenario.name, llm)
-
     generateScenarioFunctionDef = {
         'name': 'generate_scenario',
         'description': 'Create a scenario',
@@ -23,21 +19,21 @@ class ScenarioGenerator:
                 },
                 'name': {
                     'type': 'string',
-                    'description': 'A name for the location, based on the description'
+                    'description': 'An appropriate name for the location, based on the description'
                 },
                 'time': {
-                    'type': 'string',
-                    'description': "The start date of the scenario in ISO format"
+                    'type': 'integer',
+                    'description': "A year to be used as the start date of this scenario. It should be appropriate to the time period of the scenario."
                 },
             },
-            "required": ["title", "time", "description"]
+            "required": ["description", "name", "time"]
         }
     }
 
-    def _generate_scenario(self, description, name, time):
-        return Scenario(name=name, description=description, currentDateTime=time)
+    def _generate_scenario(self, seed, description, name, time=None):
+        return Scenario(name=name, description=description, currentDateTime=time, seed=seed)
 
-    def _parseResponse(self, response_message):
+    def _parseResponse(self, seed, response_message):
         if response_message.function_call and response_message.function_call.arguments:
             #Which function call was invoked?
             function_called = response_message.function_call.name
@@ -53,7 +49,7 @@ class ScenarioGenerator:
             function_to_call = available_functions[function_called]
 
             #Call the function with the provided arguments
-            return function_to_call(*list(function_args.values()))
+            return function_to_call(seed, *list(function_args.values()))
         else:
             #The LLM didn't call a function but provided a response
             #return response_message.content
@@ -79,8 +75,8 @@ class ScenarioGenerator:
             messages = messages,
             functions = functions, #Pass in the list of functions available to the LLM
             function_call = 'auto')
-        items = self._parseResponse(response.choices[0].message)
-        if items is None:
-            return [] #if it gets here, there was a problem with the description
+        item = self._parseResponse(shortDescription, response.choices[0].message)
+        if item is None:
+            return Scenario(shortDescription)
         else:
-            return items
+            return item

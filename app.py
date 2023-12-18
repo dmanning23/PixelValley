@@ -154,8 +154,9 @@ def createScenario(userId, scenarioDescription):
 
     #save all the villagers
     with st.spinner("Saving villagers..."):
-        for agent in scenario.agents:
-            AgentRepository.CreateOrUpdate(agent, homeScenarioId=scenario._id)
+        if scenario.agents is not None:
+            for agent in scenario.agents:
+                AgentRepository.CreateOrUpdate(agent, homeScenarioId=scenario._id)
         for location in scenario.locations:
             AgentRepository.CreateOrUpdateFromLocation(location, homeScenarioId=scenario._id)
 
@@ -199,8 +200,7 @@ def displayScenario(scenario):
             memories = reflection.CreateReflections(agent)
 
     #output the user's prompt
-    st.markdown(scenario.name)
-    st.markdown(scenario.description)
+    st.write(scenario)
 
     st.subheader(f"Villagers in {scenario.name}:")
     for agent in scenario.GetAgents():

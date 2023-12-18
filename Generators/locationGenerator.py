@@ -100,7 +100,7 @@ class LocationGenerator():
 
         messages = [
             {'role': 'system', 'content': "Given the following scenario, generate a list of physical locations"},
-            {'role': 'user', 'content': scenario.name}
+            {'role': 'user', 'content': f"{scenario.name} in the year {scenario.currentDateTime.year}: {scenario.seed}"}
         ]
 
         #Create the list of function definitions that are available to the LLM
@@ -124,7 +124,7 @@ class LocationGenerator():
         #Create our list of messages for creating locations
         messages = [
             {'role': 'system', 'content': "Based on the following description of a location, can the location be further decomposed into a list of sub-locations?"},
-            {'role': 'user', 'content': location.describe()}
+            {'role': 'user', 'content': location.name}
         ]
 
         #Create the list of function definitions that are available to the LLM

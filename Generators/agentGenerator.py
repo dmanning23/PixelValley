@@ -80,7 +80,7 @@ class AgentGenerator():
 
         messages = [
             {'role': 'system', 'content': "Given the following name and description of a location, generate a list of characters that could be found in that scenario."},
-            {'role': 'user', 'content': f"{scenario.name}: {scenario.description}"}
+            {'role': 'user', 'content': f"{scenario}"}
         ]
 
         #Create the list of function definitions that are available to the LLM

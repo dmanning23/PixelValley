@@ -3,22 +3,32 @@ import pandas as pd
 
 class Scenario:
 
-    def __init__(self, name, description = None, locations = None, agents = None, _id = None, currentDateTime = None):
+    def __init__(self, name, description = None, locations = None, agents = None, _id = None, currentDateTime = None, seed=None):
         if _id is not None:
             self._id = _id
         self.name = name
         self.description = description
         self.locations = locations
         self.agents = agents
+        self.seed = seed
 
+        #set the date time!
         if currentDateTime is None:
-            currentDateTime = dt.datetime.now()
+            currentDateTime = dt.date.today()
         if isinstance(currentDateTime, str):
-            currentDateTime = pd.to_datetime(currentDateTime)
+            #The datetime was passed in as a string
+            try:
+                currentDateTime = pd.to_datetime(currentDateTime)
+            except:
+                #There was something wrong with the datetime string
+                currentDateTime = dt.date.today()
+        elif isinstance(currentDateTime, int):
+            #The datetime was passed in as a year. The generator does this
+            currentDateTime = dt.datetime(currentDateTime, 1, 1)
         self.currentDateTime = currentDateTime
 
     def __str__(self) -> str:
-        return self.name
+        return f"{self.name} in the year {self.currentDateTime.year}. {self.description}"
     
     def GetLocations(self):
         locations = self.locations
