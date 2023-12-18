@@ -74,10 +74,10 @@ class FiniteStateMachineGenerator():
                 "generate_finite_state_machine": self._generate_finite_state_machine,
             }
             
-            fuction_to_call = available_functions[function_called]
+            function_to_call = available_functions[function_called]
 
             #Call the function with the provided arguments
-            return fuction_to_call(*list(function_args.values()))
+            return function_to_call(*list(function_args.values()))
         else:
             #The LLM didn't call a function but provided a response
             #return response_message.content

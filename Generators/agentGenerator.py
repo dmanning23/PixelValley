@@ -1,11 +1,6 @@
-from langchain.schema.messages import SystemMessage, HumanMessage
-from langchain.chat_models import ChatOpenAI
 import json
 from Simulation.agent import Agent
-from Simulation.scenario import Scenario
 from openai import OpenAI
-from langchain.schema.messages import SystemMessage, HumanMessage
-from langchain.chat_models import ChatOpenAI
 
 class AgentGenerator():
 
@@ -69,10 +64,10 @@ class AgentGenerator():
                 "generate_characters": self._generate_characters,
             }
             
-            fuction_to_call = available_functions[function_called]
+            function_to_call = available_functions[function_called]
 
             #Call the function with the provided arguments
-            return fuction_to_call(*list(function_args.values()))
+            return function_to_call(*list(function_args.values()))
         else:
             #The LLM didn't call a function but provided a response
             #return response_message.content

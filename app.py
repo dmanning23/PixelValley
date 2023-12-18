@@ -18,6 +18,7 @@ from Repository.itemRepository import ItemRepository
 from Memory.memoryRepository import MemoryRepository
 from Memory.observationStream import ObservationStream
 from Memory.retrievalStream import RetrievalStream
+from Memory.reflectionStream import ReflectionStream
 
 def main():
 
@@ -189,12 +190,13 @@ def displayScenario(scenario):
             agent.IncrementTime()
             AgentRepository.CreateOrUpdate(agent, homeScenarioId=scenario._id)
 
-    retrieve_button = st.button(label="Retrieve Memories")
-    if retrieve_button:
+    reflect_button = st.button(label="Create Reflections")
+    if reflect_button:
         for agent in scenario.GetAgents():
             memRepo = MemoryRepository()
             retrieval = RetrievalStream(memRepo)
-            memories = retrieval.RetrieveMemories(agent, f"What is {agent.name} passionate about?")
+            reflection = ReflectionStream(memRepo, retrieval)
+            memories = reflection.CreateReflections(agent)
 
     #output the user's prompt
     st.markdown(scenario.name)
