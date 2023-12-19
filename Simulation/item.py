@@ -1,4 +1,3 @@
-from Simulation.finiteStateMachine import FiniteStateMachine
 
 class Item:
     """

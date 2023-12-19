@@ -6,53 +6,53 @@ from Generators.itemGenerator import ItemGenerator
 class LocationGenerator():
 
     generateLocationsFunctionDef = {
-            'name': 'generate_locations',
-            'description': 'Create a list of locations',
-            'parameters': {
-                "type": "object",
-                "properties": {
-                    "locations": {
-                        'type': 'array',
-                        "description": "A list of locations",
-                        "items": {
-                            "type": "object",
-                            "description": "A single location",
-                            'properties': {
-                                'name': {
-                                    'type': 'string',
-                                    'description': 'Name of the location'
-                                },
-                                'description': {
-                                    'type': 'string',
-                                    'description': "A description of the location."
-                                },
-                                "canBeSubdivided" :{
-                                    "type": "boolean",
-                                    "description": "True if the description describes a location that can be subdivided, False otherwise"
-                                }
+        'name': 'generate_locations',
+        'description': 'Create a list of locations',
+        'parameters': {
+            "type": "object",
+            "properties": {
+                "locations": {
+                    'type': 'array',
+                    "description": "A list of locations",
+                    "items": {
+                        "type": "object",
+                        "description": "A single location",
+                        'properties': {
+                            'name': {
+                                'type': 'string',
+                                'description': 'Name of the location'
                             },
-                            "required": ["name", "description"]
+                            'description': {
+                                'type': 'string',
+                                'description': "A description of the location."
+                            },
+                            "canBeSubdivided" :{
+                                "type": "boolean",
+                                "description": "True if the description describes a location that can be subdivided, False otherwise"
+                            }
                         },
+                        "required": ["name", "description"]
                     },
                 },
-                "required": ["locations",]
-            }
+            },
+            "required": ["locations",]
+        }
     }
     
     canSubdivideFunctionDef = {
-            'name': 'can_subdivide',
-            'description': 'Given the description of a location, determine whether it can be further subdivided',
-            'parameters': {
-                "type": "object",
-                "properties": {
-                    "canBeSubdivided" :{
-                        "type": "boolean",
-                        "description": "True if the description describes a location that can be subdivided, otherwise false"
-                    }
-                },
-                "required": ["canBeSubdivided",]
-            }
+        'name': 'can_subdivide',
+        'description': 'Given the description of a location, determine whether it can be further subdivided',
+        'parameters': {
+            "type": "object",
+            "properties": {
+                "canBeSubdivided" :{
+                    "type": "boolean",
+                    "description": "True if the description describes a location that can be subdivided, otherwise false"
+                }
+            },
+            "required": ["canBeSubdivided",]
         }
+    }
 
     def _generate_locations(self, locations):
         response = []

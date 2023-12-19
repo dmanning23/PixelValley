@@ -9,11 +9,13 @@ from Generators.scenarioGenerator import ScenarioGenerator
 from Generators.locationGenerator import LocationGenerator
 from Generators.itemGenerator import ItemGenerator
 from Generators.agentGenerator import AgentGenerator
+from Generators.goalsGenerator import GoalsGenerator
 
 from Repository.scenarioRepository import ScenarioRepository
 from Repository.locationRepository import LocationRepository
 from Repository.agentRepository import AgentRepository
 from Repository.itemRepository import ItemRepository
+from Repository.goalsRepository import GoalsRepository
 
 from Memory.memoryRepository import MemoryRepository
 from Memory.observationStream import ObservationStream
@@ -198,6 +200,17 @@ def displayScenario(scenario):
             retrieval = RetrievalStream(memRepo)
             reflection = ReflectionStream(memRepo, retrieval)
             memories = reflection.CreateReflections(agent)
+
+    goals_button = st.button(label="Create Goals")
+    if goals_button:
+        for agent in scenario.GetAgents():
+            memRepo = MemoryRepository()
+            goalRepo = GoalsRepository()
+            goalGen = GoalsGenerator()
+            goals = goalGen.GenerateGoals(agent, scenario)
+            memRepo.CreateGoalMemories(agent, goals)
+            for goal in goals:
+                goalRepo.CreateGoal(goal)
 
     #output the user's prompt
     st.write(scenario)

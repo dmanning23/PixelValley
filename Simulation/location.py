@@ -1,4 +1,3 @@
-from Simulation.item import Item
 
 class Location:
     """

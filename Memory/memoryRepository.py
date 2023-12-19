@@ -9,18 +9,18 @@ import re
 import numpy as np
 from py_linq import *
 
-DB_NAME = "pixelValley"
-COLLECTION_NAME = "memoryStream"
-ATLAS_VECTOR_SEARCH_INDEX_NAME = "vector_index"
-
 class MemoryRepository:
+
+    DB_NAME = "pixelValley"
+    COLLECTION_NAME = "memoryStream"
+    ATLAS_VECTOR_SEARCH_INDEX_NAME = "vector_index"
 
     def __init__(self, client = None, embeddings = None, llm=None):
         #set up the pymongo connection
         if client is None:
             client = pymongo.MongoClient(mongoUri) #connect for pymongo
         db = client.pixelValley
-        self.collection = db["memoryStream"]
+        self.collection = db[MemoryRepository.COLLECTION_NAME]
 
         #setup the OpenAI connection for creating embeddings
         if embeddings is None:
@@ -30,9 +30,9 @@ class MemoryRepository:
         #setup the connection for doing vector search on the embeddings
         self.vectorIndex = MongoDBAtlasVectorSearch.from_connection_string(
             mongoUri,
-            DB_NAME + "." + COLLECTION_NAME,
+            MemoryRepository.DB_NAME + "." + MemoryRepository.COLLECTION_NAME,
             OpenAIEmbeddings(disallowed_special=()),
-            index_name=ATLAS_VECTOR_SEARCH_INDEX_NAME)
+            index_name=MemoryRepository.ATLAS_VECTOR_SEARCH_INDEX_NAME)
         
         #setup the llm for retriecing memory importance
         if llm is None:
@@ -61,8 +61,12 @@ class MemoryRepository:
         else:
             memory = Memory(**result)
             #update the time
-            memory.time = agent.currentTime
-            self.collection.update_one({"_id": memory._id}, {"$set": {"time": memory.time}})
+            self.UpdateMemoryTime(agent, memory)
+
+    #update the time of a single memory
+    def UpdateMemoryTime(self, agent, memory):
+        memory.time = agent.currentTime
+        self.collection.update_one({"_id": memory._id}, {"$set": {"time": memory.time}})
 
     def _getMemoryImportance(self, agent, memory):
         try:
@@ -147,6 +151,12 @@ class MemoryRepository:
             #set the relevence
             memories.append(memory)
         return memories
-
-
     
+    #Save an agents goals to the memory stream
+    def CreateGoalMemories(self, agent, goals):
+       
+        for goal in goals:
+            self.CreateOrUpdateGoalMemory(agent, goal)
+
+    def CreateGoalMemory(self, agent, goal):
+        self.memoryRepository.CreateMemory(agent, f"{goal}")

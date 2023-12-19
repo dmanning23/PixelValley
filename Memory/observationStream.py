@@ -58,7 +58,10 @@ class ObservationStream():
     def _createAgentInLocationMemories(self, agent, agents, location):
         if agents is not None:
             for locationAgent in agents:
-                observation = f"{locationAgent.name} is a {locationAgent.age} year old {locationAgent.gender}"
+                if agent._id == locationAgent._id:
+                    observation = f"{locationAgent}"
+                else:
+                    observation = f"{locationAgent.name} is a {locationAgent.age} year old {locationAgent.gender}"
                 self.memoryRepository.CreateMemory(agent, observation)
 
                 if location is not None:

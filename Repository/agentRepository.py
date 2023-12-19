@@ -1,6 +1,4 @@
 from Models.agentModel import AgentModel
-from Simulation.location import Location
-from Simulation.agent import Agent
 from py_linq import *
 
 class AgentRepository:

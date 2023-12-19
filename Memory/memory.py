@@ -32,5 +32,3 @@ class Memory():
 
         #Add the time, importance, and relevance to get the final score
         return timeScore + self.importance + self.relevance
-    
-    

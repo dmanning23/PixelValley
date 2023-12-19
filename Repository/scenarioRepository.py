@@ -1,7 +1,6 @@
 from mongoengine import *
 from Models.scenarioModel import ScenarioModel
 from Models.userAccessModel import UserAccessModel
-from Simulation.scenario import Scenario
 from Repository.userAccessRepository import UserAccessRepository
 from py_linq import *
 

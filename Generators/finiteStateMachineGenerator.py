@@ -5,57 +5,57 @@ from Simulation.finiteStateMachine import FiniteStateMachine
 class FiniteStateMachineGenerator():
 
     generateFiniteStateMachineFunctionDef = {
-            'name': 'generate_finite_state_machine',
-            'description': 'Create a finite state machine for an object',
-            'parameters': {
-                "type": "object",
-                "properties": {
-                    "states": {
-                        'type': 'array',
-                        "description": "A list of states that the obejct can be in",
-                        "items": {
-                            'type': 'string',
-                            'description': 'Name of the state'
-                        },
-                    },
-                    "initialState": {
+        'name': 'generate_finite_state_machine',
+        'description': 'Create a finite state machine for an object',
+        'parameters': {
+            "type": "object",
+            "properties": {
+                "states": {
+                    'type': 'array',
+                    "description": "A list of states that the obejct can be in",
+                    "items": {
                         'type': 'string',
-                        'description': 'The initial state of the finite state machine. This must come from the list of states'
-                    },
-                    "actions": {
-                        'type': 'array',
-                        "description": "A list of actions that can be performed on the object",
-                        "items": {
-                            'type': 'string',
-                            'description': 'Name of the action'
-                        },
-                    },
-                    "transitions": {
-                        'type': 'array',
-                        "description": "A list of state transitions of the object",
-                        "items": {
-                            "type": "object",
-                            "description": "A single transtion, consisting of a start state, an action, and the target state that the object changes to.",
-                            'properties': {
-                                'startState': {
-                                    'type': 'string',
-                                    'description': 'The starting state of the object. This must come from the list of states'
-                                },
-                                'action': {
-                                    'type': 'string',
-                                    'description': 'The action that when applied to the startState, results in the targetState. This must be from the list of actions'
-                                },
-                                'targetState': {
-                                    'type': 'string',
-                                    'description': 'The target state of the object that is the result of the action being applied while the object is in the start state. This must come from the list of states'
-                                },
-                            },
-                            "required": ["startingState", "action", "targetState"]
-                        },
+                        'description': 'Name of the state'
                     },
                 },
-                "required": ["states","initialState","actions","transitions"]
-            }
+                "initialState": {
+                    'type': 'string',
+                    'description': 'The initial state of the finite state machine. This must come from the list of states'
+                },
+                "actions": {
+                    'type': 'array',
+                    "description": "A list of actions that can be performed on the object",
+                    "items": {
+                        'type': 'string',
+                        'description': 'Name of the action'
+                    },
+                },
+                "transitions": {
+                    'type': 'array',
+                    "description": "A list of state transitions of the object",
+                    "items": {
+                        "type": "object",
+                        "description": "A single transtion, consisting of a start state, an action, and the target state that the object changes to.",
+                        'properties': {
+                            'startState': {
+                                'type': 'string',
+                                'description': 'The starting state of the object. This must come from the list of states'
+                            },
+                            'action': {
+                                'type': 'string',
+                                'description': 'The action that when applied to the startState, results in the targetState. This must be from the list of actions'
+                            },
+                            'targetState': {
+                                'type': 'string',
+                                'description': 'The target state of the object that is the result of the action being applied while the object is in the start state. This must come from the list of states'
+                            },
+                        },
+                        "required": ["startingState", "action", "targetState"]
+                    },
+                },
+            },
+            "required": ["states","initialState","actions","transitions"]
+        }
     }
     
     def _generate_finite_state_machine(self, states, initialState, actions, transitions):

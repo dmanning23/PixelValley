@@ -1,45 +1,44 @@
 import json
-from Simulation.agent import Agent
 from openai import OpenAI
 
 class ReflectionStream():
 
     askQuestionsFunctionDef = {
-            'name': 'ask_questions',
-            'description': 'Ask a list of high level questions',
-            'parameters': {
-                "type": "object",
-                "properties": {
-                    "questions": {
-                        'type': 'array',
-                        "description": "A list of questions",
-                        "items": {
-                            "type": "string",
-                            "description": "A single question",
-                        },
+        'name': 'ask_questions',
+        'description': 'Ask a list of high level questions',
+        'parameters': {
+            "type": "object",
+            "properties": {
+                "questions": {
+                    'type': 'array',
+                    "description": "A list of questions",
+                    "items": {
+                        "type": "string",
+                        "description": "A single question",
                     },
                 },
-                "required": ["questions"]
-            }
+            },
+            "required": ["questions"]
+        }
     }
 
     createInsightFunctionDef = {
-            'name': 'create_insight',
-            'description': 'Create a high level insight',
-            'parameters': {
-                "type": "object",
-                "properties": {
-                    "insights": {
-                        'type': 'array',
-                        "description": "A list of high level insights",
-                        "items": {
-                            "type": "string",
-                            "description": "A single high level insight",
-                        },
+        'name': 'create_insight',
+        'description': 'Create a high level insight',
+        'parameters': {
+            "type": "object",
+            "properties": {
+                "insights": {
+                    'type': 'array',
+                    "description": "A list of high level insights",
+                    "items": {
+                        "type": "string",
+                        "description": "A single high level insight",
                     },
                 },
-                "required": ["insights"]
-            }
+            },
+            "required": ["insights"]
+        }
     }
 
     def __init__(self, memoryRepository, retrievalStream, llm=None):

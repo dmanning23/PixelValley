@@ -1,4 +1,3 @@
-
 from Simulation.agent import Agent
 from mongoengine import *
 

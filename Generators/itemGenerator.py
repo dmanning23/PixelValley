@@ -10,41 +10,41 @@ from Generators.finiteStateMachineGenerator import FiniteStateMachineGenerator
 class ItemGenerator():
 
     generateItemsFunctionDef = {
-            'name': 'generate_items',
-            'description': 'Create a list of items',
-            'parameters': {
-                "type": "object",
-                "properties": {
+        'name': 'generate_items',
+        'description': 'Create a list of items',
+        'parameters': {
+            "type": "object",
+            "properties": {
+                "items": {
+                    'type': 'array',
+                    "description": "A list of items",
                     "items": {
-                        'type': 'array',
-                        "description": "A list of items",
-                        "items": {
-                            "type": "object",
-                            "description": "A single item",
-                            'properties': {
-                                'name': {
-                                    'type': 'string',
-                                    'description': 'Name of the item'
-                                },
-                                'description': {
-                                    'type': 'string',
-                                    'description': "A description of the location."
-                                },
-                                'hasFiniteStateMachine': {
-                                    'type': 'boolean',
-                                    'description': 'True if this is an item that can be represented by a finite state machine and have more than one state, False otherwise',
-                                },
-                                'canBePickedUp': {
-                                    'type': 'boolean',
-                                    'description': "True if this is an item that could be picked up and added to a player's inventory, False otherwise",
-                                }
+                        "type": "object",
+                        "description": "A single item",
+                        'properties': {
+                            'name': {
+                                'type': 'string',
+                                'description': 'Name of the item'
                             },
-                            "required": ["name", "description"]
+                            'description': {
+                                'type': 'string',
+                                'description': "A description of the location."
+                            },
+                            'hasFiniteStateMachine': {
+                                'type': 'boolean',
+                                'description': 'True if this is an item that can be represented by a finite state machine and have more than one state, False otherwise',
+                            },
+                            'canBePickedUp': {
+                                'type': 'boolean',
+                                'description': "True if this is an item that could be picked up and added to a player's inventory, False otherwise",
+                            }
                         },
+                        "required": ["name", "description"]
                     },
                 },
-                "required": ["items",]
-            }
+            },
+            "required": ["items",]
+        }
     }
 
     def _generate_items(self, items):

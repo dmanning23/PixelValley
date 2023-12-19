@@ -5,41 +5,41 @@ from openai import OpenAI
 class AgentGenerator():
 
     generateCharactersFunctionDef = {
-            'name': 'generate_characters',
-            'description': 'Create a list of characters',
-            'parameters': {
-                "type": "object",
-                "properties": {
-                    "characters": {
-                        'type': 'array',
-                        "description": "A list of characters",
-                        "items": {
-                            "type": "object",
-                            "description": "A single character",
-                            'properties': {
-                                'name': {
-                                    'type': 'string',
-                                    'description': 'Name of the character'
-                                },
-                                'age': {
-                                    'type': 'integer',
-                                    'description': "The age of the character"
-                                },
-                                'gender': {
-                                    'type': 'string',
-                                    'description': "The character's chosen gender",
-                                },
-                                'description': {
-                                    'type': 'string',
-                                    'description': "A description of this character, including appearance and personality",
-                                },
+        'name': 'generate_characters',
+        'description': 'Create a list of characters',
+        'parameters': {
+            "type": "object",
+            "properties": {
+                "characters": {
+                    'type': 'array',
+                    "description": "A list of characters",
+                    "items": {
+                        "type": "object",
+                        "description": "A single character",
+                        'properties': {
+                            'name': {
+                                'type': 'string',
+                                'description': 'Name of the character'
                             },
-                            "required": ["name", "age", "gender", "description"]
+                            'age': {
+                                'type': 'integer',
+                                'description': "The age of the character"
+                            },
+                            'gender': {
+                                'type': 'string',
+                                'description': "The character's chosen gender",
+                            },
+                            'description': {
+                                'type': 'string',
+                                'description': "A description of this character, including appearance and personality",
+                            },
                         },
+                        "required": ["name", "age", "gender", "description"]
                     },
                 },
-                "required": ["characters",]
-            }
+            },
+            "required": ["characters",]
+        }
     }
 
     def _generate_characters(self, characters):

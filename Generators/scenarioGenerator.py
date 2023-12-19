@@ -1,7 +1,6 @@
 from langchain.schema.messages import SystemMessage, HumanMessage
 from langchain.chat_models import ChatOpenAI
 from Simulation.scenario import Scenario
-from Generators.locationGenerator import LocationGenerator
 import json
 from openai import OpenAI
 
@@ -13,10 +12,6 @@ class ScenarioGenerator:
         'parameters': {
             "type": "object",
             "properties": {
-                'description': {
-                    'type': 'string',
-                    'description': "An expanded description of the scenario",
-                },
                 'name': {
                     'type': 'string',
                     'description': 'An appropriate name for the location, based on the description'
@@ -26,12 +21,12 @@ class ScenarioGenerator:
                     'description': "A year to be used as the start date of this scenario. It should be appropriate to the time period of the scenario."
                 },
             },
-            "required": ["description", "name", "time"]
+            "required": ["name", "time"]
         }
     }
 
-    def _generate_scenario(self, seed, description, name, time=None):
-        return Scenario(name=name, description=description, currentDateTime=time, seed=seed)
+    def _generate_scenario(self, seed, name, time=None):
+        return Scenario(name=name, currentDateTime=time, seed=seed)
 
     def _parseResponse(self, seed, response_message):
         if response_message.function_call and response_message.function_call.arguments:
@@ -75,8 +70,17 @@ class ScenarioGenerator:
             messages = messages,
             functions = functions, #Pass in the list of functions available to the LLM
             function_call = 'auto')
-        item = self._parseResponse(shortDescription, response.choices[0].message)
-        if item is None:
-            return Scenario(shortDescription)
-        else:
-            return item
+        scenario = self._parseResponse(shortDescription, response.choices[0].message)
+        if scenario is None:
+            scenario = Scenario(shortDescription)
+        scenario.description = self.Generate(f"{scenario.name} in the year {scenario.currentDateTime.year}: {scenario.seed}")
+        return scenario
+
+    def Generate(self, description, llm = None):
+        if llm is None:
+            llm = ChatOpenAI()
+        messages = [
+            SystemMessage(content="Expand the following description of a scenario."),
+            HumanMessage(content=description)]
+        result = llm.invoke(messages)
+        return result.content
