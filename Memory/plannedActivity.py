@@ -1,18 +1,17 @@
+from mongoengine import *
+class PlannedActivity(Document):
 
-class PlannedActivity():
+    agentId = ObjectIdField()
+    date = DateField()
+    description = StringField()
+    starttime = StringField()
+    timeframe = StringField()
 
-    def __init__(self, agentId, description, starttime, timeframe, _id = None):
-
-        if _id is not None:
-            self._id = _id
-
-        #The agent that has this goal
+    def Set(self, agentId=None, description=None, starttime=None, timeframe=None):
         self.agentId = agentId
-        
         self.description = description
         self.starttime = starttime
         self.timeframe = timeframe
 
     def __str__(self) -> str:
-        return f"{self.starttime}\n{self.description}\n{self.timeframe}"
-        
+        return f"{self.description} at {self.starttime} for {self.timeframe}"

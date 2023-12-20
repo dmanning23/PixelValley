@@ -2,7 +2,7 @@ from Memory.plannedActivity import PlannedActivity
 import json
 from openai import OpenAI
 
-class PlanningStream():
+class PlannedActivityGenerator():
 
     createPlansFunctionDef = {
         'name': 'create_planned_activities',
@@ -44,14 +44,16 @@ class PlanningStream():
     def _create_planned_activities(self, agent, activities):
         response = []
         for activity in activities:
-            response.append(self._create_goal(agent, **activity))
+            response.append(self._create_activity(agent, **activity))
         return response
 
     def _create_activity(self, agent, description, starttime, timeframe):
-        return PlannedActivity(agentId=agent._id, 
-                               description=description,
-                               starttime=starttime,
-                               timeframe=timeframe)
+        activity = PlannedActivity()
+        activity.Set(agentId=agent._id,
+                     description=description,
+                     starttime=starttime,
+                     timeframe=timeframe)
+        return activity
 
     def _parseResponse(self, agent, response_message):
         if response_message.function_call and response_message.function_call.arguments:
@@ -67,22 +69,49 @@ class PlanningStream():
             #The LLM didn't call a function but provided a response
             return None
 
-    def GenerateDailyPlans(self, agent, goals, llm = None):
+    def GenerateDailyPlans(self, agent, goals, importantMemories, llm = None):
         if not llm:
             llm = OpenAI()
 
         messages = [
-            {'role': 'system', 'content': "Given the following description of a character and their short and long term goals, create a daily plan of activities."},
+            {'role': 'system', 'content': "Given the following description of a character, their short and long term goals, and a list of important things to remember for today, create a daily plan of activities for the entire day."},
             {'role': 'user', 'content': f"{agent}"}
         ]
 
+        #Add the agents goals to their plans
         for goal in goals:
-            messages.append({'role': 'user', 'content': f"{goal}"})
+            messages.append({'role': 'user', 'content': f"Goal: {goal}"})
 
-        #TODO: get a list of memories of anything important going on today for the agent
+        #Make sure the agent takes into account any important things to remember for today
+        for memory in importantMemories:
+            messages.append({'role': 'user', 'content': f"Important thing to remember for today: {memory}"})
 
         #Create the list of function definitions that are available to the LLM
-        functions = [ PlanningStream.createPlansFunctionDef ]
+        functions = [ PlannedActivityGenerator.createPlansFunctionDef ]
+
+        #Call the LLM...
+        response = llm.chat.completions.create(
+            model = 'gpt-3.5-turbo',
+            temperature=1.0,
+            messages = messages,
+            functions = functions, #Pass in the list of functions available to the LLM
+            function_call = 'auto')
+        plannedActivities = self._parseResponse(agent, response.choices[0].message)
+        if plannedActivities is None:
+            plannedActivities = []
+        return plannedActivities
+    
+    def BreakDownPlannedActivity(self, agent, plannedActivity, llm = None):
+        if not llm:
+            llm = OpenAI()
+
+        messages = [
+            {'role': 'system', 'content': "Given the following itinerary item, break it down it into a list of finer-grained actions of 15 -30 minute chunks."},
+            {'role': 'user', 'content': f"{plannedActivity}"}
+        ]
+
+        #Create the list of function definitions that are available to the LLM
+        functions = [ PlannedActivityGenerator.createPlansFunctionDef ]
 
         #Call the LLM...
         response = llm.chat.completions.create(

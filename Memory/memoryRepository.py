@@ -156,7 +156,7 @@ class MemoryRepository:
     def CreateGoalMemories(self, agent, goals):
        
         for goal in goals:
-            self.CreateOrUpdateGoalMemory(agent, goal)
+            self.CreateGoalMemory(agent, goal)
 
     def CreateGoalMemory(self, agent, goal):
-        self.memoryRepository.CreateMemory(agent, f"{goal}")
+        self.CreateMemory(agent, f"{goal}")

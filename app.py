@@ -10,6 +10,7 @@ from Generators.locationGenerator import LocationGenerator
 from Generators.itemGenerator import ItemGenerator
 from Generators.agentGenerator import AgentGenerator
 from Generators.goalsGenerator import GoalsGenerator
+from Generators.plannedActivityGenerator import PlannedActivityGenerator
 
 from Repository.scenarioRepository import ScenarioRepository
 from Repository.locationRepository import LocationRepository
@@ -21,6 +22,8 @@ from Memory.memoryRepository import MemoryRepository
 from Memory.observationStream import ObservationStream
 from Memory.retrievalStream import RetrievalStream
 from Memory.reflectionStream import ReflectionStream
+from Memory.goalsStream import GoalsStream
+from Memory.plannedActivityStream import PlannedActivityStream
 
 def main():
 
@@ -168,19 +171,6 @@ def createScenario(userId, scenarioDescription):
 
 def displayScenario(scenario):
 
-    #Create some observational memories
-    observe_button = st.button(label="Create Observations")
-    if observe_button:
-        #create all the stuff we need to make observations
-        #create the memory repository
-        memRepo = MemoryRepository()
-
-        #create the observation stream
-        obsStream = ObservationStream(memRepo)
-
-        #make some observations
-        obsStream.CreateScenarioObservations(scenario)
-
     clear_button = st.button(label="Clear memory")
     if clear_button:
         memRepo = MemoryRepository()
@@ -193,24 +183,38 @@ def displayScenario(scenario):
             agent.IncrementTime()
             AgentRepository.CreateOrUpdate(agent, homeScenarioId=scenario._id)
 
-    reflect_button = st.button(label="Create Reflections")
-    if reflect_button:
-        for agent in scenario.GetAgents():
-            memRepo = MemoryRepository()
-            retrieval = RetrievalStream(memRepo)
-            reflection = ReflectionStream(memRepo, retrieval)
-            memories = reflection.CreateReflections(agent)
+    memRepo = MemoryRepository()
+    obsStream = ObservationStream(memRepo)
+    goalRepo = GoalsRepository()
+    retrieval = RetrievalStream(memRepo)
+    reflection = ReflectionStream(memRepo, retrieval)
+    goalGen = GoalsGenerator()
+    goalsStream = GoalsStream(memRepo, goalGen, goalRepo)
+    activityGen = PlannedActivityGenerator()
+    activityStream = PlannedActivityStream(memRepo, activityGen, goalRepo, retrieval)
+    
+    createContainer = st.container()
+    with createContainer:
+        #Create some observational memories
+        observe_button = st.button(label="Create Observations")
+        if observe_button:
+            #make some observations
+            obsStream.CreateScenarioObservations(scenario)
 
-    goals_button = st.button(label="Create Goals")
-    if goals_button:
-        for agent in scenario.GetAgents():
-            memRepo = MemoryRepository()
-            goalRepo = GoalsRepository()
-            goalGen = GoalsGenerator()
-            goals = goalGen.GenerateGoals(agent, scenario)
-            memRepo.CreateGoalMemories(agent, goals)
-            for goal in goals:
-                goalRepo.CreateGoal(goal)
+        reflect_button = st.button(label="Create Reflections")
+        if reflect_button:
+            for agent in scenario.GetAgents():
+                memories = reflection.CreateReflections(agent)
+
+        goals_button = st.button(label="Create Goals")
+        if goals_button:
+            for agent in scenario.GetAgents():
+                goalsStream.CreateGoals(agent, scenario)
+
+        plans_button = st.button(label="Create Daily Planned Activities")
+        if plans_button:
+            for agent in scenario.GetAgents():
+                activityStream.CreatePlannedActivities(agent, scenario)
 
     #output the user's prompt
     st.write(scenario)
