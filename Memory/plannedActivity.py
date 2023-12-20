@@ -6,6 +6,7 @@ import pytimeparse
 class PlannedActivity(Document):
 
     agentId = ObjectIdField()
+    day = DateField()
     startdatetime = DateTimeField()
     enddatetime = DateTimeField()
     description = StringField()
@@ -21,8 +22,11 @@ class PlannedActivity(Document):
         self.priority = priority
 
     def SetDateTimes(self, scenario):
-        #try to set the start time
         
+        #grab the date
+        self.day = scenario.currentDateTime.date()
+
+        #set the start time
         #parse the starttime created from the llm
         cal = Calendar()
         parsedStart, parse_status = cal.parse(self.starttime) 

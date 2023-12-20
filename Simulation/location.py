@@ -55,3 +55,12 @@ class Location:
                 agents = agents + location.GetAgents()
 
         return agents
+    
+    def GetAgentLocation(self, agent):
+        if self.agents is not None:
+            if agent in self.agents:
+                return self
+        for location in self.locations:
+            result = location.GetAgentLocation(agent)
+            if result is not None:
+                return result

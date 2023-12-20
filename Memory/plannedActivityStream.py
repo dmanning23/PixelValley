@@ -37,3 +37,15 @@ class PlannedActivityStream:
         
         #create planned activity memories
         self.memoryRepository.CreateMemory(agent, f'On {activity.date.strftime("%d %B, %Y")}, I plan to {activity.description} at {activity.starttime} for {activity.timeframe}')
+
+    def GetCurrentPlannedActivity(self, agent, currentTime):
+        #Get all the planned activities, sorted by priority:
+        activities = PlannedActivity.objects(agentId = agent._id, day = currentTime.date()).order_by("-priority", "+startdatetime")
+        for activity in activities:
+            if activity.startdatetime <= currentTime <= activity.enddatetime:
+                return activity
+        
+        #This character is not busy right now!
+        result = PlannedActivity()
+        result.description = "Idle"
+        return result

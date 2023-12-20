@@ -4,6 +4,10 @@ from keys import openAIapikey
 from keys import mongoUri
 from random import *
 from mongoengine import *
+from datetime import timedelta
+
+from Simulation.location import Location
+from Simulation.item import Item
 
 from Generators.scenarioGenerator import ScenarioGenerator
 from Generators.locationGenerator import LocationGenerator
@@ -24,6 +28,8 @@ from Memory.retrievalStream import RetrievalStream
 from Memory.reflectionStream import ReflectionStream
 from Memory.goalsStream import GoalsStream
 from Memory.plannedActivityStream import PlannedActivityStream
+
+from Interactions.interactionGenerator import InteractionGenerator
 
 def main():
 
@@ -192,6 +198,7 @@ def displayScenario(scenario):
     goalsStream = GoalsStream(memRepo, goalGen, goalRepo)
     activityGen = PlannedActivityGenerator()
     activityStream = PlannedActivityStream(memRepo, activityGen, goalRepo, retrieval)
+    interactionGen = InteractionGenerator()
     
     createContainer = st.container()
     with createContainer:
@@ -215,6 +222,49 @@ def displayScenario(scenario):
         if plans_button:
             for agent in scenario.GetAgents():
                 activityStream.CreatePlannedActivities(agent, scenario)
+
+        change_location_button = st.button(label="Change Agent Locations?")
+        if change_location_button:
+            #create a date time for testing
+            testDate = scenario.currentDateTime + timedelta(hours= 12)
+            for agent in scenario.GetAgents():
+                #get the agents current location
+                location = scenario.GetAgentLocation(agent)
+                if location is None:
+                    location = Location("Outside", "Outdoors")
+                #get the agents current planned activity
+                plannedActivity = activityStream.GetCurrentPlannedActivity(agent, testDate)
+                #get a list of memories that are relevant to that activity
+                memories = retrieval.RetrieveMemories(agent, f"What is the best location to {plannedActivity.description}?")
+                #test the location changer!
+                result = interactionGen.AskToChangeLocation(agent, location, plannedActivity, memories)
+
+        change_item_button = st.button(label="Swap Items?")
+        if change_item_button:
+            #create a date time for testing
+            testDate = scenario.currentDateTime + timedelta(hours= 12)
+            for agent in scenario.GetAgents():
+                #get the agents current location
+                location = scenario.GetAgentLocation(agent)
+                if location is None:
+                    location = Location("Outside", "Outdoors")
+                #get the agents current planned activity
+                plannedActivity = activityStream.GetCurrentPlannedActivity(agent, testDate)
+                #get a list of items in the current location
+                if location.items is not None:
+                    items = location.items
+                else:
+                    items = []
+
+                #get the agent's current item
+                if agent.currentItem is None:
+                    currentItem = Item("Nothing", "Empty handed")
+                else:
+                    currentItem = agent.currentItem
+
+                #test the location changer!
+                if currentItem.name is not "Nothing" or len(items) > 0:
+                    result = interactionGen.AskToChangeItem(agent, currentItem, items, plannedActivity)
 
     #output the user's prompt
     st.write(scenario)

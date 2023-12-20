@@ -1,3 +1,4 @@
+
 class Agent:
     """
     An agent in the simulation.
@@ -10,14 +11,14 @@ class Agent:
     gender: string
         chosen gender of the character
     description:
-        a short decription of the character's personality
+        a short description of the character's personality
     currentTime:
         this is an integer that is used to age the agent's memories.
         It is stored here rather than in the simulation because agents will 
         eventually be allowed to move between simulations.
     """
 
-    def __init__(self, name, age, gender, description, _id = None, currentTime = 0):
+    def __init__(self, name, age, gender, description, _id = None, currentTime = 0, currentItem = None):
         if _id is not None:
             self._id = _id
         self.name = name
@@ -26,7 +27,8 @@ class Agent:
         self.description = description
         self.currentTime = currentTime
 
-        #TODO: is the agent holding an item?
+        #is the agent holding an item?
+        self.currentItem = currentItem
 
         #TODO: is the agent interacting with an item?
 
