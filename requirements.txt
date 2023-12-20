@@ -6,3 +6,5 @@ langchain
 py-linq
 numpy
 pandas
+parsedatetime
+pytimeparse

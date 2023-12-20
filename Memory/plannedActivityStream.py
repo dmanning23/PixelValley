@@ -21,11 +21,16 @@ class PlannedActivityStream:
             #Break down planned activities into smllaer chunks
             subPlans = self.plannedActivityGenerator.BreakDownPlannedActivity(agent, plan)
             for subPlan in subPlans:
+                #Increase the priority of sub plans
+                subPlan.priority = subPlan.priority + 1
                 self._planStorage(subPlan, agent, scenario)
 
     def _planStorage(self, activity, agent, scenario):
         #set date of all the plans
         activity.date = scenario.currentDateTime.date()
+
+        #try to set the datetime objects of the activity
+        activity.SetDateTimes(scenario)
 
         #tore plans
         PlannedActivity.objects.insert(activity)
