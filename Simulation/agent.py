@@ -18,7 +18,7 @@ class Agent:
         eventually be allowed to move between simulations.
     """
 
-    def __init__(self, name, age, gender, description, _id = None, currentTime = 0, currentItem = None):
+    def __init__(self, name, age, gender, description, _id = None, currentTime = 0, currentItem = None, usingItem = None):
         if _id is not None:
             self._id = _id
         self.name = name
@@ -29,6 +29,8 @@ class Agent:
 
         #is the agent holding an item?
         self.currentItem = currentItem
+
+        self.usingItem = usingItem
 
         #TODO: is the agent interacting with an item?
 

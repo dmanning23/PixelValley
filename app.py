@@ -5,6 +5,7 @@ from keys import mongoUri
 from random import *
 from mongoengine import *
 from datetime import timedelta
+from py_linq import *
 
 from Simulation.location import Location
 from Simulation.item import Item
@@ -199,6 +200,7 @@ def displayScenario(scenario):
     activityGen = PlannedActivityGenerator()
     activityStream = PlannedActivityStream(memRepo, activityGen, goalRepo, retrieval)
     interactionGen = InteractionGenerator()
+    itemRepo = ItemRepository()
     
     createContainer = st.container()
     with createContainer:
@@ -265,6 +267,43 @@ def displayScenario(scenario):
                 #test the location changer!
                 if currentItem.name is not "Nothing" or len(items) > 0:
                     result = interactionGen.AskToChangeItem(agent, currentItem, items, plannedActivity)
+
+        item_interaction_button = st.button(label="Use an item?")
+        if item_interaction_button:
+            #create a date time for testing
+            testDate = scenario.currentDateTime + timedelta(hours= 12)
+            for agent in scenario.GetAgents():
+                #get the agents current location
+                location = scenario.GetAgentLocation(agent)
+                if location is None:
+                    location = Location("Outside", "Outdoors")
+                #get the agents current planned activity
+                plannedActivity = activityStream.GetCurrentPlannedActivity(agent, testDate)
+                #get a list of items in the current location
+                if location.items is not None:
+                    items = location.items
+                else:
+                    items = []
+
+                #get the agent's current item
+                if agent.currentItem is None:
+                    currentItem = Item("Nothing", "Empty handed")
+                else:
+                    currentItem = agent.currentItem
+
+                #test the location changer!
+                if currentItem.name is not "Nothing" or len(items) > 0:
+                    result = interactionGen.AskToUseItem(agent, currentItem, items, plannedActivity)
+
+                    if result is not None:
+                        #Find out what the agent knows about that item
+                        memories = retrieval.RetrieveMemories(agent, f"What do I know about {result}?")
+                        chosenItem = Enumerable(items).first_or_default(lambda x: x.name.lower() == result.lower())
+                        if chosenItem is not None:
+                            action = interactionGen.PerformItemAction(agent, chosenItem, plannedActivity, memories)
+
+                            #TODO: if that is not a valid interaction, create a memory for it.
+
 
     #output the user's prompt
     st.write(scenario)

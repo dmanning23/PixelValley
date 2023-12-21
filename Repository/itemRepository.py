@@ -55,3 +55,9 @@ class ItemRepository:
         if location.locations is not None:
             for childLocation in location.locations:
                 ItemRepository.CreateOrUpdateFromLocation(childLocation)
+
+    def GetItemByName(self, name):
+        model = ItemModel.objects.get(name=name)
+        if model is not None:
+            return model.Hydate()
+        return None
