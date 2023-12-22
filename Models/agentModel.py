@@ -10,6 +10,7 @@ class AgentModel(Document):
     currentScenarioId = ObjectIdField()
     locationId = ObjectIdField()
     currentTime = IntField()
+    status = StringField()
 
     def Set(self, agent, homeScenarioId, currentScenarioId=None, locationId=None):
         if hasattr(agent, "_id"):
@@ -25,6 +26,7 @@ class AgentModel(Document):
         else:
             self.currentScenarioId = currentScenarioId
         self.locationId = locationId
+        self.status = agent.status
 
     def Hydrate(self):
         return Agent(self.name,
@@ -32,4 +34,5 @@ class AgentModel(Document):
                      self.gender,
                      self.description,
                      self.id,
-                     currentTime=self.currentTime)
+                     currentTime=self.currentTime,
+                     status = self.status)

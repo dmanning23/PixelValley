@@ -4,11 +4,9 @@ from keys import openAIapikey
 from keys import mongoUri
 from random import *
 from mongoengine import *
-from datetime import timedelta
 from py_linq import *
 
-from Simulation.location import Location
-from Simulation.item import Item
+from Simulation.timeStream import TimeStream
 
 from Generators.scenarioGenerator import ScenarioGenerator
 from Generators.locationGenerator import LocationGenerator
@@ -31,6 +29,7 @@ from Memory.goalsStream import GoalsStream
 from Memory.plannedActivityStream import PlannedActivityStream
 
 from Interactions.interactionGenerator import InteractionGenerator
+from Interactions.interactionStream import InteractionStream
 
 def main():
 
@@ -46,9 +45,11 @@ def clearSession():
     st.session_state["scenario"]=None
 
 def initializeScenario():
+    userId = st.session_state["userId"]
+
     if "scenario" in st.session_state and st.session_state['scenario'] is not None:
         scenario = st.session_state["scenario"]
-        displayScenario(scenario)
+        displayScenario(userId, scenario)
 
     else:
         st.subheader("Select an existing scenario, or create a new one")
@@ -176,19 +177,7 @@ def createScenario(userId, scenarioDescription):
     st.session_state["scenario"] = scenario
     st.rerun()
 
-def displayScenario(scenario):
-
-    clear_button = st.button(label="Clear memory")
-    if clear_button:
-        memRepo = MemoryRepository()
-        memRepo.collection.delete_many({"time": { "$lt": 10 }})
-
-    #increment the time for each agent
-    time_button = st.button(label="Increment Time")
-    if time_button:
-        for agent in scenario.GetAgents():
-            agent.IncrementTime()
-            AgentRepository.CreateOrUpdate(agent, homeScenarioId=scenario._id)
+def displayScenario(userId, scenario):
 
     memRepo = MemoryRepository()
     obsStream = ObservationStream(memRepo)
@@ -201,7 +190,19 @@ def displayScenario(scenario):
     activityStream = PlannedActivityStream(memRepo, activityGen, goalRepo, retrieval)
     interactionGen = InteractionGenerator()
     itemRepo = ItemRepository()
+    agentRepo = AgentRepository()
+    iteractionStream = InteractionStream(activityStream, retrieval, interactionGen, itemRepo, memRepo, agentRepo)
+    timeStream = TimeStream()
     
+    clear_button = st.button(label="Clear memory")
+    if clear_button:
+        memRepo.collection.delete_many({"time": { "$lt": 10 }})
+
+    #increment the time for each agent
+    time_button = st.button(label="Increment Time")
+    if time_button:
+        timeStream.IncrementTime(userId, scenario)
+
     createContainer = st.container()
     with createContainer:
         #Create some observational memories
@@ -213,7 +214,7 @@ def displayScenario(scenario):
         reflect_button = st.button(label="Create Reflections")
         if reflect_button:
             for agent in scenario.GetAgents():
-                memories = reflection.CreateReflections(agent)
+                reflection.CreateReflections(agent)
 
         goals_button = st.button(label="Create Goals")
         if goals_button:
@@ -227,83 +228,23 @@ def displayScenario(scenario):
 
         change_location_button = st.button(label="Change Agent Locations?")
         if change_location_button:
-            #create a date time for testing
-            testDate = scenario.currentDateTime + timedelta(hours= 12)
             for agent in scenario.GetAgents():
-                #get the agents current location
-                location = scenario.GetAgentLocation(agent)
-                if location is None:
-                    location = Location("Outside", "Outdoors")
-                #get the agents current planned activity
-                plannedActivity = activityStream.GetCurrentPlannedActivity(agent, testDate)
-                #get a list of memories that are relevant to that activity
-                memories = retrieval.RetrieveMemories(agent, f"What is the best location to {plannedActivity.description}?")
-                #test the location changer!
-                result = interactionGen.AskToChangeLocation(agent, location, plannedActivity, memories)
+                iteractionStream.ChangeLocation(agent, scenario)
 
         change_item_button = st.button(label="Swap Items?")
         if change_item_button:
-            #create a date time for testing
-            testDate = scenario.currentDateTime + timedelta(hours= 12)
             for agent in scenario.GetAgents():
-                #get the agents current location
-                location = scenario.GetAgentLocation(agent)
-                if location is None:
-                    location = Location("Outside", "Outdoors")
-                #get the agents current planned activity
-                plannedActivity = activityStream.GetCurrentPlannedActivity(agent, testDate)
-                #get a list of items in the current location
-                if location.items is not None:
-                    items = location.items
-                else:
-                    items = []
-
-                #get the agent's current item
-                if agent.currentItem is None:
-                    currentItem = Item("Nothing", "Empty handed")
-                else:
-                    currentItem = agent.currentItem
-
-                #test the location changer!
-                if currentItem.name is not "Nothing" or len(items) > 0:
-                    result = interactionGen.AskToChangeItem(agent, currentItem, items, plannedActivity)
+                iteractionStream.SwapItems(agent, scenario)
 
         item_interaction_button = st.button(label="Use an item?")
         if item_interaction_button:
-            #create a date time for testing
-            testDate = scenario.currentDateTime + timedelta(hours= 12)
             for agent in scenario.GetAgents():
-                #get the agents current location
-                location = scenario.GetAgentLocation(agent)
-                if location is None:
-                    location = Location("Outside", "Outdoors")
-                #get the agents current planned activity
-                plannedActivity = activityStream.GetCurrentPlannedActivity(agent, testDate)
-                #get a list of items in the current location
-                if location.items is not None:
-                    items = location.items
-                else:
-                    items = []
+                iteractionStream.UseItem(agent, scenario)
 
-                #get the agent's current item
-                if agent.currentItem is None:
-                    currentItem = Item("Nothing", "Empty handed")
-                else:
-                    currentItem = agent.currentItem
-
-                #test the location changer!
-                if currentItem.name is not "Nothing" or len(items) > 0:
-                    result = interactionGen.AskToUseItem(agent, currentItem, items, plannedActivity)
-
-                    if result is not None:
-                        #Find out what the agent knows about that item
-                        memories = retrieval.RetrieveMemories(agent, f"What do I know about {result}?")
-                        chosenItem = Enumerable(items).first_or_default(lambda x: x.name.lower() == result.lower())
-                        if chosenItem is not None:
-                            action = interactionGen.PerformItemAction(agent, chosenItem, plannedActivity, memories)
-
-                            #TODO: if that is not a valid interaction, create a memory for it.
-
+        item_interaction_button = st.button(label="Set Agent statuses")
+        if item_interaction_button:
+            for agent in scenario.GetAgents():
+                iteractionStream.SetAgentStatus(agent, scenario)
 
     #output the user's prompt
     st.write(scenario)

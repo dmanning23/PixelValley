@@ -85,36 +85,54 @@ class InteractionGenerator():
         }
     }
 
+    setStatusFunctionDef = {
+        'name': 'set_status',
+        'description': "Set a character's status",
+        'parameters': {
+            "type": "object",
+            "properties": {
+                'status': {
+                    'type': 'string',
+                    'description': "The character's new status"
+                },
+            },
+        "required": ["status" ]
+        }
+    }
+
     def __init__(self):
         pass
 
     def _no_changes(self, agent):
         #don't make any changes to the agent
-        return None 
+        return None
 
     def _change_location(self, agent, locationName):
-        #TODO: what location is the character trying to move to?
+        #what location is the character trying to move to?
         return locationName
     
     def _pick_up_item(self, agent, itemName):
-        #TODO: what item is the character trying to pick up?
+        #what item is the character trying to pick up?
         return itemName
     
     def _drop_item(self, agent):
-        #TODO: send a message to drop the current item
-        pass
+        #send a message to drop the current item
+        return "Drop current item"
 
     def _use_item(self, agent, itemName):
-        #TODO: what item is the character trying to use?
+        #what item is the character trying to use?
         return itemName
     
     def _stop_using_item(self, agent):
-        #TODO: send a message to stop using the current item
-        pass
+        #send a message to stop using the current item
+        return "Stop using item"
 
     def _item_action(self, agent, actionName):
-        #TODO: what action is the agent trying to perform?
+        #what action is the agent trying to perform?
         return actionName
+    
+    def _set_status(self, agent, status):
+        return status
 
     def _parseResponse(self, agent, response_message, available_functions):
         if response_message.function_call and response_message.function_call.arguments:
@@ -186,14 +204,13 @@ class InteractionGenerator():
         #Call the LLM...
         response = llm.chat.completions.create(
             model = 'gpt-3.5-turbo',
-            temperature=1.0,
+            temperature=0.9,
             messages = messages,
             functions = functions, #Pass in the list of functions available to the LLM
             function_call = 'auto')
         return self._parseResponse(agent, response.choices[0].message, available_functions)
-        
 
-    def AskToChangeItem(self, agent, currentItem, items, plannedActivity, llm = None):
+    def AskToChangeItem(self, agent, currentItem, pickableItems, plannedActivity, llm = None):
         if not llm:
             llm = OpenAI()
 
@@ -201,9 +218,8 @@ class InteractionGenerator():
             {'role': 'system', 'content': f"You are {agent.name} and you are currently trying to {plannedActivity.description}. You are currently holding {currentItem.name}. Given the following list of available items, will you choose to pick up one of the available items, drop the current item, or do nothing?"},
         ]
 
-        for item in items:
-            if item.canBePickedUp:
-                messages.append({'role': 'user', 'content': f"{item.name}: {item.description}"})
+        for item in pickableItems:
+            messages.append({'role': 'user', 'content': f"{item.name}: {item.description}"})
 
         #Create the list of function definitions that are available to the LLM
         functions = [
@@ -221,13 +237,13 @@ class InteractionGenerator():
         #Call the LLM...
         response = llm.chat.completions.create(
             model = 'gpt-3.5-turbo',
-            temperature=1.0,
+            temperature=0.8,
             messages = messages,
             functions = functions, #Pass in the list of functions available to the LLM
             function_call = 'auto')
         return self._parseResponse(agent, response.choices[0].message, available_functions)
     
-    def AskToUseItem(self, agent, currentItem, items, plannedActivity, llm = None):
+    def AskToUseItem(self, agent, currentItem, interactableItems, plannedActivity, llm = None):
         if not llm:
             llm = OpenAI()
 
@@ -235,12 +251,8 @@ class InteractionGenerator():
             {'role': 'system', 'content': f"You are {agent.name} and you are currently trying to {plannedActivity.description}. You are currently using the {currentItem.name}. Given the following list of available items, will you choose to use one of the available items, stop using the current item, or do nothing?"},
         ]
 
-        if currentItem.canInteract:
+        for item in interactableItems:
             messages.append({'role': 'user', 'content': f"{item.name}: {item.description}"})
-
-        for item in items:
-            if item.canInteract:
-                messages.append({'role': 'user', 'content': f"{item.name}: {item.description}"})
 
         #Create the list of function definitions that are available to the LLM
         functions = [
@@ -290,6 +302,40 @@ class InteractionGenerator():
         response = llm.chat.completions.create(
             model = 'gpt-3.5-turbo',
             temperature=1.0,
+            messages = messages,
+            functions = functions, #Pass in the list of functions available to the LLM
+            function_call = 'auto')
+        return self._parseResponse(agent, response.choices[0].message, available_functions)
+    
+    def AskToSetStatus(self, agent, currentItem, usingItem, currentLocation, plannedActivity, llm = None):
+        if not llm:
+            llm = OpenAI()
+
+        messages = [
+            {'role': 'system', 'content': f"Given the following sitution, set your status to an appropriate message."},
+            {'role': 'user', 'content': f"You are {agent.name}"},
+            {'role': 'user', 'content': f"Your current status message is {agent.status}"},
+            {'role': 'user', 'content': f"You are currently {plannedActivity.description}"},
+            {'role': 'user', 'content': f"You have a {currentItem.name}"},
+            {'role': 'user', 'content': f"You are using the {usingItem.name}"},
+            {'role': 'user', 'content': f"You are in the {currentLocation.name}"},
+        ]
+
+        #Create the list of function definitions that are available to the LLM
+        functions = [
+            InteractionGenerator.noChangesFunctionDef,
+            InteractionGenerator.setStatusFunctionDef,
+        ]
+
+        available_functions = {
+            "set_status": self._set_status,
+            "no_changes":self._no_changes
+        }
+
+        #Call the LLM...
+        response = llm.chat.completions.create(
+            model = 'gpt-3.5-turbo',
+            temperature=0.65,
             messages = messages,
             functions = functions, #Pass in the list of functions available to the LLM
             function_call = 'auto')

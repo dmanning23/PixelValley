@@ -118,6 +118,8 @@ class ItemGenerator():
         else:
             return items
         
+    #TODO: create items that are sitting outside in this scenario
+        
     def PopulateLocations(self, location, llm=None):
         #Create the items for the location
         location.items = self.GenerateItems(location, llm)

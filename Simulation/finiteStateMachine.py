@@ -42,8 +42,8 @@ class FiniteStateMachine:
                 #set the current state
                 self.currentState = transition.targetState
 
-                #return the result
-                return transition.output
+        #return whether or not that action had any effect on the state machine
+        return transition is not None
 
     def __str__(self) -> str:
         result = f"""Current state: {self.currentState}\n

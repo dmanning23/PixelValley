@@ -15,9 +15,13 @@ class ItemRepository:
         if not hasattr(item, "_id"):
             ItemRepository.Create(item, locationId, characterId)
         else:
-            model = ItemModel()
-            model.Set(item, locationId, characterId)
-            model.save()
+            ItemRepository.Update(item, locationId, characterId)
+
+    @staticmethod
+    def Update(item, locationId=None, characterId=None):
+        model = ItemModel()
+        model.Set(item, locationId, characterId)
+        model.save()
         
     @staticmethod
     def Get(itemId):

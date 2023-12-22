@@ -15,10 +15,14 @@ class AgentRepository:
         if not hasattr(agent, "_id"):
             AgentRepository.Create(agent, homeScenarioId, currentScenarioId, locationId)
         else:
-            model = AgentModel()
-            model.Set(agent, homeScenarioId, currentScenarioId, locationId)
-            model.save()
-        
+            AgentRepository.Update(agent, homeScenarioId, currentScenarioId, locationId)
+
+    @staticmethod
+    def Update(agent, homeScenarioId, currentScenarioId=None, locationId=None):
+        model = AgentModel()
+        model.Set(agent, homeScenarioId, currentScenarioId, locationId)
+        model.save()
+
     @staticmethod
     def Get(agentId):
         model = AgentModel.objects.get(id=agentId)

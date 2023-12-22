@@ -46,12 +46,27 @@ class Scenario:
 
         return agents
     
-    def GetAgentLocation(self, agent):
+    def FindAgent(self, agent):
         if self.agents is not None:
             if agent in self.agents:
                 #Return None and sort this out later
                 return None
         for location in self.locations:
-            result = location.GetAgentLocation(agent)
+            result = location.FindAgent(agent)
             if result is not None:
                 return result
+            
+    def FindLocation(self, locationName):
+        #Check if the location we are trying to get is the great outdoors
+        if locationName.lower() == "outside":
+            return None
+        
+        #Go through the list of locations and try to find that location
+        for location in self.locations:
+            result = location.FindLocation(locationName)
+            if result is not None:
+                return result
+            
+        #The location was not found
+        return None
+    

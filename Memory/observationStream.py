@@ -34,9 +34,11 @@ class ObservationStream():
         #Generate memories of all the agents in this location
         self._createAgentInLocationMemories(agent, agents, location)
 
-        #TODO: generate memories of all the items being held by the various agents
+        #generate memories of all the items being held by the various agents
+        self._createAgentCurrentItemMemories(agent, agents)
 
-        #TODO: generate memories of items being used by the various agents
+        #generate memories of items being used by the various agents
+        self._createAgentUsingItemMemories(agent, agents)
 
         #generate memories of all the items in this location
         self._createItemInLocationMemories(agent, location)
@@ -71,6 +73,20 @@ class ObservationStream():
                     observation = f"{locationAgent.name} is outside"
                     self.memoryRepository.CreateMemory(agent, observation)
 
+    def _createAgentCurrentItemMemories(self, agent, agents):
+        if agents is not None:
+            for locationAgent in agents:
+                if locationAgent.currentItem is not None:
+                    observation = f"{locationAgent.name} is holding a {locationAgent.currentItem.name}"
+                    self.memoryRepository.CreateMemory(agent, observation)
+
+    def _createAgentUsingItemMemories(self, agent, agents):
+        if agents is not None:
+            for locationAgent in agents:
+                if locationAgent.usingItem is not None:
+                    observation = f"{locationAgent.name} is using the {locationAgent.currentItem.name}"
+                    self.memoryRepository.CreateMemory(agent, observation)
+
     def _createItemInLocationMemories(self, agent, location):
         if location is not None and location.items is not None:
             for item in location.items:
@@ -82,25 +98,26 @@ class ObservationStream():
     def _createItemPickupMemoriesMemories(self, agent, location):
         if location is not None and location.items is not None:
             for item in location.items:
-                if item.canBePickedUp:
-                    observation = f"The {item.name} in {location.name} can be picked up"
-                    self.memoryRepository.CreateMemory(agent, observation)
+                canBePickedUp = "can" if item.canBePickedUp else "can not"
+                observation = f"The {item.name} in {location.name} {canBePickedUp} be picked up"
+                self.memoryRepository.CreateMemory(agent, observation)
 
     def _createItemUseMemoriesMemories(self, agent, location):
         if location is not None and location.items is not None:
             for item in location.items:
-                if item.canInteract:
-                    observation = f"The {item.name} in {location.name} is usable"
+                canBeUsed = "can" if item.canBePickedUp else "can not"
+                #TODO: this verbage is not great and will probably confuse the LLM
+                observation = f"The {item.name} in {location.name} {canBeUsed} have actions applied to it"
+                self.memoryRepository.CreateMemory(agent, observation)
+                if item.canInteract and item.stateMachine is not None:
+                    observation = f"The {item.name} in {location.name} is currently {item.stateMachine.currentState}"
                     self.memoryRepository.CreateMemory(agent, observation)
-                    if item.stateMachine is not None:
-                        observation = f"The {item.name} in {location.name} is currently {item.stateMachine.currentState}"
-                        self.memoryRepository.CreateMemory(agent, observation)
 
-                        #Create observations of the various functions of the coffee machine
-                        transitions = item.stateMachine.availableActions()
-                        for transition in transitions:
-                            observation = f"If the {item.name} is {transition.startState} and the action {transition.action} is applied, it will change to {transition.targetState}"
-                            self.memoryRepository.CreateMemory(agent, observation)
+                    #Create observations of the various functions of the coffee machine
+                    transitions = item.stateMachine.availableActions()
+                    for transition in transitions:
+                        observation = f'If the {item.name} is "{transition.startState}" and the action "{transition.action}" is applied, it will change to "{transition.targetState}"'
+                        self.memoryRepository.CreateMemory(agent, observation)
 
     def _createNavigationMemories(self, agent, location=None, parentLocation=None, childLocations = None):
         if location is not None and parentLocation is not None:

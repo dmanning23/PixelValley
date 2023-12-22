@@ -56,11 +56,23 @@ class Location:
 
         return agents
     
-    def GetAgentLocation(self, agent):
+    def FindAgent(self, agent):
         if self.agents is not None:
             if agent in self.agents:
                 return self
         for location in self.locations:
-            result = location.GetAgentLocation(agent)
+            result = location.FindAgent(agent)
             if result is not None:
                 return result
+            
+    def FindLocation(self, locationName):
+        if locationName.lower() == self.name.lower():
+            return self
+        if self.locations is not None:
+            for childLocation in self.locations:
+                result = childLocation.FindLocation(locationName)
+                if result is not None:
+                    return result
+                
+         #The location was not found
+        return None
