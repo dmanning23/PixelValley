@@ -30,6 +30,7 @@ from Memory.plannedActivityStream import PlannedActivityStream
 
 from Interactions.interactionGenerator import InteractionGenerator
 from Interactions.interactionStream import InteractionStream
+from Interactions.actionGenerator import ActionGenerator
 
 def main():
 
@@ -191,7 +192,8 @@ def displayScenario(userId, scenario):
     interactionGen = InteractionGenerator()
     itemRepo = ItemRepository()
     agentRepo = AgentRepository()
-    iteractionStream = InteractionStream(activityStream, retrieval, interactionGen, itemRepo, memRepo, agentRepo)
+    actionGenerator = ActionGenerator()
+    iteractionStream = InteractionStream(activityStream, retrieval, interactionGen, itemRepo, memRepo, agentRepo, actionGenerator)
     timeStream = TimeStream()
     
     clear_button = st.button(label="Clear memory")
@@ -245,6 +247,11 @@ def displayScenario(userId, scenario):
         if item_interaction_button:
             for agent in scenario.GetAgents():
                 iteractionStream.SetAgentStatus(agent, scenario)
+
+        action_button = st.button(label="Plan actions")
+        if action_button:
+            for agent in scenario.GetAgents():
+                iteractionStream.PlanActions(agent, scenario)
 
     #output the user's prompt
     st.write(scenario)

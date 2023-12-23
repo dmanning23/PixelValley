@@ -95,8 +95,12 @@ class InteractionGenerator():
                     'type': 'string',
                     'description': "The character's new status"
                 },
+                'emoji': {
+                    'type': 'string',
+                    'description': "An emoji that expresses the status"
+                },
             },
-        "required": ["status" ]
+        "required": ["status", "emoji" ]
         }
     }
 
@@ -131,7 +135,7 @@ class InteractionGenerator():
         #what action is the agent trying to perform?
         return actionName
     
-    def _set_status(self, agent, status):
+    def _set_status(self, agent, status, emoji=None):
         return status
 
     def _parseResponse(self, agent, response_message, available_functions):

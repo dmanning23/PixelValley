@@ -36,6 +36,9 @@ class Agent:
         #is the agent interacting with an item?
         self.usingItem = usingItem
 
+        #TODO: set the agent's emoji
+        #TODO: store the agent's emoji
+
         #what is the agent doing?
         self.status = status
 

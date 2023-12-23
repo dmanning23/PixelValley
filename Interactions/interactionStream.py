@@ -8,13 +8,15 @@ class InteractionStream():
                  interactionGenerator,
                  itemRepository,
                  memoryRepository,
-                 agentRepository):
+                 agentRepository,
+                 actionGenerator):
         self.activityStream = activityStream
         self.memoryRetrieval = memoryRetrieval
         self.interactionGenerator = interactionGenerator
         self.itemRepository = itemRepository
         self.memoryRepository = memoryRepository
         self.agentRepository = agentRepository
+        self.actionGenerator = actionGenerator
         pass
 
     #get the agents current location
@@ -190,7 +192,7 @@ class InteractionStream():
             result = self.interactionGenerator.AskToUseItem(agent, usingItem, availableItems, plannedActivity)
 
             if result == "Stop using item":
-                self._stopUsingItem(agent, )
+                self._stopUsingItem(agent,)
             if result is not None:
                 chosenItem = Enumerable(availableItems).first_or_default(lambda x: x.name.lower() == result.lower())
                 if chosenItem is not None:
@@ -220,3 +222,23 @@ class InteractionStream():
                 self.agentRepository.CreateOrUpdate(agent, homeScenarioId=scenario._id)
             else:
                 self.agentRepository.CreateOrUpdate(agent, homeScenarioId=scenario._id, locationId = location._id)
+
+    def PlanActions(self, agent, scenario):
+        location = self._findAgent(agent, scenario)
+
+        #get the agents current planned activity
+        plannedActivity = self.activityStream.GetCurrentPlannedActivity(agent, scenario.currentDateTime)
+        
+        #get a list of memories that are relevant to that activity
+        memories = self.memoryRetrieval.RetrieveMemories(agent, f"What do I know that will help {plannedActivity.description}?")
+        
+        #Check if the agent wants to change locations
+        result = self.actionGenerator.CreateActions(scenario.currentDateTime, agent, location, plannedActivity, memories)
+        if result is not None:
+            #TODO: parse the list of chosen actions?
+            pass
+            #Find the location they want to go to
+            #nextLocation = scenario.FindLocation(result)
+            #if result.lower() == "outside" or nextLocation is not None:
+                #self._moveAgent(agent, scenario, location, nextLocation)
+                #TODO: tried to go to a nonexistent location
