@@ -218,6 +218,8 @@ class InteractionGenerator():
         if not llm:
             llm = OpenAI()
 
+        #TODO: update this to take a list of enums for possible actions
+        
         messages = [
             {'role': 'system', 'content': f"You are {agent.name} and you are currently trying to {plannedActivity.description}. You are currently holding {currentItem.name}. Given the following list of available items, will you choose to pick up one of the available items, drop the current item, or do nothing?"},
         ]

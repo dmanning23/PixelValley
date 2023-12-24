@@ -230,10 +230,14 @@ class InteractionStream():
         plannedActivity = self.activityStream.GetCurrentPlannedActivity(agent, scenario.currentDateTime)
         
         #get a list of memories that are relevant to that activity
-        memories = self.memoryRetrieval.RetrieveMemories(agent, f"What do I know that will help {plannedActivity.description}?")
-        
+        #memories = self.memoryRetrieval.RetrieveMemories(agent, f"What do I know that will help {plannedActivity.description}?")
+        memories = self.memoryRetrieval.RetrieveMemories(agent, f"What are important places for {plannedActivity.description}?", 10)
+        memories.extend(self.memoryRetrieval.RetrieveMemories(agent, f"What items would help {plannedActivity.description}?", 10))
+        memories.extend(self.memoryRetrieval.RetrieveMemories(agent, f"Who would help {plannedActivity.description}?", 10))
+
         #Check if the agent wants to change locations
-        result = self.actionGenerator.CreateActions(scenario.currentDateTime, agent, location, plannedActivity, memories)
+        #result = self.actionGenerator.CreateActions(scenario.currentDateTime, agent, location, plannedActivity, memories)
+        result = self.actionGenerator.BreakDownPlannedActivity(agent, plannedActivity, memories)
         if result is not None:
             #TODO: parse the list of chosen actions?
             pass

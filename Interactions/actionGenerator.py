@@ -22,69 +22,29 @@ class ActionGenerator():
                         "type": "object",
                         "description": "A single action",
                         'properties': {
-                            'predicate': {
+                            'verb': {
                                 'type': 'string',
                                 "enum": [
-                                    "close",
-                                    "cut",
-                                    "drink",
+                                    "go to",
+                                    "pick up",
+                                    "take",
                                     "drop",
                                     "eat",
-                                    "find",
-                                    "grab",
-                                    "greet",
-                                    "idle",
-                                    "lie on",
-                                    "look at",
-                                    "move",
-                                    "open",
-                                    "pick up",
-                                    "plug in",
-                                    "unplug",
-                                    "point at",
-                                    "pour",
-                                    #"pour into",
-                                    "pull",
-                                    "push",
-                                    "put",
-                                    #"put in",
-                                    #"put on",
-                                    "put back",
-                                    "take off",
-                                    "put on",
-                                    "read",
-                                    "release",
-                                    "rinse",
-                                    "run to",
-                                    "scrub",
-                                    "sit on",
+                                    "use",
+                                    "talk to",
                                     "sleep",
-                                    "squeeze",
-                                    "stand up",
-                                    "switch off",
-                                    "switch on",
-                                    "touch",
-                                    "turn to",
-                                    "type on",
                                     "wake up",
-                                    "walk to",
-                                    "wash",
-                                    "watch",
-                                    "wipe",
+                                    "greet",
                                     "attack",
                                 ],
-                                'description': 'The verb of the action to perform, selected from a list of possible actions'
+                                'description': 'The verb of the action to perform. Must be selected from the list of possible actions!'
                             },
-                            'subject': {
+                            'target': {
                                 'type': 'string',
-                                'description': "The person, place, or thing that the action is being performed on"
-                            },
-                            'directObject': {
-                                'type': 'string',
-                                'description': "The person, place, or thing that is receiving the action",
+                                'description': "The person, place, or thing that is the target of the action"
                             },
                         },
-                        "required": ["predicate"]
+                        "required": ["verb"]
                     },
                 },
             },
@@ -98,7 +58,7 @@ class ActionGenerator():
             response.append(self._create_action(**action))
         return response
 
-    def _create_action(self, predicate, subject = None, directObject = None):
+    def _create_action(self, verb, target = None):
         #TODO: create an action?
         #return Item(name, description, hasFiniteStateMachine, canBePickedUp)
         pass
@@ -131,7 +91,6 @@ class ActionGenerator():
         functions = [
             ActionGenerator.createActionsFunctionDef
         ]
-
         available_functions = {
             "create_actions":self._create_actions
         }
@@ -139,8 +98,38 @@ class ActionGenerator():
         #Call the LLM...
         response = llm.chat.completions.create(
             model = 'gpt-3.5-turbo',
-            temperature=0.7,
+            temperature=0,
             messages = messages,
             functions = functions, #Pass in the list of functions available to the LLM
             function_call = 'auto')
         return self._parseResponse(agent, response.choices[0].message, available_functions)
+
+    def BreakDownPlannedActivity(self, agent, plannedActivity, importantMemories, llm = None):
+        if not llm:
+            llm = OpenAI()
+
+        messages = [
+            {'role': 'system', 'content': "Given the following itinerary item and a list of important things to remember about it, break it down into a list of detailed activities."},
+            {'role': 'user', 'content': f"Planned activity: {plannedActivity}"}
+        ]
+
+        for memory in importantMemories:
+            messages.append({'role': 'user', 'content': f"Important thing to remember: {memory}"})
+
+        #Create the list of function definitions that are available to the LLM
+        functions = [ ActionGenerator.createActionsFunctionDef ]
+        available_functions = {
+            "create_actions":self._create_actions
+        }
+
+        #Call the LLM...
+        response = llm.chat.completions.create(
+            model = 'gpt-3.5-turbo',
+            temperature=0.5,
+            messages = messages,
+            functions = functions, #Pass in the list of functions available to the LLM
+            function_call = 'auto')
+        plannedActivities = self._parseResponse(agent, response.choices[0].message, available_functions)
+        if plannedActivities is None:
+            plannedActivities = []
+        return plannedActivities

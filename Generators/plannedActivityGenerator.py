@@ -106,7 +106,7 @@ class PlannedActivityGenerator():
             llm = OpenAI()
 
         messages = [
-            {'role': 'system', 'content': "Given the following itinerary item, break it down it into a list of finer-grained actions of 15 -30 minute chunks."},
+            {'role': 'system', 'content': "Given the following itinerary item, break it down into a list of finer-grained actions of 15-30 minute chunks."},
             {'role': 'user', 'content': f"{plannedActivity}"}
         ]
 
