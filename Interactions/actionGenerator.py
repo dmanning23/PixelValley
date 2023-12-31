@@ -39,7 +39,7 @@ class ActionGenerator():
                                 ],
                                 'description': 'The verb of the action to perform. Must be selected from the list of possible actions!'
                             },
-                            'target': {
+                            'item': {
                                 'type': 'string',
                                 'description': "The person, place, or thing that is the target of the action"
                             },

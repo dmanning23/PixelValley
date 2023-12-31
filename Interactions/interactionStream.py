@@ -180,32 +180,49 @@ class InteractionStream():
     def UseItem(self, agent, scenario):
         location = self._findAgent(agent, scenario)
         availableItems = self._getAvailableItems(location)
-        usingItem = self._getUsingItem(agent)
+        currentItem = self._getCurrentItem(agent)
         plannedActivity = self.activityStream.GetCurrentPlannedActivity(agent, scenario.currentDateTime)
 
         #Limit the available items to things that can be interacted with
-        availableItems.append(self._getCurrentItem(agent))
-        availableItems = Enumerable(location.items).where(lambda x: x.canInteract)
+        #availableItems.append(self._getCurrentItem(agent))
+        #availableItems = Enumerable(location.items).where(lambda x: x.canInteract)
 
+        #get a list of memories that are relevant to that activity
+        memories = self.memoryRetrieval.RetrieveMemories(agent, f"What items would be useful for {plannedActivity.description}?")
+        
         #test the location changer!
-        if usingItem.name != "Nothing" or len(availableItems) > 0:
-            result = self.interactionGenerator.AskToUseItem(agent, usingItem, availableItems, plannedActivity)
+        if currentItem.name != "Nothing" or len(availableItems) > 0:
+            result = self.interactionGenerator.UseItem(agent, currentItem, availableItems, plannedActivity, memories)
 
-            if result == "Stop using item":
-                self._stopUsingItem(agent,)
             if result is not None:
-                chosenItem = Enumerable(availableItems).first_or_default(lambda x: x.name.lower() == result.lower())
-                if chosenItem is not None:
-                    agent.usingItem = chosenItem
+                if result == "Drop current item":
+                    if agent.currentItem is not None:
+                        self._dropItem(agent.currentItem, agent, location)
+                        #TODO: tried to drop an item when not holding one
+                if result == "Stop using item":
+                    self._stopUsingItem(agent,)
+                if result is not None:
+                    chosenItem = Enumerable(availableItems).first_or_default(lambda x: x.name.lower() == result.lower())
 
-                    #Find out what the agent knows about that item
-                    memories = self.memoryRetrieval.RetrieveMemories(agent, f"What do I know about actions that can be applied to {result}?")
-                    
-                    #Ask the agent what they want to do with the item
-                    action = self.interactionGenerator.PerformItemAction(agent, chosenItem, plannedActivity, memories)
-                    if action is not None:
-                        self._useItem(chosenItem, agent, action)
-                        #TODO: tried to use a non-existent or unreachable item
+                    #TODO: use the item?
+                    #TODO: set the item status?
+                    #TODO: set the item emoji?
+                    #TODO: persist all that stuff?
+                    #TODO: create relevant memories?
+
+                    #TODO: how effective is it to perform {action} on {item} to {plannedActivity}?
+
+                    #if chosenItem is not None:
+                        #agent.usingItem = chosenItem
+
+                        ##Find out what the agent knows about that item
+                        #memories = self.memoryRetrieval.RetrieveMemories(agent, f"What do I know about actions that can be applied to {result}?")
+                        
+                        ##Ask the agent what they want to do with the item
+                        #action = self.interactionGenerator.PerformItemAction(agent, chosenItem, plannedActivity, memories)
+                        #if action is not None:
+                            #self._useItem(chosenItem, agent, action)
+                            ##TODO: tried to use a non-existent or unreachable item
 
     def SetAgentStatus(self, agent, scenario):
         location = self._findAgent(agent, scenario)
@@ -246,3 +263,9 @@ class InteractionStream():
             #if result.lower() == "outside" or nextLocation is not None:
                 #self._moveAgent(agent, scenario, location, nextLocation)
                 #TODO: tried to go to a nonexistent location
+        
+        #TODO: take a look at this prompt from the mkturkan generative-agents repo
+        #prompt = "You are {}. Your plans are: {}. You are currently in {} with the following description: {}. It is currently {}:00. The following people are in this area: {}. You can interact with them.".format(self.name, self.plans, location.name, town_areas[location.name], str(global_time), ', '.join(people))
+        
+
+    #TODO: start conversation?

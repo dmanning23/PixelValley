@@ -41,25 +41,37 @@ class InteractionGenerator():
         }
     }
 
-    dropItemFunctionDef = {
-        'name': 'drop_item',
-        'description': 'Drop the currently help item',
-        'parameters': {
-        }
-    }
-
     useItemFunctionDef = {
         'name': 'use_item',
-        'description': 'Use an item',
+        'description': 'Perform an action on an available item',
         'parameters': {
             "type": "object",
             "properties": {
+                'action': {
+                    'type': 'string',
+                    'description': 'The action to perform on the item'
+                },
                 'itemName': {
                     'type': 'string',
                     'description': 'The name of the item to use'
                 },
+                'itemStatus': {
+                    'type': 'string',
+                    'description': "If the status of the item is changed from the action being performed on it, this will be the item's new status"
+                },
+                'emoji': {
+                    'type': 'string',
+                    'description': "An emoji that expresses the item's new status"
+                },
             },
-        "required": ["itemName" ]
+        "required": [ "action", "itemName" ]
+        }
+    }
+
+    dropItemFunctionDef = {
+        'name': 'drop_item',
+        'description': 'Drop the currently help item',
+        'parameters': {
         }
     }
 
@@ -123,7 +135,7 @@ class InteractionGenerator():
         #send a message to drop the current item
         return "Drop current item"
 
-    def _use_item(self, agent, itemName):
+    def _use_item(self, agent, action, itemName, status=None, emoji=None):
         #what item is the character trying to use?
         return itemName
     
@@ -249,6 +261,44 @@ class InteractionGenerator():
             function_call = 'auto')
         return self._parseResponse(agent, response.choices[0].message, available_functions)
     
+    def UseItem(self, agent, currentItem, availableItems, plannedActivity, importantMemories, llm = None):
+        if not llm:
+            llm = OpenAI()
+
+        messages = [
+            {'role': 'system', 'content': f"You are {agent.name} and you are currently trying to {plannedActivity.description}. You are currently holding {currentItem.name}. Given the following list of important memories relevant to the planned activity, will you choose to do something wih any the available items?"},
+        ]
+
+        for memory in importantMemories:
+            messages.append({'role': 'user', 'content': f"Important memory: {memory}"})
+
+        for item in availableItems:
+            messages.append({'role': 'user', 'content': f"Available item: {item.name}: {item.description}"})
+
+        #Create the list of function definitions that are available to the LLM
+        functions = [
+            InteractionGenerator.pickUpItemFunctionDef,
+            InteractionGenerator.dropItemFunctionDef,
+            InteractionGenerator.useItemFunctionDef,
+            InteractionGenerator.noChangesFunctionDef,
+        ]
+
+        available_functions = {
+            "pick_up_item": self._pick_up_item,
+            "drop_item": self._drop_item,
+            "use_item": self._use_item,
+            "no_changes":self._no_changes
+        }
+
+        #Call the LLM...
+        response = llm.chat.completions.create(
+            model = 'gpt-3.5-turbo',
+            temperature=0.8,
+            messages = messages,
+            functions = functions, #Pass in the list of functions available to the LLM
+            function_call = 'auto')
+        return self._parseResponse(agent, response.choices[0].message, available_functions)
+
     def AskToUseItem(self, agent, currentItem, interactableItems, plannedActivity, llm = None):
         if not llm:
             llm = OpenAI()

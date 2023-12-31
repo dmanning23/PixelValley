@@ -31,6 +31,7 @@ from Memory.plannedActivityStream import PlannedActivityStream
 from Interactions.interactionGenerator import InteractionGenerator
 from Interactions.interactionStream import InteractionStream
 from Interactions.actionGenerator import ActionGenerator
+from Interactions.conversationGenerator import ConversationGenerator
 
 def main():
 
@@ -100,6 +101,14 @@ def fetchScenario(userId, scenarioId):
         #load the agents into all the locations
         for location in scenario.locations:
             AgentRepository.FetchLocation(location)
+
+    #load up the agent's items
+    with st.spinner("Loading agent items..."):
+        agents = scenario.GetAgents()
+        for agent in agents:
+            items = ItemRepository.GetItems(characterId=agent._id)
+            if items is not None and len(items) > 0:
+                agent.currentItem = items[0]
 
     #store the scenario
     st.session_state["scenario"] = scenario
@@ -193,6 +202,7 @@ def displayScenario(userId, scenario):
     itemRepo = ItemRepository()
     agentRepo = AgentRepository()
     actionGenerator = ActionGenerator()
+    conversationGenerator = ConversationGenerator()
     iteractionStream = InteractionStream(activityStream, retrieval, interactionGen, itemRepo, memRepo, agentRepo, actionGenerator)
     timeStream = TimeStream()
     
@@ -243,8 +253,8 @@ def displayScenario(userId, scenario):
             for agent in scenario.GetAgents():
                 iteractionStream.UseItem(agent, scenario)
 
-        item_interaction_button = st.button(label="Set Agent statuses")
-        if item_interaction_button:
+        agent_status_button = st.button(label="Set Agent statuses")
+        if agent_status_button:
             for agent in scenario.GetAgents():
                 iteractionStream.SetAgentStatus(agent, scenario)
 
@@ -252,6 +262,68 @@ def displayScenario(userId, scenario):
         if action_button:
             for agent in scenario.GetAgents():
                 iteractionStream.PlanActions(agent, scenario)
+
+        conversation_button = st.button(label="Have conversation")
+        if conversation_button:
+            #get the list of agents
+            agents = scenario.GetAgents()
+            agent1 = agents[0]
+            agent2 = agents[1]
+
+            #get the planned activity of each agent
+            agent1PlannedActivity = activityStream.GetCurrentPlannedActivity(agent1, scenario.currentDateTime)
+            agent2PlannedActivity = activityStream.GetCurrentPlannedActivity(agent1, scenario.currentDateTime)
+
+            #get memories for each agent
+            agent1Memories = retrieval.RetrieveMemories(agent1, f'What is {agent1.name}\'s relationship with {agent2.name}?')
+            agent2Memories = retrieval.RetrieveMemories(agent2, f'What is {agent2.name}\'s relationship with {agent1.name}?')
+
+            #create a conversation
+            conversation = conversationGenerator.CreateConversation(scenario, agent1, agent2, agent1PlannedActivity, agent2PlannedActivity, agent1Memories, agent2Memories)
+
+        conversation_button2 = st.button(label="Have conversation 2")
+        if conversation_button2:
+            #get the list of agents
+            agents = scenario.GetAgents()
+            conversationAgents = [ agents[0], agents[1] ]
+
+            #get the planned activity of each agent
+            plannedActivities = [
+                activityStream.GetCurrentPlannedActivity(agents[0], scenario.currentDateTime),
+                activityStream.GetCurrentPlannedActivity(agents[1], scenario.currentDateTime)
+            ]
+
+            #get memories for each agent
+            memories = [
+                retrieval.RetrieveMemories(agents[0], f'What is {agents[0].name}\'s relationship with {agents[1].name}?'),
+                retrieval.RetrieveMemories(agents[1], f'What is {agents[1].name}\'s relationship with {agents[0].name}?')
+            ]
+
+            #create a conversation
+            conversation = conversationGenerator.CreateConversation(scenario, conversationAgents, plannedActivities, memories)
+
+        conversation_button3 = st.button(label="Have conversation 3")
+        if conversation_button3:
+            #get the list of agents
+            agents = scenario.GetAgents()
+            conversationAgents = [ agents[0], agents[1], agents[2] ]
+
+            #get the planned activity of each agent
+            plannedActivities = []
+            for agent in conversationAgents:
+                plannedActivities.append(activityStream.GetCurrentPlannedActivity(agent, scenario.currentDateTime))
+
+            #get memories for each agent
+            memories = []
+            for i in range(len(conversationAgents)):
+                agentMemories = []
+                for j in range(len(conversationAgents)):
+                    if i != j:
+                        agentMemories.extend(retrieval.RetrieveMemories(agents[i], f'What is {agents[i].name}\'s relationship with {agents[j].name}?'))
+                memories.append(agentMemories)
+
+            #create a conversation
+            conversation = conversationGenerator.CreateConversation(scenario, conversationAgents, plannedActivities, memories)
 
     #output the user's prompt
     st.write(scenario)

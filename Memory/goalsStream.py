@@ -11,7 +11,7 @@ class GoalsStream():
         goals = self.goalsGenerator.GenerateGoals(agent, scenario)
 
         #Store th goals in the character's memory stream
-        self.memoryRepository.CreateGoalMemories(agent, goals)
+        #self.memoryRepository.CreateGoalMemories(agent, goals)
 
         #Store the goals in a special database for later retrieval
         for goal in goals:

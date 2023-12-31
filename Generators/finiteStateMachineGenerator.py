@@ -12,7 +12,7 @@ class FiniteStateMachineGenerator():
             "properties": {
                 "states": {
                     'type': 'array',
-                    "description": "A list of states that the obejct can be in",
+                    "description": "A list of states that the object can be in",
                     "items": {
                         'type': 'string',
                         'description': 'Name of the state'

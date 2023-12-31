@@ -36,7 +36,7 @@ class PlannedActivityStream:
         PlannedActivity.objects.insert(activity)
         
         #create planned activity memories
-        self.memoryRepository.CreateMemory(agent, f'On {activity.date.strftime("%d %B, %Y")}, I plan to {activity.description} at {activity.starttime} for {activity.timeframe}')
+        #self.memoryRepository.CreateMemory(agent, f'On {activity.date.strftime("%d %B, %Y")}, I plan to {activity.description} at {activity.starttime} for {activity.timeframe}')
 
     def GetCurrentPlannedActivity(self, agent, currentTime):
         #Get all the planned activities, sorted by priority:

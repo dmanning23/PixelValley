@@ -60,6 +60,7 @@ class ObservationStream():
     def _createAgentInLocationMemories(self, agent, agents, location):
         if agents is not None:
             for locationAgent in agents:
+                #TODO: use "I" observations if the subject is the same agent
                 if agent._id == locationAgent._id:
                     observation = f"{locationAgent}"
                 else:
@@ -83,6 +84,7 @@ class ObservationStream():
     def _createAgentUsingItemMemories(self, agent, agents):
         if agents is not None:
             for locationAgent in agents:
+                #TODO: use "I" observations when location agent matches agent
                 if locationAgent.usingItem is not None:
                     observation = f"{locationAgent.name} is using the {locationAgent.currentItem.name}"
                     self.memoryRepository.CreateMemory(agent, observation)
