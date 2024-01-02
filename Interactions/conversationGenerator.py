@@ -8,13 +8,13 @@ class ConversationGenerator():
 
     createConversationFunctionDef = {
         'name': 'create_conversation',
-        'description': 'Create a conversation between two characters',
+        'description': 'Create a conversation between two or more characters',
         'parameters': {
             "type": "object",
             "properties": {
                 "conversation": {
                     'type': 'array',
-                    "description": "A back and forth conversation between two characters",
+                    "description": "A back and forth conversation between two or more characters",
                     "items": {
                         "type": "object",
                         "description": "A line of dialogue from the conversation",
