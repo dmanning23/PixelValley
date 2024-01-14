@@ -60,33 +60,43 @@ class ObservationStream():
     def _createAgentInLocationMemories(self, agent, agents, location):
         if agents is not None:
             for locationAgent in agents:
-                #TODO: use "I" observations if the subject is the same agent
-                if agent._id == locationAgent._id:
-                    observation = f"{locationAgent}"
-                else:
+                if agent._id != locationAgent._id:
                     observation = f"{locationAgent.name} is a {locationAgent.age} year old {locationAgent.gender}"
-                self.memoryRepository.CreateMemory(agent, observation)
+                    self.memoryRepository.CreateMemory(agent, observation)
 
+                #use "I" observations if the subject is the same agent
                 if location is not None:
-                    observation = f"{locationAgent.name} is in {location.name}"
+                    if agent._id != locationAgent._id:
+                        observation = f"{locationAgent.name} is in {location.name}"
+                    else:
+                        observation = f"I am in {location.name}"
                     self.memoryRepository.CreateMemory(agent, observation)
                 else:
-                    observation = f"{locationAgent.name} is outside"
+                    if agent._id != locationAgent._id:
+                        observation = f"{locationAgent.name} is outside"
+                    else:
+                        observation = f"I am outside"
                     self.memoryRepository.CreateMemory(agent, observation)
 
     def _createAgentCurrentItemMemories(self, agent, agents):
         if agents is not None:
             for locationAgent in agents:
                 if locationAgent.currentItem is not None:
-                    observation = f"{locationAgent.name} is holding a {locationAgent.currentItem.name}"
+                    if agent._id != locationAgent._id:
+                        observation = f"{locationAgent.name} is holding a {locationAgent.currentItem.name}"
+                    else:
+                        observation = f"I am holding a {locationAgent.currentItem.name}"
                     self.memoryRepository.CreateMemory(agent, observation)
 
     def _createAgentUsingItemMemories(self, agent, agents):
         if agents is not None:
             for locationAgent in agents:
-                #TODO: use "I" observations when location agent matches agent
                 if locationAgent.usingItem is not None:
-                    observation = f"{locationAgent.name} is using the {locationAgent.currentItem.name}"
+                    if agent._id != locationAgent._id:
+                        observation = f"{locationAgent.name} is using the {locationAgent.currentItem.name}"
+                    else:
+                        #use "I" observations when location agent matches agent
+                        observation = f"I am using the {locationAgent.currentItem.name}"
                     self.memoryRepository.CreateMemory(agent, observation)
 
     def _createItemInLocationMemories(self, agent, location):

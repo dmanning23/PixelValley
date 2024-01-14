@@ -18,9 +18,9 @@ class ItemRepository:
             ItemRepository.Update(item, locationId, characterId)
 
     @staticmethod
-    def Update(item, locationId=None, characterId=None):
+    def Update(item, locationId=None, characterId=None, usingCharacterId=None):
         model = ItemModel()
-        model.Set(item, locationId, characterId)
+        model.Set(item, locationId, characterId, usingCharacterId)
         model.save()
         
     @staticmethod
@@ -29,12 +29,16 @@ class ItemRepository:
         return model.Hydate()
 
     @staticmethod
-    def GetItems(locationId=None, characterId=None):
+    def GetItems(locationId=None,
+                 characterId=None,
+                 usingCharacterId=None):
         models = []
         if locationId is not None:
             models = ItemModel.objects(locationId=locationId)
         elif characterId is not None:
             models = ItemModel.objects(characterId=characterId)
+        elif usingCharacterId is not None:
+            models = ItemModel.objects(usingCharacterId=usingCharacterId)
 
         #convert to enumerable list of models
         modelCollection = Enumerable(models)

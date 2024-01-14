@@ -11,8 +11,13 @@ class AgentModel(Document):
     locationId = ObjectIdField()
     currentTime = IntField()
     status = StringField()
+    emoji = StringField()
 
-    def Set(self, agent, homeScenarioId, currentScenarioId=None, locationId=None):
+    def Set(self,
+            agent,
+            homeScenarioId,
+            currentScenarioId=None,
+            locationId=None):
         if hasattr(agent, "_id"):
             self.id=agent._id
         self.name = agent.name
@@ -26,7 +31,9 @@ class AgentModel(Document):
         else:
             self.currentScenarioId = currentScenarioId
         self.locationId = locationId
+        self.usingItemId = agent.usingItem._id
         self.status = agent.status
+        self.emoji = agent.emoji
 
     def Hydrate(self):
         return Agent(self.name,
@@ -35,4 +42,5 @@ class AgentModel(Document):
                      self.description,
                      self.id,
                      currentTime=self.currentTime,
-                     status = self.status)
+                     status = self.status,
+                     emoji = self.emoji)

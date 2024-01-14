@@ -76,26 +76,30 @@ class InteractionStream():
         #TODO: if the agent is using an item, stop using it and create a memory
         #TODO: start the agent walking to the new location
 
-        pass
-    
-    def _dropItem(self, item, agent, location):
-        #update the agent
-        agent.currentItem = None
+    def _dropItem(self, agent, location):
+        if agent.currentItem is not None:
+            item = agent.currentItem
+            #update the agent
+            agent.currentItem = None
 
-        #change the item's location
-        if location.items is None:
-            location.items = []
-        location.items.append(item)
-        #TODO: what happens when the agent tries to drop something outside?
+            #change the item's location
+            if location.items is None:
+                location.items = []
+            location.items.append(item)
+            #TODO: what happens when the agent tries to drop something outside?
 
-        #update in the DB
-        self.itemRepository.Update(item, location._id, None)
+            #update in the DB
+            self.itemRepository.Update(item, locationId=location._id)
 
-        #create a memory that the item was dropped
-        observation = f"I put down the {item.name} in the {location.name}"
-        self.memoryRepository.CreateMemory(agent, observation)
+            #create a memory that the item was dropped
+            observation = f"I put down the {item.name} in the {location.name}"
+            self.memoryRepository.CreateMemory(agent, observation)
 
     def _pickUpItem(self, item, agent, location):
+        #TODO: can agents hold more than one item?
+        #drop the current item
+        self._dropItem(agent, location)
+
         #update the agent
         agent.currentItem = item
 
@@ -103,15 +107,24 @@ class InteractionStream():
         location.items.remove(item)
 
         #update in the DB
-        self.itemRepository.Update(item, None, agent._id)
+        self.itemRepository.Update(item, characterId=agent._id)
 
         #create a memory that the item was picked up
         observation = f"I picked up the {item.name} in the {location.name}"
         self.memoryRepository.CreateMemory(agent, observation)
 
-    def _useItem(self, item, agent, action):
+    def _useItem(self, item, agent, action, location):
+        #Is the agent holding the item they are trying to use?
+        if agent.currentItem is not None and item._id == agent.currentItem._id:
+            self._dropItem(agent, location)
+
+        #TODO: is the item currently in use?
+
         #update the agent
         agent.usingItem = item
+
+        #update in the DB
+        self.itemRepository.Update(item, locationId=location._id, usingCharacterId=agent._id)
 
         #apply the action
         result = item.stateMachine.sendMessage(action)
@@ -125,11 +138,13 @@ class InteractionStream():
             observation = f"I performed the action {action} on the {item.name} while it was {item.stateMachine.currentState}, but nothing happened."
             self.memoryRepository.CreateMemory(observation)
 
-    def _stopUsingItem(self, item, agent):
-        #update the agent
-        agent.usingItem = None
-
-        #TODO: how is this info stored?
+    def _stopUsingItem(self, agent, location):
+        if agent.usingItem is not None:
+            item = agent.usingItem
+            #update the agent
+            agent.usingItem = None
+            #update the item
+            self.itemRepository.Update(item, locationId=location._id)
 
     def ChangeLocation(self, agent, scenario):
         location = self._findAgent(agent, scenario)
@@ -164,7 +179,7 @@ class InteractionStream():
             if result is not None:
                 if result == "Drop current item":
                     if agent.currentItem is not None:
-                        self._dropItem(agent.currentItem, agent, location)
+                        self._dropItem(agent, location)
                         #TODO: tried to drop an item when not holding one
                 else:
                     #The agent has chosen to swap items, set their current item
@@ -172,7 +187,7 @@ class InteractionStream():
                     if chosenItem is not None:
                         #drop the current item
                         if agent.currentItem is not None:
-                            self._dropItem(agent.currentItem, agent, location)
+                            self._dropItem(agent, location)
                         #pick up the chosen item
                         self._pickUpItem(chosenItem, agent, location)
                         #TODO: tried to pick up an nonexistent or unreachable item
@@ -197,10 +212,10 @@ class InteractionStream():
             if result is not None:
                 if result == "Drop current item":
                     if agent.currentItem is not None:
-                        self._dropItem(agent.currentItem, agent, location)
+                        self._dropItem(agent, location)
                         #TODO: tried to drop an item when not holding one
                 if result == "Stop using item":
-                    self._stopUsingItem(agent,)
+                    self._stopUsingItem(agent, location)
                 if result is not None:
                     chosenItem = Enumerable(availableItems).first_or_default(lambda x: x.name.lower() == result.lower())
 
@@ -222,7 +237,7 @@ class InteractionStream():
                         #action = self.interactionGenerator.PerformItemAction(agent, chosenItem, plannedActivity, memories)
                         #if action is not None:
                             #self._useItem(chosenItem, agent, action)
-                            ##TODO: tried to use a non-existent or unreachable item
+                            #TODO: tried to use a non-existent or unreachable item
 
     def SetAgentStatus(self, agent, scenario):
         location = self._findAgent(agent, scenario)
@@ -230,6 +245,7 @@ class InteractionStream():
         usingItem = self._getUsingItem(agent)
         currentItem = self._getCurrentItem(agent)
 
+        #TODO: return and set the emoji from the AskToSetStatus function
         status = self.interactionGenerator.AskToSetStatus(agent, currentItem, usingItem, location, plannedActivity)
         if status is not None:
             #change the agent's status

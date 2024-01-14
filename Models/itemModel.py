@@ -15,7 +15,14 @@ class ItemModel(Document):
     #This will be populated if the item is being carried by a character
     characterId = ObjectIdField()
 
-    def Set(self, item, locationId=None, characterId=None):
+    #This will be populated if an item is being used by the character
+    usingCharacterId = ObjectIdField()
+
+    def Set(self,
+            item,
+            locationId=None,
+            characterId=None,
+            usingCharacterId=None):
         if hasattr(item, "_id"):
             self.id=item._id
         self.name = item.name
@@ -24,6 +31,7 @@ class ItemModel(Document):
         self.canBePickedUp = item.canBePickedUp
         self.locationId=locationId
         self.characterId = characterId
+        self.usingCharacterId = usingCharacterId
 
         #the state machine has to be set up separately
         if item.stateMachine is not None:

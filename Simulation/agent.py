@@ -18,7 +18,17 @@ class Agent:
         eventually be allowed to move between simulations.
     """
 
-    def __init__(self, name, age, gender, description, _id = None, currentTime = 0, currentItem = None, usingItem = None, status = "Idle"):
+    def __init__(self,
+                 name,
+                 age,
+                 gender,
+                 description,
+                 _id = None,
+                 currentTime = 0,
+                 currentItem = None,
+                 usingItem = None,
+                 status = "Idle",
+                 emoji = ""):
         if _id is not None:
             self._id = _id
         self.name = name
@@ -27,17 +37,14 @@ class Agent:
         self.description = description
         self.currentTime = currentTime
 
-        #TODO: currentItem storage
         #is the agent holding an item?
         self.currentItem = currentItem
 
-        #TODO: i don't love this method of keeping track who is using what item >:(
-        #TODO: usingItem storage
         #is the agent interacting with an item?
         self.usingItem = usingItem
 
-        #TODO: set the agent's emoji
-        #TODO: store the agent's emoji
+        #set the agent's emoji
+        self.emoji = emoji
 
         #what is the agent doing?
         self.status = status

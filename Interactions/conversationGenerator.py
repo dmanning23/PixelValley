@@ -6,6 +6,41 @@ from py_linq import *
 
 class ConversationGenerator():
 
+    doNothingFunctionDef = {
+        'name': 'do_nothing',
+        'description': "Don't start any conversations.",
+        'parameters': {
+        }
+    }
+
+    startConversationFunctionDef = {
+        'name': 'start_conversation',
+        'description': 'Choose to start a conversation with one or more characters',
+        'parameters': {
+            "type": "object",
+            "properties": {
+                "characters": {
+                    'type': 'array',
+                    "description": "A list of people who I want to converse with",
+                    "items": {
+                        "items": {
+                        "type": "object",
+                        "description": "A person I want to talk to",
+                        'properties': {
+                            'name': {
+                                'type': 'string',
+                                'description': 'Name of the character I want to talk to'
+                            },
+                        },
+                        "required": ["name"]
+                    },
+                    },
+                },
+            },
+            "required": ["characters"]
+        }
+    }
+
     createConversationFunctionDef = {
         'name': 'create_conversation',
         'description': 'Create a conversation between two or more characters',
@@ -40,6 +75,24 @@ class ConversationGenerator():
         }
     }
 
+    def _do_nothing(self, agents):
+        return None
+    
+    def _start_conversation(self, agents, conversationAgents):
+        #Create a list of agents
+        agentsList = Enumerable(agents)
+        chosenAgents = []
+        for conversationAgent in conversationAgents:
+            #Find the agent with that name
+            chosenAgent = agentsList.first_or_default(lambda x: x.name == conversationAgent)
+            if chosenAgent is not None:
+                chosenAgents.append(chosenAgent)
+        return chosenAgents
+
+    def _addAgentToConversation(self, agents, agentName):
+        chosenAgent = agents.first_or_default(lambda x: x.name == agentName.name)
+        return chosenAgent
+
     def _create_conversation(self, agents, conversation, summary):
         #create the conversation text
         dialogues = []
@@ -63,44 +116,48 @@ class ConversationGenerator():
             #The LLM didn't call a function but provided a response
             #return response_message.content
             return None
-    
-    def CreateConversation(self, scenario, agent1, agent2, agent1PlannedActivity, agent2PlannedActivity, agent1Memories, agent2Memories, llm = None):
+        
+    def StartConversation(self, scenario, agent, agentPlannedActivity, availableAgents, agentMemories, llm = None):
         if not llm:
             #create the client API
             llm = OpenAI()
 
         messages = [
-            {'role': 'system', 'content': f'It is {scenario.currentDateTime}. {agent1.name}\'s current task is {agent1PlannedActivity.description}. They have decided to initiate a conversation with {agent2.name}, who is currently {agent2.status}. Given the relevant context of memories from each character, generate a conversation between them.'},
+            {'role': 'system', 'content': f'It is {scenario.currentDateTime}. {agent.name}\'s current task is {agentPlannedActivity.description}. There are several characters available for conversation. Given the following list of available characters and relevant memories about each character, decide whether {agent.name} would start a conversation with one or more characters, or continue with their current task.'},
         ]
 
-        for memory in agent1Memories:
-            messages.append({'role': 'user', 'content': f"{agent1.name} memory: {memory}"})
-
-        for memory in agent2Memories:
-            messages.append({'role': 'user', 'content': f"{agent2.name} memory: {memory}"})
-
-        functions = [ ConversationGenerator.createConversationFunctionDef ]
+        for i in range(len(availableAgents)):
+            messages.append({'role': 'user', 'content': f"{availableAgents[i].name} is currently {availableAgents[i].status} and is available for conversation."})
+            for memory in agentMemories[i]:
+                messages.append({'role': 'user', 'content': f"Relevant memory about {availableAgents[i].name}: {memory}"})
+        
+        functions = [ ConversationGenerator.doNothingFunctionDef,
+                     ConversationGenerator.startConversationFunctionDef ]
         available_functions = {
-            "create_conversation": self._create_conversation,
+            "do_nothing": self._do_nothing,
+            "start_conversation": self._start_conversation,
         }
         
         response = llm.chat.completions.create(
             model = 'gpt-3.5-turbo',
-            temperature=0.7,
+            temperature=0.6,
             messages = messages,
             functions = functions, #Pass in the list of functions available to the LLM
             function_call = 'auto')
         
-        conversation = self._parseResponse(response.choices[0].message, available_functions)
-        return conversation
-    
+        conversationAgents = self._parseResponse(availableAgents, response.choices[0].message, available_functions)
+        if conversationAgents is not None and len(conversationAgents) >= 1:
+            #Make sure the agent is the first item in the results
+            conversationAgents.insert(0, agent)
+        return conversationAgents
+
     def CreateConversation(self, scenario, agents, agentPlannedActivities, agentMemories, llm = None):
         if not llm:
             #create the client API
             llm = OpenAI()
 
         messages = [
-            {'role': 'system', 'content': f'It is {scenario.currentDateTime}. {agents[0].name}\'s current task is {agentPlannedActivities[0].description}. They have decided to initiate a conversation. Given the following list of characters in the conversation and relevant context of memories from each character, generate a conversation between them.'},
+            {'role': 'system', 'content': f'It is {scenario.currentDateTime}. {agents[0].name} has decided to initiate a conversation. Given the following list of characters in the conversation and relevant context of memories from each character, generate a conversation between them.'},
         ]
 
         for i in range(len(agents)):

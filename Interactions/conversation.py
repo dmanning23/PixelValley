@@ -10,7 +10,5 @@ class Dialogue(EmbeddedDocument):
 class Conversation(Document):
 
     agents = ListField(ReferenceField('AgentModel'))
-    agent1Id = ObjectIdField()
-    agent2Id = ObjectIdField()
     summary = StringField()
     dialogue = ListField(EmbeddedDocumentField(Dialogue))
