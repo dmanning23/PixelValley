@@ -1,6 +1,9 @@
 keys.py
 config.yaml
 
+assets/portraits/nobackground/
+assets/portraits/sdresults/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

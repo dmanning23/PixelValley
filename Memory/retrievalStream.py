@@ -15,7 +15,7 @@ class RetrievalStream():
         #important = self.memoryRepository.GetImportantMemories(agent, 30)
 
         #Get the most relevent memories
-        relevant = self.memoryRepository.GetRelevantMemories(agent, 100, query)
+        relevant = self.memoryRepository.GetRelevantMemories(agent, numMemories * 4, query)
 
         #sort by score and return the top 10 memories
         #memories = Enumerable(recent + important + relevant)

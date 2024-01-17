@@ -6,24 +6,23 @@ from py_linq import *
 
 class ConversationGenerator():
 
-    doNothingFunctionDef = {
-        'name': 'do_nothing',
-        'description': "Don't start any conversations.",
+    continueCurrentTaskFunctionDef = {
+        'name': 'continue_current_task',
+        'description': "Continuing the current task is more important than initiating a conversation.",
         'parameters': {
         }
     }
 
-    startConversationFunctionDef = {
-        'name': 'start_conversation',
+    initiateConversationFunctionDef = {
+        'name': 'initiate_conversation',
         'description': 'Choose to start a conversation with one or more characters',
         'parameters': {
             "type": "object",
             "properties": {
                 "characters": {
                     'type': 'array',
-                    "description": "A list of people who I want to converse with",
+                    "description": "A list of people who I want to include in the conversation",
                     "items": {
-                        "items": {
                         "type": "object",
                         "description": "A person I want to talk to",
                         'properties': {
@@ -32,8 +31,7 @@ class ConversationGenerator():
                                 'description': 'Name of the character I want to talk to'
                             },
                         },
-                        "required": ["name"]
-                    },
+                    "required": ["name"]
                     },
                 },
             },
@@ -43,13 +41,13 @@ class ConversationGenerator():
 
     createConversationFunctionDef = {
         'name': 'create_conversation',
-        'description': 'Create a conversation between two or more characters',
+        'description': 'Create a conversation',
         'parameters': {
             "type": "object",
             "properties": {
                 "conversation": {
                     'type': 'array',
-                    "description": "A back and forth conversation between two or more characters",
+                    "description": "A back and forth conversation between several characters",
                     "items": {
                         "type": "object",
                         "description": "A line of dialogue from the conversation",
@@ -75,22 +73,22 @@ class ConversationGenerator():
         }
     }
 
-    def _do_nothing(self, agents):
+    def _continue_current_task(self, agents):
         return None
     
-    def _start_conversation(self, agents, conversationAgents):
+    def _initiate_conversation(self, agents, conversationAgents):
         #Create a list of agents
         agentsList = Enumerable(agents)
         chosenAgents = []
         for conversationAgent in conversationAgents:
             #Find the agent with that name
-            chosenAgent = agentsList.first_or_default(lambda x: x.name == conversationAgent)
+            chosenAgent = self._addAgentToConversation(agentsList, **conversationAgent)
             if chosenAgent is not None:
                 chosenAgents.append(chosenAgent)
         return chosenAgents
 
-    def _addAgentToConversation(self, agents, agentName):
-        chosenAgent = agents.first_or_default(lambda x: x.name == agentName.name)
+    def _addAgentToConversation(self, agentsList, name):
+        chosenAgent = agentsList.first_or_default(lambda x: x.name == name)
         return chosenAgent
 
     def _create_conversation(self, agents, conversation, summary):
@@ -105,11 +103,16 @@ class ConversationGenerator():
 
     def _generate_dialogue(self, name, dialogue):
         return Dialogue(agentName=name, text=dialogue)
-
+    
     def _parseResponse(self, agents, response_message, available_functions):
         if response_message.function_call and response_message.function_call.arguments:
             function_called = response_message.function_call.name
             function_args  = json.loads(response_message.function_call.arguments)
+            function_to_call = available_functions[function_called]
+            return function_to_call(agents, *list(function_args.values()))
+        elif response_message.tool_calls and response_message.tool_calls[0].function.arguments:
+            function_called = response_message.tool_calls[0].function.name
+            function_args  = json.loads(response_message.tool_calls[0].function.arguments)
             function_to_call = available_functions[function_called]
             return function_to_call(agents, *list(function_args.values()))
         else:
@@ -123,24 +126,24 @@ class ConversationGenerator():
             llm = OpenAI()
 
         messages = [
-            {'role': 'system', 'content': f'It is {scenario.currentDateTime}. {agent.name}\'s current task is {agentPlannedActivity.description}. There are several characters available for conversation. Given the following list of available characters and relevant memories about each character, decide whether {agent.name} would start a conversation with one or more characters, or continue with their current task.'},
+            {'role': 'system', 'content': f'It is {scenario.currentDateTime}. {agent.name}\'s current task is {agentPlannedActivity.description}. The following is a list of nearby characters and relevant memories about each character. Decide whether {agent.name} would continue with their current task or initiate a conversation with one or two characters.'},
         ]
 
         for i in range(len(availableAgents)):
-            messages.append({'role': 'user', 'content': f"{availableAgents[i].name} is currently {availableAgents[i].status} and is available for conversation."})
+            messages.append({'role': 'user', 'content': f"{availableAgents[i].name} is nearby and is currently {availableAgents[i].status}."})
             for memory in agentMemories[i]:
                 messages.append({'role': 'user', 'content': f"Relevant memory about {availableAgents[i].name}: {memory}"})
         
-        functions = [ ConversationGenerator.doNothingFunctionDef,
-                     ConversationGenerator.startConversationFunctionDef ]
+        functions = [ ConversationGenerator.continueCurrentTaskFunctionDef,
+                     ConversationGenerator.initiateConversationFunctionDef ]
         available_functions = {
-            "do_nothing": self._do_nothing,
-            "start_conversation": self._start_conversation,
+            "continue_current_task": self._continue_current_task,
+            "initiate_conversation": self._initiate_conversation,
         }
         
         response = llm.chat.completions.create(
             model = 'gpt-3.5-turbo',
-            temperature=0.6,
+            temperature=0.3,
             messages = messages,
             functions = functions, #Pass in the list of functions available to the LLM
             function_call = 'auto')
@@ -153,7 +156,6 @@ class ConversationGenerator():
 
     def CreateConversation(self, scenario, agents, agentPlannedActivities, agentMemories, llm = None):
         if not llm:
-            #create the client API
             llm = OpenAI()
 
         messages = [
@@ -161,23 +163,23 @@ class ConversationGenerator():
         ]
 
         for i in range(len(agents)):
-            messages.append({'role': 'user', 'content': f"{agents[i].name} is currently {agents[i].status} and is part of the conversation."})
+            messages.append({'role': 'system', 'content': f"{agents[i].name} is currently {agents[i].status} and is part of the conversation."})
             messages.append({'role': 'user', 'content': f"{agents[i].name}'s current task is {agentPlannedActivities[i].description}."})
 
             for memory in agentMemories[i]:
                 messages.append({'role': 'user', 'content': f"{agents[i].name} memory: {memory}"})
 
-        functions = [ ConversationGenerator.createConversationFunctionDef ]
+        functions = [ { "type": "function", "function": ConversationGenerator.createConversationFunctionDef } ]
         available_functions = {
             "create_conversation": self._create_conversation,
         }
         
         response = llm.chat.completions.create(
             model = 'gpt-3.5-turbo',
-            temperature=0.6,
+            temperature=0.3,
             messages = messages,
-            functions = functions, #Pass in the list of functions available to the LLM
-            function_call = 'auto')
+            tool_choice={"type": "function", "function": {"name": "create_conversation"}},
+            tools = functions)
         
         conversation = self._parseResponse(agents, response.choices[0].message, available_functions)
         return conversation

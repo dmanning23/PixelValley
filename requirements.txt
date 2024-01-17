@@ -8,3 +8,6 @@ numpy
 pandas
 parsedatetime
 pytimeparse
+webuiapi
+rembg
+pathlib

@@ -28,7 +28,8 @@ class Agent:
                  currentItem = None,
                  usingItem = None,
                  status = "Idle",
-                 emoji = ""):
+                 emoji = "",
+                 portraitFilename = ""):
         if _id is not None:
             self._id = _id
         self.name = name
@@ -48,6 +49,8 @@ class Agent:
 
         #what is the agent doing?
         self.status = status
+
+        self.portraitFilename = portraitFilename
 
     def __str__(self) -> str:
         return f"{self.name} is a {self.age} year old {self.gender}. {self.description}"

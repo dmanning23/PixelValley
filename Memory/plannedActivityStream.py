@@ -11,7 +11,7 @@ class PlannedActivityStream:
 
     def CreatePlannedActivities(self, agent, scenario):
         goals = self.goalRepository.GetGoals(agent)
-        memories = self.retrieval.RetrieveMemories(agent, f"What are important things for {agent.name} to remember while making a list of planned activites for today?")
+        memories = self.retrieval.RetrieveMemories(agent, f"What are important things to remember while planning my schedule for today?")
         plans = self.plannedActivityGenerator.GenerateDailyPlans(agent, goals, memories)
 
         for plan in plans:

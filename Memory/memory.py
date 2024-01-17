@@ -26,6 +26,9 @@ class Memory():
         if relevance is not None:
             self.relevance = relevance
 
+    def __str__(self) -> str:
+        return self.description
+
     def score(self, currentTime):
         #normalize the time
         timeScore = (self._timeWeight - ((currentTime - self.time) * self._timeDecay)) / self._timeWeight

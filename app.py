@@ -33,6 +33,9 @@ from Interactions.interactionStream import InteractionStream
 from Interactions.actionGenerator import ActionGenerator
 from Interactions.conversationGenerator import ConversationGenerator
 from Interactions.conversationStream import ConversationStream
+from Interactions.conversationSummarizer import ConversationSummarizer
+
+from AssetCreation.characterPortraitGenerator import CharacterPortraitGenerator
 
 def main():
 
@@ -212,7 +215,9 @@ def displayScenario(userId, scenario):
     conversationGenerator = ConversationGenerator()
     iteractionStream = InteractionStream(activityStream, retrieval, interactionGen, itemRepo, memRepo, agentRepo, actionGenerator)
     timeStream = TimeStream()
-    conversationStream = ConversationStream(conversationGenerator, activityStream, retrieval)
+    conversationSummarizer = ConversationSummarizer()
+    conversationStream = ConversationStream(conversationGenerator, activityStream, retrieval, memRepo, conversationSummarizer)
+    characterPortraitGenerator = CharacterPortraitGenerator()
     
     clear_button = st.button(label="Clear memory")
     if clear_button:
@@ -289,6 +294,29 @@ def displayScenario(userId, scenario):
             agents = scenario.GetAgents()
             conversationAgents = [ agents[0], agents[1], agents[2] ]
             conversationStream.CreateConversation(scenario, conversationAgents)
+
+        conversation_button4 = st.button(label="Conversation Pipeline!")
+        if conversation_button4:
+            agents = scenario.GetAgents()
+            chosen = conversationStream.StartConversation(scenario, agents[0])
+            if chosen is not None and len(chosen) > 1:
+                conversationStream.CreateConversation(scenario, chosen)
+
+        profilePic_button = st.button(label="Populate missing profile pictures")
+        if profilePic_button:
+            #populate all the profile pictures
+            agents = scenario.GetAgents()
+            for agent in agents:
+                if agent.portraitFilename is None:
+                    agent.portraitFilename = characterPortraitGenerator.CreatePortrait(agent)
+
+            #write out all the agents
+            if scenario.agents is not None:
+                for agent in scenario.agents:
+                    AgentRepository.CreateOrUpdate(agent, homeScenarioId=scenario._id)
+            for location in scenario.locations:
+                AgentRepository.CreateOrUpdateFromLocation(location, homeScenarioId=scenario._id)
+
 
     #output the user's prompt
     st.write(scenario)
