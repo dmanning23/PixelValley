@@ -27,12 +27,19 @@ class AgentModel(Document):
         self.description = agent.description
         self.homeScenarioId = homeScenarioId
         self.currentTime = agent.currentTime
+
         if currentScenarioId is None:
             self.currentScenarioId = homeScenarioId
         else:
             self.currentScenarioId = currentScenarioId
+
         self.locationId = locationId
-        self.usingItemId = agent.usingItem._id
+
+        if not hasattr(agent, "usingItemId") or agent.usingItemId is None:
+            self.usingItemId = None
+        else:
+            self.usingItemId = agent.usingItem._id
+
         self.status = agent.status
         self.emoji = agent.emoji
         self.portraitFilename = agent.portraitFilename

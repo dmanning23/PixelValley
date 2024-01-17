@@ -10,14 +10,12 @@ class CharacterPortraitGenerator:
 
         #Set the model to be used by stable diffusion
         self.options = {}
-        #Blue Pencil is a great model for anime characters
         self.options['sd_model_checkpoint'] = 'bluePencilXL_v300.safetensors [2e29ce9ae7]' 
-        #The Dream Shaper model focuses on creating realistic looking characters and gives very consistent results
         #self.options['sd_model_checkpoint'] = 'dreamshaper_8.safetensors [879db523c3]' 
 
         #Set the model to be used for removing the background of the image
-        self.session = new_session("isnet-anime") #This model pairs well with Blue Pencil
-        #self.session = new_session("u2net_human_seg") #This model pairs well with Dream Shaper
+        self.session = new_session("isnet-anime")
+        #self.session = new_session("u2net_human_seg")
 
         self.sdresults = "./assets/portraits/sdresults"
         self.nobackground = "./assets/portraits/nobackground"

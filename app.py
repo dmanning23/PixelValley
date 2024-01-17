@@ -311,12 +311,11 @@ def displayScenario(userId, scenario):
                     agent.portraitFilename = characterPortraitGenerator.CreatePortrait(agent)
 
             #write out all the agents
-            if scenario.agents is not None:
-                for agent in scenario.agents:
-                    AgentRepository.CreateOrUpdate(agent, homeScenarioId=scenario._id)
-            for location in scenario.locations:
-                AgentRepository.CreateOrUpdateFromLocation(location, homeScenarioId=scenario._id)
+            saveAgents(scenario)
 
+        writeAgents_button = st.button(label="Write agents to DB")
+        if writeAgents_button:
+            saveAgents(scenario)
 
     #output the user's prompt
     st.write(scenario)
@@ -356,3 +355,11 @@ def writeLocation(location, level = 0):
         st.subheader(f"Child locations of {location.name}:")
         for child in location.locations:
             writeLocation(child, level)
+
+def saveAgents(scenario):
+    #write out all the agents
+    if scenario.agents is not None:
+        for agent in scenario.agents:
+            AgentRepository.CreateOrUpdate(agent, homeScenarioId=scenario._id)
+    for location in scenario.locations:
+        AgentRepository.CreateOrUpdateFromLocation(location, homeScenarioId=scenario._id)
