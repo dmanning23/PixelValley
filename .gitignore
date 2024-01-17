@@ -3,6 +3,8 @@ config.yaml
 
 assets/portraits/nobackground/
 assets/portraits/sdresults/
+assets/buildingExterior/nobackground/
+assets/buildingExterior/sdresults/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

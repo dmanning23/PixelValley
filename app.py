@@ -36,6 +36,7 @@ from Interactions.conversationStream import ConversationStream
 from Interactions.conversationSummarizer import ConversationSummarizer
 
 from AssetCreation.characterPortraitGenerator import CharacterPortraitGenerator
+from AssetCreation.buildingExteriorGenerator import BuildingExteriorGenerator
 
 def main():
 
@@ -178,8 +179,7 @@ def createScenario(userId, scenarioDescription):
         ScenarioRepository.CreateOrUpdate(userId, scenario)
 
     with st.spinner("Saving locations..."):
-        for location in scenario.locations:
-            LocationRepository.CreateOrUpdateLocations(location, scenario._id)
+        saveLocations(scenario)
 
     with st.spinner("Saving items..."):
         for location in scenario.locations:
@@ -187,11 +187,7 @@ def createScenario(userId, scenarioDescription):
 
     #save all the villagers
     with st.spinner("Saving villagers..."):
-        if scenario.agents is not None:
-            for agent in scenario.agents:
-                AgentRepository.CreateOrUpdate(agent, homeScenarioId=scenario._id)
-        for location in scenario.locations:
-            AgentRepository.CreateOrUpdateFromLocation(location, homeScenarioId=scenario._id)
+        saveAgents(scenario)
 
     #store the scenario
     st.session_state["scenario"] = scenario
@@ -218,6 +214,7 @@ def displayScenario(userId, scenario):
     conversationSummarizer = ConversationSummarizer()
     conversationStream = ConversationStream(conversationGenerator, activityStream, retrieval, memRepo, conversationSummarizer)
     characterPortraitGenerator = CharacterPortraitGenerator()
+    buildingExteriorGenerator = BuildingExteriorGenerator()
     
     clear_button = st.button(label="Clear memory")
     if clear_button:
@@ -309,13 +306,19 @@ def displayScenario(userId, scenario):
             for agent in agents:
                 if agent.portraitFilename is None:
                     agent.portraitFilename = characterPortraitGenerator.CreatePortrait(agent)
-
             #write out all the agents
             saveAgents(scenario)
 
         writeAgents_button = st.button(label="Write agents to DB")
         if writeAgents_button:
             saveAgents(scenario)
+
+        buildingExterior_button = st.button(label="Populate missing building exteriors")
+        if buildingExterior_button:
+            for location in scenario.locations:
+                if location.imageFilename is None:
+                    location.imageFilename = buildingExteriorGenerator.CreateLocation(location)
+            saveLocations(scenario)
 
     #output the user's prompt
     st.write(scenario)
@@ -363,3 +366,7 @@ def saveAgents(scenario):
             AgentRepository.CreateOrUpdate(agent, homeScenarioId=scenario._id)
     for location in scenario.locations:
         AgentRepository.CreateOrUpdateFromLocation(location, homeScenarioId=scenario._id)
+
+def saveLocations(scenario):
+    for location in scenario.locations:
+            LocationRepository.CreateOrUpdateLocations(location, scenario._id)

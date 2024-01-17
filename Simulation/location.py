@@ -21,7 +21,8 @@ class Location:
                  locations=None,
                  items=None,
                  agents = None,
-                 _id = None):
+                 _id = None,
+                 imageFilename = ""):
         if _id is not None:
             self._id = _id
         self.name = name
@@ -30,6 +31,7 @@ class Location:
         self.locations = locations
         self.items = items
         self.agents = agents
+        self.imageFilename = imageFilename
 
     def __str__(self) -> str:
         return f"{self.name}: {self.description}"
