@@ -3,7 +3,15 @@ import pandas as pd
 
 class Scenario:
 
-    def __init__(self, name, description = None, locations = None, agents = None, _id = None, currentDateTime = None, seed=None):
+    def __init__(self,
+                 name,
+                 description = None,
+                 locations = None,
+                 agents = None,
+                 _id = None,
+                 currentDateTime = None,
+                 seed=None,
+                 imageFilename = ""):
         if _id is not None:
             self._id = _id
         self.name = name
@@ -11,6 +19,7 @@ class Scenario:
         self.locations = locations
         self.agents = agents
         self.seed = seed
+        self.imageFilename = imageFilename
 
         #set the date time!
         if currentDateTime is None:

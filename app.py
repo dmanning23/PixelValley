@@ -37,6 +37,7 @@ from Interactions.conversationSummarizer import ConversationSummarizer
 
 from AssetCreation.characterPortraitGenerator import CharacterPortraitGenerator
 from AssetCreation.buildingExteriorGenerator import BuildingExteriorGenerator
+from AssetCreation.backgroundGenerator import BackgroundGenerator
 
 def main():
 
@@ -174,9 +175,9 @@ def createScenario(userId, scenarioDescription):
                 scenario.locations[locationIndex].agents.append(agent)
             
 
+    #Store the scenario
     with st.spinner("Saving scenario..."):
-        #Store the scenario
-        ScenarioRepository.CreateOrUpdate(userId, scenario)
+        saveScenario(userId, scenario)
 
     with st.spinner("Saving locations..."):
         saveLocations(scenario)
@@ -215,6 +216,7 @@ def displayScenario(userId, scenario):
     conversationStream = ConversationStream(conversationGenerator, activityStream, retrieval, memRepo, conversationSummarizer)
     characterPortraitGenerator = CharacterPortraitGenerator()
     buildingExteriorGenerator = BuildingExteriorGenerator()
+    backgroundGenerator = BackgroundGenerator()
     
     clear_button = st.button(label="Clear memory")
     if clear_button:
@@ -320,6 +322,12 @@ def displayScenario(userId, scenario):
                     location.imageFilename = buildingExteriorGenerator.CreateLocation(location)
             saveLocations(scenario)
 
+        background_button = st.button(label="Create scenario background")
+        if background_button:
+            if scenario.imageFilename is None:
+                scenario.imageFilename = backgroundGenerator.CreateScenarioBackground(scenario)
+            saveScenario(userId, scenario)
+
     #output the user's prompt
     st.write(scenario)
 
@@ -358,6 +366,9 @@ def writeLocation(location, level = 0):
         st.subheader(f"Child locations of {location.name}:")
         for child in location.locations:
             writeLocation(child, level)
+
+def saveScenario(userId, scenario):
+    ScenarioRepository.CreateOrUpdate(userId, scenario)
 
 def saveAgents(scenario):
     #write out all the agents

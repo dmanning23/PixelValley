@@ -5,6 +5,7 @@ assets/portraits/nobackground/
 assets/portraits/sdresults/
 assets/buildingExterior/nobackground/
 assets/buildingExterior/sdresults/
+assets/background/sdresults/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

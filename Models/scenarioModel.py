@@ -9,6 +9,7 @@ class ScenarioModel(Document):
     description = StringField()
     currentDateTime = DateTimeField()
     seed = StringField()
+    imageFilename = StringField()
 
     def Set(self, scenario):
         if hasattr(scenario, "_id"):
@@ -17,10 +18,12 @@ class ScenarioModel(Document):
         self.description = scenario.description
         self.currentDateTime = scenario.currentDateTime 
         self.seed = scenario.seed
+        self.imageFilename = scenario.imageFilename
 
     def Hydrate(self):
         return Scenario(self.name,
                         self.description,
                         _id = self.id,
-                        currentDateTime=self.currentDateTime,
-                        seed = self.seed)
+                        currentDateTime = self.currentDateTime,
+                        seed = self.seed,
+                        imageFilename = self.imageFilename)
