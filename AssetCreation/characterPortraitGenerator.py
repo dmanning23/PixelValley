@@ -4,6 +4,8 @@ from rembg import new_session, remove
 from pathlib import Path
 from keys import stableDiffusionUri
 
+#TODO: store all assets in the cloud
+
 class CharacterPortraitGenerator:
 
     def __init__(self) -> None:

@@ -27,8 +27,8 @@ class BackgroundGenerator:
         result = self.api.txt2img(prompt=prompt,
             negative_prompt="1girl, text, cropped, word, low quality, normal quality, soft line username, (watermark), (signature), blurry, soft, curved line, sketch, ugly, logo, pixelated, lowres, buildings, (building),",
             cfg_scale=7,
-            width=1024,
-            height=2048,
+            width=2048,
+            height=1024,
             steps=40,
             save_images=True)
         
