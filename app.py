@@ -330,8 +330,8 @@ def displayScenario(userId, scenario):
         buildingExterior_button = st.button(label="Populate missing building exteriors")
         if buildingExterior_button:
             for location in scenario.locations:
-                if location.imageFilename is None:
-                    location.imageFilename = buildingExteriorGenerator.CreateLocation(location)
+                if location.imageFilename is None or location.resizedIconFilename is None:
+                    location.imageFilename, location.resizedImageFilename = buildingExteriorGenerator.CreateLocation(location)
             saveLocations(scenario)
 
         background_button = st.button(label="Create scenario background")

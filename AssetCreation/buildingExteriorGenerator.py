@@ -18,8 +18,10 @@ class BuildingExteriorGenerator:
 
         self.sdresults = "./assets/buildingExterior/sdresults"
         self.nobackground = "./assets/buildingExterior/nobackground"
+        self.resized = "./assets/buildingExterior/resized"
         Path(self.sdresults).mkdir(parents=True, exist_ok=True)
         Path(self.nobackground).mkdir(parents=True, exist_ok=True)
+        Path(self.resized).mkdir(parents=True, exist_ok=True)
 
     def CreateLocation(self, location):
 
@@ -50,4 +52,13 @@ class BuildingExteriorGenerator:
         nbfilename = f"{self.nobackground}/{filename}"
         output_image.save(nbfilename, "PNG")
 
-        return nbfilename
+        #resize the image
+        width, height = output_image.size
+        newSize = (width // 2, height // 2)
+        resized_image = output_image.resize(newSize)
+
+        #save to the resized folder
+        resizedFilename = f"{self.resized}/{filename}"
+        resized_image.save(resizedFilename, "PNG")
+
+        return nbfilename, resizedFilename
