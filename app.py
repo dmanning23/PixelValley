@@ -330,10 +330,14 @@ def displayScenario(userId, scenario):
 
     #output the user's prompt
     st.write(scenario)
+    if scenario.imageFilename:
+        st.image(scenario.imageFilename)
 
     st.subheader(f"Villagers in {scenario.name}:")
     for agent in scenario.GetAgents():
         st.write(agent)
+        if agent.portraitFilename:
+            st.image(agent.portraitFilename)
 
     st.subheader(f"Villagers that are standing outside:")
     if scenario.agents is not None:
@@ -346,6 +350,8 @@ def displayScenario(userId, scenario):
 def writeLocation(location, level = 0):
     #write the location
     st.header(f"{level}: {location}")
+    if location.imageFilename:
+            st.image(location.imageFilename)
 
     #write all the items
     st.subheader(f"Items in {location.name}:")
