@@ -318,8 +318,8 @@ def displayScenario(userId, scenario):
             #populate all the profile pictures
             agents = scenario.GetAgents()
             for agent in agents:
-                if agent.iconFilename is None:
-                    agent.iconFilename = characterIconGenerator.CreateIcon(agent)
+                if agent.iconFilename is None or agent.resizedIconFilename is None:
+                    agent.iconFilename, agent.resizedIconFilename = characterIconGenerator.CreateIcon(agent)
             #write out all the agents
             saveAgents(scenario)
 

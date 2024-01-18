@@ -13,6 +13,8 @@ class AgentModel(Document):
     status = StringField()
     emoji = StringField()
     portraitFilename = StringField()
+    iconFilename = StringField()
+    resizedIconFilename = StringField()
 
     def Set(self,
             agent,
@@ -44,6 +46,7 @@ class AgentModel(Document):
         self.emoji = agent.emoji
         self.portraitFilename = agent.portraitFilename
         self.iconFilename = agent.iconFilename
+        self.resizedIconFilename = agent.resizedIconFilename
 
     def Hydrate(self):
         return Agent(self.name,
@@ -55,4 +58,5 @@ class AgentModel(Document):
                      status = self.status,
                      emoji = self.emoji,
                      portraitFilename = self.portraitFilename,
-                     iconFilename=self.iconFilename)
+                     iconFilename = self.iconFilename,
+                     resizedIconFilename = self.resizedIconFilename)

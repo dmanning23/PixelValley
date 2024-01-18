@@ -18,8 +18,10 @@ class CharacterIconGenerator:
 
         self.sdresults = "./assets/charactericon/sdresults"
         self.nobackground = "./assets/charactericon/nobackground"
+        self.resized = "./assets/charactericon/resized"
         Path(self.sdresults).mkdir(parents=True, exist_ok=True)
         Path(self.nobackground).mkdir(parents=True, exist_ok=True)
+        Path(self.resized).mkdir(parents=True, exist_ok=True)
 
     def CreateIcon(self, agent):
 
@@ -27,7 +29,7 @@ class CharacterIconGenerator:
 
         #Build the prompt
         user_input = f'{agent.name} is a {agent.age} year old {agent.gender}, "{agent.description}"'
-        prompt = f" <lora:q-v1:2>, ((painterly)), chibi, full body, black background,{user_input}"
+        prompt = f"((one person)), <lora:q-v1:2>, ((painterly)), chibi, full body, black background,{user_input}"
 
         #create the character picture
         result = self.api.txt2img(prompt=prompt,
@@ -50,4 +52,13 @@ class CharacterIconGenerator:
         nbfilename = f"{self.nobackground}/{filename}"
         output_image.save(nbfilename, "PNG")
 
-        return nbfilename
+        #resize the image
+        width, height = output_image.size
+        newSize = (width // 2, height // 2)
+        resized_image = output_image.resize(newSize)
+
+        #save to the resized folder
+        resizedFilename = f"{self.resized}/{filename}"
+        resized_image.save(resizedFilename, "PNG")
+
+        return nbfilename, resizedFilename
