@@ -38,6 +38,7 @@ from Interactions.conversationSummarizer import ConversationSummarizer
 from AssetCreation.characterPortraitGenerator import CharacterPortraitGenerator
 from AssetCreation.buildingExteriorGenerator import BuildingExteriorGenerator
 from AssetCreation.backgroundGenerator import BackgroundGenerator
+from AssetCreation.characterIconGenerator import CharacterIconGenerator
 
 def main():
 
@@ -217,6 +218,7 @@ def displayScenario(userId, scenario):
     characterPortraitGenerator = CharacterPortraitGenerator()
     buildingExteriorGenerator = BuildingExteriorGenerator()
     backgroundGenerator = BackgroundGenerator()
+    characterIconGenerator = CharacterIconGenerator()
     
     clear_button = st.button(label="Clear memory")
     if clear_button:
@@ -311,6 +313,16 @@ def displayScenario(userId, scenario):
             #write out all the agents
             saveAgents(scenario)
 
+        icon_button = st.button(label="Populate missing character icons")
+        if icon_button:
+            #populate all the profile pictures
+            agents = scenario.GetAgents()
+            for agent in agents:
+                if agent.iconFilename is None:
+                    agent.iconFilename = characterIconGenerator.CreateIcon(agent)
+            #write out all the agents
+            saveAgents(scenario)
+
         writeAgents_button = st.button(label="Write agents to DB")
         if writeAgents_button:
             saveAgents(scenario)
@@ -338,6 +350,8 @@ def displayScenario(userId, scenario):
         st.write(agent)
         if agent.portraitFilename:
             st.image(agent.portraitFilename)
+        if agent.iconFilename:
+            st.image(agent.iconFilename)
 
     st.subheader(f"Villagers that are standing outside:")
     if scenario.agents is not None:

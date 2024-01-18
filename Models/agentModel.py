@@ -43,6 +43,7 @@ class AgentModel(Document):
         self.status = agent.status
         self.emoji = agent.emoji
         self.portraitFilename = agent.portraitFilename
+        self.iconFilename = agent.iconFilename
 
     def Hydrate(self):
         return Agent(self.name,
@@ -53,4 +54,5 @@ class AgentModel(Document):
                      currentTime=self.currentTime,
                      status = self.status,
                      emoji = self.emoji,
-                     portraitFilename = self.portraitFilename)
+                     portraitFilename = self.portraitFilename,
+                     iconFilename=self.iconFilename)
