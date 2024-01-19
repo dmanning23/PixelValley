@@ -1,1 +1,1 @@
-This folder will contain resized images with the background removed.
+This folder will contain images with the background removed.
