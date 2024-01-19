@@ -66,7 +66,7 @@ class CharacterChibiGenerator:
 
         #resize the image
         width, height = output_image.size
-        newSize = (width // 3, height // 3)
+        newSize = (width // 4, height // 4)
         resized_image = output_image.resize(newSize)
 
         #save to the resized folder
