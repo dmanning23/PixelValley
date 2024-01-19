@@ -12,9 +12,13 @@ class AgentModel(Document):
     currentTime = IntField()
     status = StringField()
     emoji = StringField()
+
+    #TODO: move all these filenames into the description or something
     portraitFilename = StringField()
     iconFilename = StringField()
     resizedIconFilename = StringField()
+    chibiFilename = StringField()
+    resizedChibiFilename = StringField()
 
     def Set(self,
             agent,
@@ -47,6 +51,8 @@ class AgentModel(Document):
         self.portraitFilename = agent.portraitFilename
         self.iconFilename = agent.iconFilename
         self.resizedIconFilename = agent.resizedIconFilename
+        self.chibiFilename = agent.chibiFilename
+        self.resizedChibiFilename = agent.resizedChibiFilename
 
     def Hydrate(self):
         return Agent(self.name,
@@ -59,4 +65,6 @@ class AgentModel(Document):
                      emoji = self.emoji,
                      portraitFilename = self.portraitFilename,
                      iconFilename = self.iconFilename,
-                     resizedIconFilename = self.resizedIconFilename)
+                     resizedIconFilename = self.resizedIconFilename,
+                     chibiFilename = self.chibiFilename,
+                     resizedChibiFilename = self.resizedChibiFilename,)

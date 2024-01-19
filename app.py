@@ -8,12 +8,15 @@ from py_linq import *
 
 from Simulation.timeStream import TimeStream
 
+from Models.agentDescriptionModel import AgentDescriptionModel
+
 from Generators.scenarioGenerator import ScenarioGenerator
 from Generators.locationGenerator import LocationGenerator
 from Generators.itemGenerator import ItemGenerator
 from Generators.agentGenerator import AgentGenerator
 from Generators.goalsGenerator import GoalsGenerator
 from Generators.plannedActivityGenerator import PlannedActivityGenerator
+from Generators.characterDescriptionGenerator import CharacterDescriptionGenerator
 
 from Repository.scenarioRepository import ScenarioRepository
 from Repository.locationRepository import LocationRepository
@@ -39,6 +42,7 @@ from AssetCreation.characterPortraitGenerator import CharacterPortraitGenerator
 from AssetCreation.buildingExteriorGenerator import BuildingExteriorGenerator
 from AssetCreation.backgroundGenerator import BackgroundGenerator
 from AssetCreation.characterIconGenerator import CharacterIconGenerator
+from AssetCreation.characterChibiGenerator import CharacterChibiGenerator
 
 def main():
 
@@ -219,6 +223,8 @@ def displayScenario(userId, scenario):
     buildingExteriorGenerator = BuildingExteriorGenerator()
     backgroundGenerator = BackgroundGenerator()
     characterIconGenerator = CharacterIconGenerator()
+    characterDescriptionGenerator = CharacterDescriptionGenerator()
+    characterChibiGenerator = CharacterChibiGenerator()
     
     clear_button = st.button(label="Clear memory")
     if clear_button:
@@ -308,8 +314,18 @@ def displayScenario(userId, scenario):
             #populate all the profile pictures
             agents = scenario.GetAgents()
             for agent in agents:
+                #if the character description missing?
+                description = None
+                try:
+                    description = AgentDescriptionModel.objects.get(agentId=agent._id)
+                except:
+                    pass
+                if description is None:
+                    description = characterDescriptionGenerator.DescribeCharacter(agent)
+                    description.agentId = agent._id
+                    AgentDescriptionModel.objects.insert(description)
                 if agent.portraitFilename is None:
-                    agent.portraitFilename = characterPortraitGenerator.CreatePortrait(agent)
+                    agent.portraitFilename = characterPortraitGenerator.CreatePortrait(agent, description)
             #write out all the agents
             saveAgents(scenario)
 
@@ -318,8 +334,36 @@ def displayScenario(userId, scenario):
             #populate all the profile pictures
             agents = scenario.GetAgents()
             for agent in agents:
+                description = None
+                try:
+                    description = AgentDescriptionModel.objects.get(agentId=agent._id)
+                except:
+                    pass
+                if description is None:
+                    description = characterDescriptionGenerator.DescribeCharacter(agent)
+                    description.agentId = agent._id
+                    AgentDescriptionModel.objects.insert(description)
                 if agent.iconFilename is None or agent.resizedIconFilename is None:
-                    agent.iconFilename, agent.resizedIconFilename = characterIconGenerator.CreateIcon(agent)
+                    agent.iconFilename, agent.resizedIconFilename = characterIconGenerator.CreateIcon(agent, description)
+            #write out all the agents
+            saveAgents(scenario)
+
+        icon_button = st.button(label="Populate missing character chibis")
+        if icon_button:
+            #populate all the profile pictures
+            agents = scenario.GetAgents()
+            for agent in agents:
+                description = None
+                try:
+                    description = AgentDescriptionModel.objects.get(agentId=agent._id)
+                except:
+                    pass
+                if description is None:
+                    description = characterDescriptionGenerator.DescribeCharacter(agent)
+                    description.agentId = agent._id
+                    AgentDescriptionModel.objects.insert(description)
+                if agent.chibiFilename is None or agent.resizedChibiFilename is None:
+                    agent.chibiFilename, agent.resizedChibiFilename = characterChibiGenerator.CreateChibi(agent, description)
             #write out all the agents
             saveAgents(scenario)
 
@@ -330,7 +374,7 @@ def displayScenario(userId, scenario):
         buildingExterior_button = st.button(label="Populate missing building exteriors")
         if buildingExterior_button:
             for location in scenario.locations:
-                if location.imageFilename is None or location.resizedIconFilename is None:
+                if location.imageFilename is None or location.resizedImageFilename is None:
                     location.imageFilename, location.resizedImageFilename = buildingExteriorGenerator.CreateLocation(location)
             saveLocations(scenario)
 
@@ -339,6 +383,38 @@ def displayScenario(userId, scenario):
             if scenario.imageFilename is None:
                 scenario.imageFilename = backgroundGenerator.CreateScenarioBackground(scenario)
             saveScenario(userId, scenario)
+
+        describe_character = st.button(label="Create character descriptions")
+        if describe_character:
+            for agent in scenario.GetAgents():
+                result = characterDescriptionGenerator.DescribeCharacter(agent)
+                result.agentId = agent._id
+                AgentDescriptionModel.objects.insert(result)
+
+        redoCharacterImagery = st.button(label="Just redo all the characters")
+        if redoCharacterImagery:
+            for agent in scenario.GetAgents():
+                #get a character description
+                description = None
+                try:
+                    description = AgentDescriptionModel.objects.get(agentId=agent._id)
+                except:
+                    pass
+                if description is None:
+                    description = characterDescriptionGenerator.DescribeCharacter(agent)
+                    description.agentId = agent._id
+                    AgentDescriptionModel.objects.insert(description)
+
+                #redo the portrait
+                agent.portraitFilename = characterPortraitGenerator.CreatePortrait(agent, description)
+
+                #redo the icon
+                agent.iconFilename, agent.resizedIconFilename = characterIconGenerator.CreateIcon(agent)
+
+                #redo the head icon
+                agent.chibiFilename, agent.resizedChibiFilename = characterChibiGenerator.CreateChibi(agent, description)
+            saveAgents(scenario)
+
 
     #output the user's prompt
     st.write(scenario)
@@ -350,8 +426,10 @@ def displayScenario(userId, scenario):
         st.write(agent)
         if agent.portraitFilename:
             st.image(agent.portraitFilename)
-        if agent.iconFilename:
-            st.image(agent.iconFilename)
+        if agent.resizedIconFilename:
+            st.image(agent.resizedIconFilename)
+        if agent.resizedChibiFilename:
+            st.image(agent.resizedChibiFilename)
 
     st.subheader(f"Villagers that are standing outside:")
     if scenario.agents is not None:

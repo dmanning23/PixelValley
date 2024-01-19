@@ -25,13 +25,25 @@ class CharacterPortraitGenerator:
         Path(self.sdresults).mkdir(parents=True, exist_ok=True)
         Path(self.nobackground).mkdir(parents=True, exist_ok=True)
 
-    def CreatePortrait(self, agent):
+    def CreatePortrait(self, agent, description=None):
 
         self.api.set_options(self.options)
 
         #Build the prompt
-        user_input = f'{agent.name} is a {agent.age} year old {agent.gender}, "{agent.description}"'
-        prompt = f"game icon,mobile game ui,(head shot),((painterly)),black background,{user_input}"
+        user_input = f'{agent.name} is a {agent.age} year old {agent.gender},"{agent.description}"'
+        prompt = f"game icon,(head shot),(painterly),black background,{user_input},"
+
+        if description is not None:
+            if description.hair:
+                prompt = prompt + (f'"Hair: {description.hair}",')
+            if description.eyes:
+                prompt = prompt + (f'"Eyes: {description.eyes}",')
+            if description.clothing is not None:
+                for clothing in description.clothing:
+                    prompt = prompt + (f'"{clothing}",')
+            if description.distinguishingFeatures is not None:
+                for feature in description.distinguishingFeatures:
+                    prompt = prompt + (f'"{feature}",')
 
         #create the character picture
         result = self.api.txt2img(prompt=prompt,
@@ -39,6 +51,7 @@ class CharacterPortraitGenerator:
             cfg_scale=7,
             width=512,
             height=768,
+            steps=40,
             save_images=True)
         
         #save the image to the sdresults folder

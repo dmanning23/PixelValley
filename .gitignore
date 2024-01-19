@@ -5,10 +5,14 @@ assets/portraits/nobackground/
 assets/portraits/sdresults/
 assets/buildingExterior/nobackground/
 assets/buildingExterior/sdresults/
+assets/buildingExterior/resized/
 assets/background/sdresults/
 assets/charactericon/nobackground/
 assets/charactericon/sdresults/
 assets/charactericon/resized/
+assets/characterchibi/nobackground/
+assets/characterchibi/sdresults/
+assets/characterchibi/resized/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

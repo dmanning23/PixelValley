@@ -31,7 +31,9 @@ class Agent:
                  emoji = "",
                  portraitFilename = "",
                  iconFilename = "",
-                 resizedIconFilename = ""):
+                 resizedIconFilename = "",
+                 chibiFilename = "",
+                 resizedChibiFilename = ""):
         if _id is not None:
             self._id = _id
         self.name = name
@@ -55,6 +57,9 @@ class Agent:
         self.portraitFilename = portraitFilename
         self.iconFilename = iconFilename
         self.resizedIconFilename = resizedIconFilename
+
+        self.chibiFilename = chibiFilename
+        self.resizedChibiFilename = resizedChibiFilename
 
     def __str__(self) -> str:
         return f"{self.name} is a {self.age} year old {self.gender}. {self.description}"

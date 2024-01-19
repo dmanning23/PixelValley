@@ -1,4 +1,3 @@
-from Memory.plannedActivity import PlannedActivity
 import json
 from openai import OpenAI
 
