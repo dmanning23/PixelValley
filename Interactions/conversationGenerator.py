@@ -169,7 +169,9 @@ class ConversationGenerator():
             for memory in agentMemories[i]:
                 messages.append({'role': 'user', 'content': f"{agents[i].name} memory: {memory}"})
 
-        functions = [ { "type": "function", "function": ConversationGenerator.createConversationFunctionDef } ]
+        functions = [ 
+            { "type": "function", "function": ConversationGenerator.createConversationFunctionDef }
+        ]
         available_functions = {
             "create_conversation": self._create_conversation,
         }

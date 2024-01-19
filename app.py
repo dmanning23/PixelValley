@@ -37,6 +37,7 @@ from Interactions.actionGenerator import ActionGenerator
 from Interactions.conversationGenerator import ConversationGenerator
 from Interactions.conversationStream import ConversationStream
 from Interactions.conversationSummarizer import ConversationSummarizer
+from Interactions.locationChanger import LocationChanger
 
 from AssetCreation.characterPortraitGenerator import CharacterPortraitGenerator
 from AssetCreation.buildingExteriorGenerator import BuildingExteriorGenerator
@@ -215,7 +216,8 @@ def displayScenario(userId, scenario):
     agentRepo = AgentRepository()
     actionGenerator = ActionGenerator()
     conversationGenerator = ConversationGenerator()
-    iteractionStream = InteractionStream(activityStream, retrieval, interactionGen, itemRepo, memRepo, agentRepo, actionGenerator)
+    locationChanger = LocationChanger()
+    iteractionStream = InteractionStream(activityStream, retrieval, interactionGen, itemRepo, memRepo, agentRepo, actionGenerator, locationChanger)
     timeStream = TimeStream()
     conversationSummarizer = ConversationSummarizer()
     conversationStream = ConversationStream(conversationGenerator, activityStream, retrieval, memRepo, conversationSummarizer)
@@ -225,6 +227,7 @@ def displayScenario(userId, scenario):
     characterIconGenerator = CharacterIconGenerator()
     characterDescriptionGenerator = CharacterDescriptionGenerator()
     characterChibiGenerator = CharacterChibiGenerator()
+    
     
     clear_button = st.button(label="Clear memory")
     if clear_button:

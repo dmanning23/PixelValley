@@ -9,7 +9,8 @@ class InteractionStream():
                  itemRepository,
                  memoryRepository,
                  agentRepository,
-                 actionGenerator):
+                 actionGenerator,
+                 locationChanger):
         self.activityStream = activityStream
         self.memoryRetrieval = memoryRetrieval
         self.interactionGenerator = interactionGenerator
@@ -17,6 +18,7 @@ class InteractionStream():
         self.memoryRepository = memoryRepository
         self.agentRepository = agentRepository
         self.actionGenerator = actionGenerator
+        self.locationChanger = locationChanger
         pass
 
     #get the agents current location
@@ -51,7 +53,7 @@ class InteractionStream():
             usingItem = agent.usingItem
         return usingItem
     
-    def _moveAgent(self, agent, scenario, prevLocation, nextLocation):
+    def _moveAgent(self, agent, scenario, prevLocation, nextLocation, reasoning):
         #update the previous location
         if prevLocation is not None:
             prevLocation.agents.remove(agent)
@@ -72,6 +74,10 @@ class InteractionStream():
             self.agentRepository.Update(agent, homeScenarioId=scenario._id)
         else:
             self.agentRepository.Update(agent, homeScenarioId=scenario._id, locationId=nextLocation._id)
+        
+        #create a memory that the agent chose to move
+        memory = f"I chose to go to {nextLocation.name}. {reasoning}"
+        self.memoryRepository.CreateMemory(agent, memory)
         #TODO: create observations? or wait until the next timestep?
         #TODO: if the agent is using an item, stop using it and create a memory
         #TODO: start the agent walking to the new location
@@ -156,12 +162,12 @@ class InteractionStream():
         memories = self.memoryRetrieval.RetrieveMemories(agent, f"What is the best location to {plannedActivity.description}?")
         
         #Check if the agent wants to change locations
-        result = self.interactionGenerator.AskToChangeLocation(agent, location, plannedActivity, memories)
-        if result is not None:
+        chosenLocation, reasoning = self.locationChanger.AskToChangeLocation(agent, location, plannedActivity, memories)
+        if chosenLocation is not None:
             #Find the location they want to go to
-            nextLocation = scenario.FindLocation(result)
-            if result.lower() == "outside" or nextLocation is not None:
-                self._moveAgent(agent, scenario, location, nextLocation)
+            nextLocation = scenario.FindLocation(chosenLocation)
+            if chosenLocation.lower() == "outside" or nextLocation is not None:
+                self._moveAgent(agent, scenario, location, nextLocation, reasoning)
                 #TODO: tried to go to a nonexistent location
 
     def SwapItems(self, agent, scenario):

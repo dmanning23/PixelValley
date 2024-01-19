@@ -5,6 +5,9 @@ class Memory():
     _timeWeight = 3.0
     _timeDecay = 0.005
 
+    #Weight the importance, because it seems REALLY arbitrary.
+    _importanceWeight = 0.9
+
     def __init__(self, _id = None, agentId = None, description = None, time = 0, importance = 0.0, embedding=0.0, relevance=None):
 
         if _id is not None:
@@ -34,4 +37,4 @@ class Memory():
         timeScore = (self._timeWeight - ((currentTime - self.time) * self._timeDecay)) / self._timeWeight
 
         #Add the time, importance, and relevance to get the final score
-        return timeScore + self.importance + self.relevance
+        return timeScore + (self.importance * self._importanceWeight) + self.relevance
