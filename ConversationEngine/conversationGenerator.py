@@ -1,6 +1,6 @@
 import json
-from Interactions.conversationModel import DialogueModel
-from Interactions.conversationModel import ConversationModel
+from ConversationEngine.conversationModel import DialogueModel
+from ConversationEngine.conversationModel import ConversationModel
 from openai import OpenAI
 from py_linq import *
 

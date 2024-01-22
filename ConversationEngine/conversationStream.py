@@ -1,5 +1,6 @@
 from py_linq import *
-from Interactions.conversationModel import ConversationModel
+from ConversationEngine.conversationModel import ConversationModel
+
 class ConversationStream():
 
     def __init__(self, conversationGenerator, activityStream, retrieval, memoryRepository, conversationSummarizer, conversationStarter):
@@ -71,3 +72,8 @@ class ConversationStream():
                             self.memoryRepository.CreateMemory(agent, f"{summary}")
                 #save the conversation
                 conversationModel.save()
+
+    def ConversationPipeline(self, scenario, agent):
+        conversationModel, chosenAgents = self.conversationStream.StartConversation(scenario, agent)
+        if chosenAgents is not None and len(chosenAgents) > 1:
+            return self.conversationStream.CreateConversation(scenario, conversationModel, chosenAgents)

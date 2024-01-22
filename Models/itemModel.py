@@ -2,7 +2,7 @@ from mongoengine import *
 from Simulation.item import Item
 from Models.finiteStateMachineModel import FiniteStateMachineModel
 
-class ItemModel(Document):
+class BaseItemModel():
     name = StringField()
     description = StringField()
     canInteract = BooleanField()
@@ -12,16 +12,12 @@ class ItemModel(Document):
     #This will be populated if the item is in a location
     locationId = ObjectIdField()
 
-    #This will be populated if the item is being carried by a character
-    characterId = ObjectIdField()
-
     #This will be populated if an item is being used by the character
     usingCharacterId = ObjectIdField()
 
     def Set(self,
             item,
             locationId=None,
-            characterId=None,
             usingCharacterId=None):
         if hasattr(item, "_id"):
             self.id=item._id
@@ -30,7 +26,6 @@ class ItemModel(Document):
         self.canInteract = item.canInteract
         self.canBePickedUp = item.canBePickedUp
         self.locationId=locationId
-        self.characterId = characterId
         self.usingCharacterId = usingCharacterId
 
         #the state machine has to be set up separately
@@ -39,14 +34,22 @@ class ItemModel(Document):
             self.stateMachine.Set(item.stateMachine)
 
     def Hydrate(self):
+        id = None
+        if hasattr(self, "id"):
+            id=self.id
         item = Item(self.name,
                     self.description,
                     self.canInteract,
                     self.canBePickedUp,
-                    _id = self.id)
+                    _id = id)
         
         if self.stateMachine is not None:
             item.stateMachine = self.stateMachine.Hydrate()
 
         return item
+    
+class ItemModel(BaseItemModel, Document):
+    pass
 
+class ItemSubModel(BaseItemModel, EmbeddedDocument):
+    pass

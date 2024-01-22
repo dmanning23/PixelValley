@@ -34,11 +34,15 @@ from Memory.plannedActivityStream import PlannedActivityStream
 from Interactions.interactionGenerator import InteractionGenerator
 from Interactions.interactionStream import InteractionStream
 from Interactions.actionGenerator import ActionGenerator
-from Interactions.conversationGenerator import ConversationGenerator
-from Interactions.conversationStream import ConversationStream
-from Interactions.conversationSummarizer import ConversationSummarizer
 from Interactions.locationChanger import LocationChanger
-from Interactions.conversationStarter import ConversationStarter
+from Interactions.statusGenerator import StatusGenerator
+from Interactions.inventoryGenerator import InventoryGenerator
+from Interactions.inventoryManager import InventoryManager
+
+from ConversationEngine.conversationGenerator import ConversationGenerator
+from ConversationEngine.conversationStream import ConversationStream
+from ConversationEngine.conversationSummarizer import ConversationSummarizer
+from ConversationEngine.conversationStarter import ConversationStarter
 
 from AssetCreation.characterPortraitGenerator import CharacterPortraitGenerator
 from AssetCreation.buildingExteriorGenerator import BuildingExteriorGenerator
@@ -119,10 +123,6 @@ def fetchScenario(userId, scenarioId):
     with st.spinner("Loading agent items..."):
         agents = scenario.GetAgents()
         for agent in agents:
-            #Load up the items that agents are holding
-            items = ItemRepository.GetItems(characterId=agent._id)
-            if items is not None and len(items) > 0:
-                agent.currentItem = items[0]
 
              #load up the items that are being used
             items = ItemRepository.GetItems(usingCharacterId=agent._id)
@@ -180,7 +180,6 @@ def createScenario(userId, scenarioDescription):
                     scenario.locations[locationIndex].agents = []
                 #add to the agent list
                 scenario.locations[locationIndex].agents.append(agent)
-            
 
     #Store the scenario
     with st.spinner("Saving scenario..."):
@@ -190,8 +189,7 @@ def createScenario(userId, scenarioDescription):
         saveLocations(scenario)
 
     with st.spinner("Saving items..."):
-        for location in scenario.locations:
-            ItemRepository.CreateOrUpdateFromLocation(location)
+        saveItems(scenario)
 
     #save all the villagers
     with st.spinner("Saving villagers..."):
@@ -218,18 +216,36 @@ def displayScenario(userId, scenario):
     actionGenerator = ActionGenerator()
     conversationGenerator = ConversationGenerator()
     locationChanger = LocationChanger()
-    iteractionStream = InteractionStream(activityStream, retrieval, interactionGen, itemRepo, memRepo, agentRepo, actionGenerator, locationChanger)
-    timeStream = TimeStream()
     conversationSummarizer = ConversationSummarizer()
     conversationStarter = ConversationStarter()
-    conversationStream = ConversationStream(conversationGenerator, activityStream, retrieval, memRepo, conversationSummarizer, conversationStarter)
+    conversationStream = ConversationStream(conversationGenerator,
+                                            activityStream,
+                                            retrieval,
+                                            memRepo,
+                                            conversationSummarizer,
+                                            conversationStarter)
+    statusGenerator = StatusGenerator()
+    inventoryGenerator = InventoryGenerator()
+    inventoryManager = InventoryManager(memRepo,
+                                        agentRepo)
+    iteractionStream = InteractionStream(activityStream,
+                                         retrieval,
+                                         interactionGen,
+                                         itemRepo,
+                                         memRepo,
+                                         agentRepo,
+                                         actionGenerator,
+                                         locationChanger,
+                                         statusGenerator,
+                                         inventoryGenerator,
+                                         inventoryManager)
+    timeStream = TimeStream()
     characterPortraitGenerator = CharacterPortraitGenerator()
     buildingExteriorGenerator = BuildingExteriorGenerator()
     backgroundGenerator = BackgroundGenerator()
     characterIconGenerator = CharacterIconGenerator()
     characterDescriptionGenerator = CharacterDescriptionGenerator()
     characterChibiGenerator = CharacterChibiGenerator()
-    
     
     clear_button = st.button(label="Clear memory")
     if clear_button:
@@ -263,11 +279,8 @@ def displayScenario(userId, scenario):
             for agent in scenario.GetAgents():
                 activityStream.CreatePlannedActivities(agent, scenario)
 
-        change_location_button = st.button(label="Change Agent Locations?")
-        if change_location_button:
-            for agent in scenario.GetAgents():
-                iteractionStream.ChangeLocation(agent, scenario)
-
+    itemContainer = st.container()
+    with itemContainer:
         change_item_button = st.button(label="Swap Items?")
         if change_item_button:
             for agent in scenario.GetAgents():
@@ -278,6 +291,14 @@ def displayScenario(userId, scenario):
             for agent in scenario.GetAgents():
                 iteractionStream.UseItem(agent, scenario)
 
+    interactionContainer = st.container()
+    with interactionContainer:
+
+        change_location_button = st.button(label="Change Agent Locations?")
+        if change_location_button:
+            for agent in scenario.GetAgents():
+                iteractionStream.ChangeLocation(agent, scenario)
+
         agent_status_button = st.button(label="Set Agent statuses")
         if agent_status_button:
             for agent in scenario.GetAgents():
@@ -287,6 +308,9 @@ def displayScenario(userId, scenario):
         if action_button:
             for agent in scenario.GetAgents():
                 iteractionStream.PlanActions(agent, scenario)
+
+    conversationContainer = st.container()
+    with conversationContainer:
 
         choose_conversation_button = st.button(label="Choose conversation")
         if choose_conversation_button:
@@ -310,10 +334,10 @@ def displayScenario(userId, scenario):
         conversation_button4 = st.button(label="Conversation Pipeline!")
         if conversation_button4:
             agents = scenario.GetAgents()
-            conversationModel, chosenAgents = conversationStream.StartConversation(scenario, agents[0])
-            if chosenAgents is not None and len(chosenAgents) > 1:
-                conversationStream.CreateConversation(scenario, conversationModel, chosenAgents)
+            conversation = iteractionStream.Conversation(scenario, agents[0])
 
+    assetContainer = st.container()
+    with assetContainer:
         profilePic_button = st.button(label="Populate missing profile pictures")
         if profilePic_button:
             #populate all the profile pictures
@@ -376,6 +400,10 @@ def displayScenario(userId, scenario):
         if writeAgents_button:
             saveAgents(scenario)
 
+        writeItems_button = st.button(label="Write items to DB")
+        if writeItems_button:
+            saveItems(scenario)
+
         buildingExterior_button = st.button(label="Populate missing building exteriors")
         if buildingExterior_button:
             for location in scenario.locations:
@@ -420,7 +448,6 @@ def displayScenario(userId, scenario):
                 agent.chibiFilename, agent.resizedChibiFilename = characterChibiGenerator.CreateChibi(agent, description)
             saveAgents(scenario)
 
-
     #output the user's prompt
     st.write(scenario)
     if scenario.imageFilename:
@@ -429,6 +456,8 @@ def displayScenario(userId, scenario):
     st.subheader(f"Villagers in {scenario.name}:")
     for agent in scenario.GetAgents():
         st.write(agent)
+        if agent.currentItem:
+            st.write(f"{agent.name} is holding the {agent.currentItem.name}")
         if agent.portraitFilename:
             st.image(agent.portraitFilename)
         if agent.resizedIconFilename:
@@ -480,6 +509,10 @@ def saveAgents(scenario):
             AgentRepository.CreateOrUpdate(agent, homeScenarioId=scenario._id)
     for location in scenario.locations:
         AgentRepository.CreateOrUpdateFromLocation(location, homeScenarioId=scenario._id)
+
+def saveItems(scenario):
+    for location in scenario.locations:
+            ItemRepository.CreateOrUpdateFromLocation(location)
 
 def saveLocations(scenario):
     for location in scenario.locations:

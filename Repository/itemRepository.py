@@ -3,24 +3,24 @@ from py_linq import *
 
 class ItemRepository:
     @staticmethod
-    def Create(item, locationId=None, characterId=None):
+    def Create(item, locationId=None):
         model = ItemModel()
-        model.Set(item, locationId, characterId)
+        model.Set(item, locationId)
 
         ItemModel.objects.insert(model)
         item._id = model.id
 
     @staticmethod
-    def CreateOrUpdate(item, locationId=None, characterId=None):
+    def CreateOrUpdate(item, locationId=None):
         if not hasattr(item, "_id"):
-            ItemRepository.Create(item, locationId, characterId)
+            ItemRepository.Create(item, locationId)
         else:
-            ItemRepository.Update(item, locationId, characterId)
+            ItemRepository.Update(item, locationId)
 
     @staticmethod
-    def Update(item, locationId=None, characterId=None, usingCharacterId=None):
+    def Update(item, locationId=None, usingCharacterId=None):
         model = ItemModel()
-        model.Set(item, locationId, characterId, usingCharacterId)
+        model.Set(item, locationId, usingCharacterId)
         model.save()
         
     @staticmethod
@@ -30,13 +30,10 @@ class ItemRepository:
 
     @staticmethod
     def GetItems(locationId=None,
-                 characterId=None,
                  usingCharacterId=None):
         models = []
         if locationId is not None:
             models = ItemModel.objects(locationId=locationId)
-        elif characterId is not None:
-            models = ItemModel.objects(characterId=characterId)
         elif usingCharacterId is not None:
             models = ItemModel.objects(usingCharacterId=usingCharacterId)
 

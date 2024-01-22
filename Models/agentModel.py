@@ -1,4 +1,5 @@
 from Simulation.agent import Agent
+from Models.itemModel import ItemSubModel
 from mongoengine import *
 
 class AgentModel(Document):
@@ -12,6 +13,8 @@ class AgentModel(Document):
     currentTime = IntField()
     status = StringField()
     emoji = StringField()
+
+    currentItem = EmbeddedDocumentField(ItemSubModel)
 
     #TODO: move all these filenames into the description or something
     portraitFilename = StringField()
@@ -41,13 +44,15 @@ class AgentModel(Document):
 
         self.locationId = locationId
 
-        if not hasattr(agent, "usingItemId") or agent.usingItemId is None:
-            self.usingItemId = None
-        else:
-            self.usingItemId = agent.usingItem._id
-
         self.status = agent.status
         self.emoji = agent.emoji
+
+        if agent.currentItem is not None:
+            self.currentItem = ItemSubModel()
+            self.currentItem.Set(agent.currentItem)
+        else:
+            self.currentItem = None
+
         self.portraitFilename = agent.portraitFilename
         self.iconFilename = agent.iconFilename
         self.resizedIconFilename = agent.resizedIconFilename
@@ -55,7 +60,7 @@ class AgentModel(Document):
         self.resizedChibiFilename = agent.resizedChibiFilename
 
     def Hydrate(self):
-        return Agent(self.name,
+        agent = Agent(self.name,
                      self.age,
                      self.gender,
                      self.description,
@@ -68,3 +73,8 @@ class AgentModel(Document):
                      resizedIconFilename = self.resizedIconFilename,
                      chibiFilename = self.chibiFilename,
                      resizedChibiFilename = self.resizedChibiFilename,)
+        
+        if self.currentItem:
+            agent.currentItem = self.currentItem.Hydrate()
+        
+        return agent

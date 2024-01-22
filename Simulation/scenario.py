@@ -54,7 +54,7 @@ class Scenario:
             agents = agents + location.GetAgents()
 
         return agents
-    
+
     def FindAgent(self, agent):
         if self.agents is not None:
             if agent in self.agents:

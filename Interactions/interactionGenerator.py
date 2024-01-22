@@ -10,21 +10,6 @@ class InteractionGenerator():
         }
     }
 
-    pickUpItemFunctionDef = {
-        'name': 'pick_up_item',
-        'description': 'Pick up an item',
-        'parameters': {
-            "type": "object",
-            "properties": {
-                'itemName': {
-                    'type': 'string',
-                    'description': 'The name of the item to pick up'
-                },
-            },
-        "required": ["itemName" ]
-        }
-    }
-
     useItemFunctionDef = {
         'name': 'use_item',
         'description': 'Perform an action on an available item',
@@ -52,13 +37,6 @@ class InteractionGenerator():
         }
     }
 
-    dropItemFunctionDef = {
-        'name': 'drop_item',
-        'description': 'Drop the currently help item',
-        'parameters': {
-        }
-    }
-
     stopUsingItemFunctionDef = {
         'name': 'stop_using_item',
         'description': 'Stop using the current item',
@@ -81,39 +59,12 @@ class InteractionGenerator():
         }
     }
 
-    setStatusFunctionDef = {
-        'name': 'set_status',
-        'description': "Set a character's status",
-        'parameters': {
-            "type": "object",
-            "properties": {
-                'status': {
-                    'type': 'string',
-                    'description': "The character's new status"
-                },
-                'emoji': {
-                    'type': 'string',
-                    'description': "An emoji that expresses the status"
-                },
-            },
-        "required": ["status", "emoji" ]
-        }
-    }
-
     def __init__(self):
         pass
 
     def _no_changes(self, agent):
         #don't make any changes to the agent
         return None
-    
-    def _pick_up_item(self, agent, itemName):
-        #what item is the character trying to pick up?
-        return itemName
-    
-    def _drop_item(self, agent):
-        #send a message to drop the current item
-        return "Drop current item"
 
     def _use_item(self, agent, action, itemName, status=None, emoji=None):
         #what item is the character trying to use?
@@ -126,9 +77,6 @@ class InteractionGenerator():
     def _item_action(self, agent, actionName):
         #what action is the agent trying to perform?
         return actionName
-    
-    def _set_status(self, agent, status, emoji=None):
-        return status
 
     def _parseResponse(self, agent, response_message, available_functions):
         if response_message.function_call and response_message.function_call.arguments:
@@ -140,41 +88,6 @@ class InteractionGenerator():
             #The LLM didn't call a function but provided a response
             return None
 
-    def AskToChangeItem(self, agent, currentItem, pickableItems, plannedActivity, llm = None):
-        if not llm:
-            llm = OpenAI()
-
-        #TODO: update this to take a list of enums for possible actions
-        
-        messages = [
-            {'role': 'system', 'content': f"You are {agent.name} and you are currently trying to {plannedActivity.description}. You are currently holding {currentItem.name}. Given the following list of available items, will you choose to pick up one of the available items, drop the current item, or do nothing?"},
-        ]
-
-        for item in pickableItems:
-            messages.append({'role': 'user', 'content': f"{item.name}: {item.description}"})
-
-        #Create the list of function definitions that are available to the LLM
-        functions = [
-            InteractionGenerator.noChangesFunctionDef,
-            InteractionGenerator.pickUpItemFunctionDef,
-            InteractionGenerator.dropItemFunctionDef
-        ]
-
-        available_functions = {
-            "pick_up_item": self._pick_up_item,
-            "drop_item": self._drop_item,
-            "no_changes":self._no_changes
-        }
-
-        #Call the LLM...
-        response = llm.chat.completions.create(
-            model = 'gpt-3.5-turbo',
-            temperature=0.8,
-            messages = messages,
-            functions = functions, #Pass in the list of functions available to the LLM
-            function_call = 'auto')
-        return self._parseResponse(agent, response.choices[0].message, available_functions)
-    
     def UseItem(self, agent, currentItem, availableItems, plannedActivity, importantMemories, llm = None):
         if not llm:
             llm = OpenAI()
@@ -272,40 +185,6 @@ class InteractionGenerator():
         response = llm.chat.completions.create(
             model = 'gpt-3.5-turbo',
             temperature=1.0,
-            messages = messages,
-            functions = functions, #Pass in the list of functions available to the LLM
-            function_call = 'auto')
-        return self._parseResponse(agent, response.choices[0].message, available_functions)
-    
-    def AskToSetStatus(self, agent, currentItem, usingItem, currentLocation, plannedActivity, llm = None):
-        if not llm:
-            llm = OpenAI()
-
-        messages = [
-            {'role': 'system', 'content': f"Given the following sitution, set your status to an appropriate message."},
-            {'role': 'user', 'content': f"You are {agent.name}"},
-            {'role': 'user', 'content': f"Your current status message is {agent.status}"},
-            {'role': 'user', 'content': f"You are currently {plannedActivity.description}"},
-            {'role': 'user', 'content': f"You have a {currentItem.name}"},
-            {'role': 'user', 'content': f"You are using the {usingItem.name}"},
-            {'role': 'user', 'content': f"You are in the {currentLocation.name}"},
-        ]
-
-        #Create the list of function definitions that are available to the LLM
-        functions = [
-            InteractionGenerator.noChangesFunctionDef,
-            InteractionGenerator.setStatusFunctionDef,
-        ]
-
-        available_functions = {
-            "set_status": self._set_status,
-            "no_changes":self._no_changes
-        }
-
-        #Call the LLM...
-        response = llm.chat.completions.create(
-            model = 'gpt-3.5-turbo',
-            temperature=0.65,
             messages = messages,
             functions = functions, #Pass in the list of functions available to the LLM
             function_call = 'auto')
