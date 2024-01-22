@@ -288,6 +288,5 @@ class InteractionStream():
         
         #TODO: take a look at this prompt from the mkturkan generative-agents repo
         #prompt = "You are {}. Your plans are: {}. You are currently in {} with the following description: {}. It is currently {}:00. The following people are in this area: {}. You can interact with them.".format(self.name, self.plans, location.name, town_areas[location.name], str(global_time), ', '.join(people))
-        
 
     #TODO: start conversation?

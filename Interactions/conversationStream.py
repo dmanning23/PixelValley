@@ -1,12 +1,14 @@
 from py_linq import *
+from Interactions.conversationModel import ConversationModel
 class ConversationStream():
 
-    def __init__(self, conversationGenerator, activityStream, retrieval, memoryRepository, conversationSummarizer):
+    def __init__(self, conversationGenerator, activityStream, retrieval, memoryRepository, conversationSummarizer, conversationStarter):
         self.conversationGenerator = conversationGenerator
         self.activityStream = activityStream
         self.retrieval = retrieval
         self.memoryRepository = memoryRepository
         self.conversationSummarizer = conversationSummarizer
+        self.conversationStarter = conversationStarter
 
     def StartConversation(self, scenario, agent):
         location = scenario.FindAgent(agent)
@@ -25,38 +27,47 @@ class ConversationStream():
             memories.append(locationAgentMemories)
 
         #Choose whether or not to start a conversation
-        result = self.conversationGenerator.StartConversation(scenario, agent, plannedActivity, locationAgents, memories)
+        agents, reasoning = self.conversationStarter.StartConversation(scenario, agent, plannedActivity, locationAgents, memories)
 
-        #TODO: create memory that Agent decided to talk to Agent1, Agent2, etc.
+        if agents is not None:
+            #create memory that Agent decided to talk to Agent1, Agent2, etc.
+            self.memoryRepository.CreateMemory(agent, reasoning)
 
-        return result
+            #create the conversation
+            conversationModel = ConversationModel(initiatingAgent = agent._id, reasoning = reasoning)
+            conversationModel.agents = Enumerable(agents).select(lambda x: x._id).to_list()
+            ConversationModel.objects.insert(conversationModel)
 
-    def CreateConversation(self, scenario, conversationAgents):
+            return conversationModel, agents
+        #This agent chose not to start a conversation
+        return None, None
+
+    def CreateConversation(self, scenario, conversationModel, agents):
             #get the planned activity of each agent
             plannedActivities = []
-            for agent in conversationAgents:
+            for agent in agents:
                 plannedActivities.append(self.activityStream.GetCurrentPlannedActivity(agent, scenario.currentDateTime))
 
             #get memories for each agent
             memories = []
-            for i in range(len(conversationAgents)):
+            for i in range(len(agents)):
                 agentMemories = []
-                for j in range(len(conversationAgents)):
+                for j in range(len(agents)):
                     if i != j:
-                        agentMemories.extend(self.retrieval.RetrieveMemories(conversationAgents[i], f'What is my relationship with {conversationAgents[j].name}?', 5))
+                        agentMemories.extend(self.retrieval.RetrieveMemories(agents[i], f'What is my relationship with {agents[j].name}?', 5))
                 memories.append(agentMemories)
 
             #create a conversation
-            conversation = self.conversationGenerator.CreateConversation(scenario, conversationAgents, plannedActivities, memories)
+            conversationModel = self.conversationGenerator.CreateConversation(scenario, conversationModel, agents, plannedActivities, memories)
 
-            if conversation is not None:
+            if conversationModel is not None:
                 #summarize the conversation for each agent
-                for agent in conversationAgents:
-                    self.memoryRepository.CreateMemory(agent, f"I had a conversation at {scenario.currentDateTime}: {conversation.summary}")
-                    summaries = self.conversationSummarizer.SummarizeConversation(agent, conversation)
+                for agent in agents:
+                    #create memories for each agent
+                    self.memoryRepository.CreateMemory(agent, f"I had a conversation at {scenario.currentDateTime}: {conversationModel.summary}")
+                    summaries = self.conversationSummarizer.SummarizeConversation(agent, conversationModel)
                     if summaries is not None:
                         for summary in summaries:
                             self.memoryRepository.CreateMemory(agent, f"{summary}")
-                
-            #TODO: create memories for each agent
-            #TODO: save the conversation
+                #save the conversation
+                conversationModel.save()

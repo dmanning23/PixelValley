@@ -38,6 +38,7 @@ from Interactions.conversationGenerator import ConversationGenerator
 from Interactions.conversationStream import ConversationStream
 from Interactions.conversationSummarizer import ConversationSummarizer
 from Interactions.locationChanger import LocationChanger
+from Interactions.conversationStarter import ConversationStarter
 
 from AssetCreation.characterPortraitGenerator import CharacterPortraitGenerator
 from AssetCreation.buildingExteriorGenerator import BuildingExteriorGenerator
@@ -220,7 +221,8 @@ def displayScenario(userId, scenario):
     iteractionStream = InteractionStream(activityStream, retrieval, interactionGen, itemRepo, memRepo, agentRepo, actionGenerator, locationChanger)
     timeStream = TimeStream()
     conversationSummarizer = ConversationSummarizer()
-    conversationStream = ConversationStream(conversationGenerator, activityStream, retrieval, memRepo, conversationSummarizer)
+    conversationStarter = ConversationStarter()
+    conversationStream = ConversationStream(conversationGenerator, activityStream, retrieval, memRepo, conversationSummarizer, conversationStarter)
     characterPortraitGenerator = CharacterPortraitGenerator()
     buildingExteriorGenerator = BuildingExteriorGenerator()
     backgroundGenerator = BackgroundGenerator()
@@ -289,7 +291,7 @@ def displayScenario(userId, scenario):
         choose_conversation_button = st.button(label="Choose conversation")
         if choose_conversation_button:
             agents = scenario.GetAgents()
-            conversationStream.StartConversation(scenario, agents[0])
+            conversation, agents = conversationStream.StartConversation(scenario, agents[0])
 
         conversation_button2 = st.button(label="Have conversation")
         if conversation_button2:
@@ -308,9 +310,9 @@ def displayScenario(userId, scenario):
         conversation_button4 = st.button(label="Conversation Pipeline!")
         if conversation_button4:
             agents = scenario.GetAgents()
-            chosen = conversationStream.StartConversation(scenario, agents[0])
-            if chosen is not None and len(chosen) > 1:
-                conversationStream.CreateConversation(scenario, chosen)
+            conversationModel, chosenAgents = conversationStream.StartConversation(scenario, agents[0])
+            if chosenAgents is not None and len(chosenAgents) > 1:
+                conversationStream.CreateConversation(scenario, conversationModel, chosenAgents)
 
         profilePic_button = st.button(label="Populate missing profile pictures")
         if profilePic_button:
