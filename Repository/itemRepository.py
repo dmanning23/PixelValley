@@ -22,6 +22,8 @@ class ItemRepository:
         model = ItemModel()
         model.Set(item, locationId, usingCharacterId)
         model.save()
+        if usingCharacterId is None:
+            ItemModel.objects(id==model.id).update(unset__usingCharacterId=1)
         
     @staticmethod
     def Get(itemId):

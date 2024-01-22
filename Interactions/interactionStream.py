@@ -92,7 +92,7 @@ class InteractionStream():
     def _useItem(self, item, agent, action, location):
         #Is the agent holding the item they are trying to use?
         if agent.currentItem is not None and item._id == agent.currentItem._id:
-            self.inventoryManager._dropItem(agent, location)
+            self.inventoryManager.DropItem(agent, location)
 
         #TODO: don't drop an item to use it
         #TODO: is the item currently in use?
@@ -155,14 +155,14 @@ class InteractionStream():
             if itemName is not None:
                 if itemName == "Drop current item":
                     if agent.currentItem is not None:
-                        self.inventoryManager._dropItem(scenario, agent, location, reasoning)
+                        self.inventoryManager.DropItem(scenario, agent, location, reasoning)
                         #TODO: tried to drop an item when not holding one
                 else:
                     #The agent has chosen to swap items, set their current item
                     chosenItem = Enumerable(availableItems).first_or_default(lambda x: x.name.lower() == itemName.lower())
                     if chosenItem is not None:
                         #pick up the chosen item
-                        self.inventoryManager._pickUpItem(scenario, chosenItem, agent, location, reasoning)
+                        self.inventoryManager.PickUpItem(scenario, chosenItem, agent, location, reasoning)
                         #TODO: tried to pick up an nonexistent or unreachable item
 
     def UseItem(self, agent, scenario):
@@ -185,7 +185,7 @@ class InteractionStream():
             if result is not None:
                 if result == "Drop current item":
                     if agent.currentItem is not None:
-                        self.inventoryManager._dropItem(agent, location)
+                        self.inventoryManager.DropItem(agent, location)
                         #TODO: tried to drop an item when not holding one
                 if result == "Stop using item":
                     self._stopUsingItem(agent, location)

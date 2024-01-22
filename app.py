@@ -396,14 +396,6 @@ def displayScenario(userId, scenario):
             #write out all the agents
             saveAgents(scenario)
 
-        writeAgents_button = st.button(label="Write agents to DB")
-        if writeAgents_button:
-            saveAgents(scenario)
-
-        writeItems_button = st.button(label="Write items to DB")
-        if writeItems_button:
-            saveItems(scenario)
-
         buildingExterior_button = st.button(label="Populate missing building exteriors")
         if buildingExterior_button:
             for location in scenario.locations:
@@ -447,6 +439,28 @@ def displayScenario(userId, scenario):
                 #redo the head icon
                 agent.chibiFilename, agent.resizedChibiFilename = characterChibiGenerator.CreateChibi(agent, description)
             saveAgents(scenario)
+
+    databaseContainer = st.container()
+    with databaseContainer:
+        writeAgents_button = st.button(label="Write agents to DB")
+        if writeAgents_button:
+            saveAgents(scenario)
+
+        writeItems_button = st.button(label="Write items to DB")
+        if writeItems_button:
+            saveItems(scenario)
+
+        goOutside_button = st.button(label="Everybody go outside")
+        if goOutside_button:
+            agents = scenario.GetAgents()
+            for agent in agents:
+                AgentRepository.CreateOrUpdate(agent, homeScenarioId=scenario._id)
+
+        dropItems_button = st.button(label="Drop everything")
+        if dropItems_button:
+            agents = scenario.GetAgents()
+            for agent in agents:
+                inventoryManager.DropItem(scenario, agent, None, "There was an emergency.")
 
     #output the user's prompt
     st.write(scenario)

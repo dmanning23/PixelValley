@@ -7,10 +7,10 @@ class InventoryManager:
         self.memoryRepository = memoryRepository
         self.agentRepository = agentRepository
 
-    def _pickUpItem(self, scenario, item, agent, location, reasoning):
+    def PickUpItem(self, scenario, item, agent, location, reasoning):
         #TODO: can agents hold more than one item?
         #drop the current item
-        self._dropItem(scenario, agent, location, "I tried to pick something up while already holding an item")
+        self.DropItem(scenario, agent, location, "I tried to pick something up while already holding an item")
 
         #update the agent
         agent.currentItem = item
@@ -22,7 +22,7 @@ class InventoryManager:
         observation = f"I picked up the {item.name} in the {location.name}. {reasoning}"
         self.memoryRepository.CreateMemory(agent, observation)
 
-    def _dropItem(self, scenario, agent, location, reasoning):
+    def DropItem(self, scenario, agent, location, reasoning):
         if agent.currentItem is not None:
             item = agent.currentItem
             #update the agent
@@ -34,5 +34,8 @@ class InventoryManager:
             #TODO: some sort of item storage?
 
             #create a memory that the item was dropped
-            observation = f"I put down the {item.name} in the {location.name}. {reasoning}"
+            if location is None:
+                observation = f"I put down the {item.name}. {reasoning}"
+            else:
+                observation = f"I put down the {item.name} in the {location.name}. {reasoning}"
             self.memoryRepository.CreateMemory(agent, observation)

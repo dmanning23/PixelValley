@@ -22,6 +22,10 @@ class AgentRepository:
         model = AgentModel()
         model.Set(agent, homeScenarioId, currentScenarioId, locationId)
         model.save()
+        if locationId is None:
+            AgentModel.objects(id==model.id).update(unset__locationId=1)
+        if agent.currentItem is None:
+            AgentModel.objects(id==model.id).update(unset__currentItem=1)
 
     @staticmethod
     def Get(agentId):
