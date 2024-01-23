@@ -97,6 +97,13 @@ class MemoryRepository:
         memories = Enumerable(result).select(lambda x: Memory(**x))
         return memories.to_list()
 
+    def GetMemoriesSinceTimestamp(self, agent, numMemories):
+        result = self.collection.find({"agentId": agent._id, "time": { "$gt": agent.timeOfLastReflection }}).sort("time", -1)
+
+        #parse into Memory objects
+        memories = Enumerable(result).select(lambda x: Memory(**x))
+        return memories.to_list()
+
     def GetImportantMemories(self, agent, numMemories):
         #get the most important X number of memories for an agent
         result = self.collection.find({"agentId": agent._id}).sort("importance", -1).limit(numMemories)

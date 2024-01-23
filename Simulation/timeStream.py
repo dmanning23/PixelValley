@@ -14,6 +14,11 @@ class TimeStream():
 
         #Increment each agents time
         for agent in scenario.agents:
+
+            #TODO: will teh agents current activity change when time is updated?
+
+            #TODO: check if a reflection should be triggered
+            
             agent.IncrementTime()
             AgentRepository.Update(agent, homeScenarioId=scenario._id)
             for childLocation in scenario.locations:

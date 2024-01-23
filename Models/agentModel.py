@@ -19,6 +19,8 @@ class AgentModel(Document):
     #is the agent currently using the held item?
     isUsingHeldItem = BooleanField()
 
+    timeOfLastReflection = IntField()
+
     #TODO: move all these filenames into the description or something
     portraitFilename = StringField()
     iconFilename = StringField()
@@ -57,6 +59,7 @@ class AgentModel(Document):
             self.currentItem = None
 
         self.isUsingHeldItem = agent.IsUsingHeldItem()
+        self.timeOfLastReflection = agent.timeOfLastReflection
 
         self.portraitFilename = agent.portraitFilename
         self.iconFilename = agent.iconFilename
@@ -73,6 +76,7 @@ class AgentModel(Document):
                      currentTime=self.currentTime,
                      status = self.status,
                      emoji = self.emoji,
+                     timeOfLastReflection=self.timeOfLastReflection,
                      portraitFilename = self.portraitFilename,
                      iconFilename = self.iconFilename,
                      resizedIconFilename = self.resizedIconFilename,

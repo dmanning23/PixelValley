@@ -1,7 +1,7 @@
 import json
 from openai import OpenAI
 
-class ReflectionStream():
+class ReflectionGenerator():
 
     askQuestionsFunctionDef = {
         'name': 'ask_questions',

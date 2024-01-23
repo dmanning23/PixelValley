@@ -29,6 +29,7 @@ class Agent:
                  usingItem = None,
                  status = "Idle",
                  emoji = "",
+                 timeOfLastReflection = 0,
                  portraitFilename = "",
                  iconFilename = "",
                  resizedIconFilename = "",
@@ -53,6 +54,9 @@ class Agent:
 
         #what is the agent doing?
         self.status = status
+
+        #Time of last reflection
+        self.timeOfLastReflection = timeOfLastReflection
 
         self.portraitFilename = portraitFilename
         self.iconFilename = iconFilename
