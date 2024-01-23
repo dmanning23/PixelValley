@@ -14,7 +14,7 @@ class InteractionStream():
                  locationChanger,
                  statusGenerator,
                  inventoryGenerator,
-                 inventoryManager):
+                 itemManager):
         self.activityStream = activityStream
         self.memoryRetrieval = memoryRetrieval
         self.interactionGenerator = interactionGenerator
@@ -25,7 +25,7 @@ class InteractionStream():
         self.locationChanger = locationChanger
         self.statusGenerator = statusGenerator
         self.inventoryGenerator = inventoryGenerator
-        self.inventoryManager = inventoryManager
+        self.itemManager = itemManager
         pass
 
     #get the agents current location
@@ -90,47 +90,6 @@ class InteractionStream():
         #TODO: if the agent is using an item, stop using it and create a memory
         #TODO: start the agent walking to the new location
 
-    def _useItem(self, scenario, item, agent, action, location, itemStatus, emoji, reasoning):
-
-        #TODO: is the item currently in use?
-
-        if (agent.currentItem is not None and (item.name == agent.currentItem.name)):
-            #the held item has to be updated in the agent
-            agent.currentItem.status = itemStatus
-            agent.currentItem.emoji = emoji
-            item = agent.currentItem
-            agent.usingItem = agent.currentItem
-            self.agentRepository.Update(agent, homeScenarioId=scenario._id, locationId=location._id)
-        else:
-            item.status = itemStatus
-            item.emoji = emoji
-            agent.usingItem = item
-            #update in the DB
-            self.itemRepository.Update(item, locationId=location._id, usingCharacterId=agent._id)
-
-        observation = f"I performed the action {action} on the {item.NameWithStatus()}. {reasoning}"
-        self.memoryRepository.CreateMemory(agent, observation)
-
-    def _stopUsingItem(self, scenario, agent, location, itemStatus, emoji, reasoning):
-        if agent.usingItem is not None:
-            #Are the using and held item the same?
-            if (agent.currentItem is not None and (agent.usingItem.name == agent.currentItem.name)):
-                #the held item has to be updated in the agent
-                agent.usingItem = None
-                agent.currentItem.status = itemStatus
-                agent.currentItem.emoji = emoji
-                item = agent.currentItem
-                self.agentRepository.Update(agent, homeScenarioId=scenario._id, locationId=location._id)
-            else:
-                item = agent.usingItem
-                agent.usingItem = None
-                item.status = itemStatus
-                item.emoji = emoji
-                self.itemRepository.Update(item, locationId=location._id)
-
-            #create the memory
-            self.memoryRepository.CreateMemory(agent, f"I stopped using the {item.NameWithStatus()}. {reasoning}")
-
     def ChangeLocation(self, agent, scenario):
         location = self._findAgent(agent, scenario)
 
@@ -167,14 +126,14 @@ class InteractionStream():
             if itemName is not None:
                 if itemName == "Drop current item":
                     if agent.currentItem is not None:
-                        self.inventoryManager.DropItem(scenario, agent, location, reasoning)
+                        self.itemManager.DropItem(scenario, agent, location, reasoning)
                         #TODO: tried to drop an item when not holding one
                 else:
                     #The agent has chosen to swap items, set their current item
                     chosenItem = Enumerable(availableItems).first_or_default(lambda x: x.name.lower() == itemName.lower())
                     if chosenItem is not None:
                         #pick up the chosen item
-                        self.inventoryManager.PickUpItem(scenario, chosenItem, agent, location, reasoning)
+                        self.itemManager.PickUpItem(scenario, chosenItem, agent, location, reasoning)
                         #TODO: tried to pick up an nonexistent or unreachable item
 
     def UseItem(self, agent, scenario):
@@ -195,8 +154,8 @@ class InteractionStream():
 
             if action is not None:
                 if action == "Stop using item":
-                    self._stopUsingItem(scenario, agent, location, itemStatus, emoji, reasoning)
-                if action is not None:
+                    self.itemManager.StopUsingItem(scenario, agent, location, itemStatus, emoji, reasoning)
+                elif action:
                     #is it the currently held item?
                     if agent.currentItem is not None and (itemName.lower() == agent.currentItem.name.lower()):
                         chosenItem = agent.currentItem
@@ -206,7 +165,7 @@ class InteractionStream():
                     #TODO: how effective is it to perform {action} on {item} to {plannedActivity}?
 
                     if chosenItem is not None:
-                        self._useItem(scenario, chosenItem, agent, action, location, itemStatus, emoji, reasoning)
+                        self.itemManager.UseItem(scenario, chosenItem, agent, action, location, itemStatus, emoji, reasoning)
 
                     #TODO: tried to use a non-existent or unreachable item
 

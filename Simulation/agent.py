@@ -66,3 +66,6 @@ class Agent:
     
     def IncrementTime(self):
         self.currentTime = self.currentTime + 1
+
+    def IsUsingHeldItem(self):
+        return ((self.currentItem is not None) and (self.usingItem is not None) and (self.currentItem.name == self.usingItem.name))

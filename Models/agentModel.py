@@ -56,7 +56,7 @@ class AgentModel(Document):
         else:
             self.currentItem = None
 
-        self.isUsingHeldItem = ((agent.currentItem is not None) and (agent.usingItem is not None) and (agent.currentItem.name == agent.usingItem.name))
+        self.isUsingHeldItem = agent.IsUsingHeldItem()
 
         self.portraitFilename = agent.portraitFilename
         self.iconFilename = agent.iconFilename

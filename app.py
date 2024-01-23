@@ -37,7 +37,7 @@ from Interactions.actionGenerator import ActionGenerator
 from Interactions.locationChanger import LocationChanger
 from Interactions.statusGenerator import StatusGenerator
 from Interactions.inventoryGenerator import InventoryGenerator
-from Interactions.inventoryManager import InventoryManager
+from Interactions.itemManager import ItemManager
 
 from ConversationEngine.conversationGenerator import ConversationGenerator
 from ConversationEngine.conversationStream import ConversationStream
@@ -226,8 +226,9 @@ def displayScenario(userId, scenario):
                                             conversationStarter)
     statusGenerator = StatusGenerator()
     inventoryGenerator = InventoryGenerator()
-    inventoryManager = InventoryManager(memRepo,
-                                        agentRepo)
+    itemManager = ItemManager(memRepo,
+                                        agentRepo,
+                                        itemRepo)
     iteractionStream = InteractionStream(activityStream,
                                          retrieval,
                                          interactionGen,
@@ -238,7 +239,7 @@ def displayScenario(userId, scenario):
                                          locationChanger,
                                          statusGenerator,
                                          inventoryGenerator,
-                                         inventoryManager)
+                                         itemManager)
     timeStream = TimeStream()
     characterPortraitGenerator = CharacterPortraitGenerator()
     buildingExteriorGenerator = BuildingExteriorGenerator()
@@ -460,7 +461,7 @@ def displayScenario(userId, scenario):
         if dropItems_button:
             agents = scenario.GetAgents()
             for agent in agents:
-                inventoryManager.DropItem(scenario, agent, None, "There was an emergency.")
+                itemManager.DropItem(scenario, agent, None, "There was an emergency.")
 
     #output the user's prompt
     st.write(scenario)
