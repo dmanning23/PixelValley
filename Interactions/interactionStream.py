@@ -90,39 +90,46 @@ class InteractionStream():
         #TODO: if the agent is using an item, stop using it and create a memory
         #TODO: start the agent walking to the new location
 
-    def _useItem(self, item, agent, action, location):
-        #Is the agent holding the item they are trying to use?
-        if agent.currentItem is not None and item._id == agent.currentItem._id:
-            self.inventoryManager.DropItem(agent, location)
+    def _useItem(self, scenario, item, agent, action, location, itemStatus, emoji, reasoning):
 
-        #TODO: don't drop an item to use it
         #TODO: is the item currently in use?
 
-        #update the agent
-        agent.usingItem = item
-
-        #update in the DB
-        self.itemRepository.Update(item, locationId=location._id, usingCharacterId=agent._id)
-
-        #apply the action
-        result = item.stateMachine.sendMessage(action)
-
-        if result:
-            #update in the DB
-            self.itemRepository.Update()
-            observation = f"I successfully performed the action {action} on the {item.name}, and changed its state to {item.stateMachine.currentState}"
-            self.memoryRepository.CreateMemory(observation)
+        if (agent.currentItem is not None and (item.name == agent.currentItem.name)):
+            #the held item has to be updated in the agent
+            agent.currentItem.status = itemStatus
+            agent.currentItem.emoji = emoji
+            item = agent.currentItem
+            agent.usingItem = agent.currentItem
+            self.agentRepository.Update(agent, homeScenarioId=scenario._id, locationId=location._id)
         else:
-            observation = f"I performed the action {action} on the {item.name} while it was {item.stateMachine.currentState}, but nothing happened."
-            self.memoryRepository.CreateMemory(observation)
+            item.status = itemStatus
+            item.emoji = emoji
+            agent.usingItem = item
+            #update in the DB
+            self.itemRepository.Update(item, locationId=location._id, usingCharacterId=agent._id)
 
-    def _stopUsingItem(self, agent, location):
+        observation = f"I performed the action {action} on the {item.NameWithStatus()}. {reasoning}"
+        self.memoryRepository.CreateMemory(agent, observation)
+
+    def _stopUsingItem(self, scenario, agent, location, itemStatus, emoji, reasoning):
         if agent.usingItem is not None:
-            item = agent.usingItem
-            #update the agent
-            agent.usingItem = None
-            #update the item
-            self.itemRepository.Update(item, locationId=location._id)
+            #Are the using and held item the same?
+            if (agent.currentItem is not None and (agent.usingItem.name == agent.currentItem.name)):
+                #the held item has to be updated in the agent
+                agent.usingItem = None
+                agent.currentItem.status = itemStatus
+                agent.currentItem.emoji = emoji
+                item = agent.currentItem
+                self.agentRepository.Update(agent, homeScenarioId=scenario._id, locationId=location._id)
+            else:
+                item = agent.usingItem
+                agent.usingItem = None
+                item.status = itemStatus
+                item.emoji = emoji
+                self.itemRepository.Update(item, locationId=location._id)
+
+            #create the memory
+            self.memoryRepository.CreateMemory(agent, f"I stopped using the {item.NameWithStatus()}. {reasoning}")
 
     def ChangeLocation(self, agent, scenario):
         location = self._findAgent(agent, scenario)
@@ -144,15 +151,19 @@ class InteractionStream():
 
     def SwapItems(self, agent, scenario):
         location = self._findAgent(agent, scenario)
-        plannedActivity = self.activityStream.GetCurrentPlannedActivity(agent, scenario.currentDateTime)
-
+        
         #Limit the available items to things that can be picked up
         availableItems = self._getItemsThatCanBePickedUp(location)
         availableItems = Enumerable(availableItems).where(lambda x: x.canBePickedUp).to_list()
 
         #Ask the agent if they would like to swap items
         if agent.currentItem is not None or len(availableItems) > 0:
-            itemName, reasoning = self.inventoryGenerator.ManageInventory(agent, agent.currentItem, availableItems, plannedActivity)
+            plannedActivity = self.activityStream.GetCurrentPlannedActivity(agent, scenario.currentDateTime)
+
+            #get a list of memories that are relevant to that activity
+            memories = self.memoryRetrieval.RetrieveMemories(agent, f"What items would be useful for {plannedActivity.description}?")
+
+            itemName, reasoning = self.inventoryGenerator.ManageInventory(agent, agent.currentItem, availableItems, plannedActivity, memories)
             if itemName is not None:
                 if itemName == "Drop current item":
                     if agent.currentItem is not None:
@@ -184,37 +195,20 @@ class InteractionStream():
 
             if action is not None:
                 if action == "Stop using item":
-                    #TODO: set the item status?
-                    #TODO: set the item emoji?
-                    #TODO: persist all that stuff?
-                    #TODO: create relevant memories?
-                    self._stopUsingItem(agent, location)
+                    self._stopUsingItem(scenario, agent, location, itemStatus, emoji, reasoning)
                 if action is not None:
-                    #TODO: is it the currently held item?
+                    #is it the currently held item?
                     if agent.currentItem is not None and (itemName.lower() == agent.currentItem.name.lower()):
                         chosenItem = agent.currentItem
                     else:
                         chosenItem = Enumerable(availableItems).first_or_default(lambda x: x.name.lower() == itemName.lower())
 
-                    #TODO: use the item?
-                    #TODO: set the item status?
-                    #TODO: set the item emoji?
-                    #TODO: persist all that stuff?
-                    #TODO: create relevant memories?
-
                     #TODO: how effective is it to perform {action} on {item} to {plannedActivity}?
 
-                    #if chosenItem is not None:
-                        #agent.usingItem = chosenItem
+                    if chosenItem is not None:
+                        self._useItem(scenario, chosenItem, agent, action, location, itemStatus, emoji, reasoning)
 
-                        ##Find out what the agent knows about that item
-                        #memories = self.memoryRetrieval.RetrieveMemories(agent, f"What do I know about actions that can be applied to {result}?")
-                        
-                        ##Ask the agent what they want to do with the item
-                        #action = self.interactionGenerator.PerformItemAction(agent, chosenItem, plannedActivity, memories)
-                        #if action is not None:
-                            #self._useItem(chosenItem, agent, action)
-                            #TODO: tried to use a non-existent or unreachable item
+                    #TODO: tried to use a non-existent or unreachable item
 
     def SetAgentStatus(self, agent, scenario):
         location = self._findAgent(agent, scenario)

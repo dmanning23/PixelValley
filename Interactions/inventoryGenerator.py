@@ -66,7 +66,7 @@ class InventoryGenerator():
             #The LLM didn't call a function but provided a response
             return None, None
 
-    def ManageInventory(self, agent, currentItem, pickableItems, plannedActivity, llm = None):
+    def ManageInventory(self, agent, currentItem, pickableItems, plannedActivity, memories, llm = None):
         if not llm:
             llm = OpenAI()
 
@@ -76,12 +76,15 @@ class InventoryGenerator():
 
         messages = []
         if currentItem is None:
-            messages.append({'role': 'system', 'content': f"You are {agent.name} and you are currently trying to {plannedActivity.description}. Given the following list of available items, will you choose to pick up one of the available items, or do nothing?"})
+            messages.append({'role': 'system', 'content': f"You are {agent.name} and you are currently trying to {plannedActivity.description}. Provided is a list of important memories relevant to the planned activity and items that can be picked up. Will you choose to pick up one of the available items, or do nothing?"})
         else:
-            messages.append({'role': 'system', 'content': f"You are {agent.name} and you are currently trying to {plannedActivity.description}. You are currently holding {currentItem.name}. You can only hold one item at a time. Given the following list of available items, will you choose to pick up one of the available items, drop the current item, or do nothing?"})
+            messages.append({'role': 'system', 'content': f"You are {agent.name} and you are currently trying to {plannedActivity.description}. You are currently holding {currentItem.NameWithStatus()}. You can only hold one item at a time. Provided is a list of important memories relevant to the planned activity and items that can be picked up. Will you choose to pick up one of the available items, drop the current item, or do nothing?"})
+
+        for memory in memories:
+            messages.append({'role': 'user', 'content': f"Important memory: {memory}"})
 
         for item in pickableItems:
-            messages.append({'role': 'user', 'content': f"{item.name}: {item.description}"})
+            messages.append({'role': 'user', 'content': f"{item.NameWithStatus()}: {item.description}"})
 
         #Create the list of function definitions that are available to the LLM
         functions = [

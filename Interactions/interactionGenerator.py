@@ -84,7 +84,7 @@ class InteractionGenerator():
             return function_to_call(*list(function_args.values()))
         else:
             #The LLM didn't call a function but provided a response
-            return None
+            return None, None, None, None, None
 
     def UseItem(self, agent, availableItems, plannedActivity, importantMemories, llm = None):
         if not llm:
@@ -92,7 +92,7 @@ class InteractionGenerator():
 
         messages = []
         if agent.usingItem is not None:
-            messages.append({'role': 'system', 'content': f"You are {agent.name} and you are currently trying to {plannedActivity.description}. You are currently using the {agent.usingItem.name}. Provided is a list of important memories relevant to the planned activity and items that are available for use. Will you choose to do something wih any the available items, stop using the current item, or do nothing?"})
+            messages.append({'role': 'system', 'content': f"You are {agent.name} and you are currently trying to {plannedActivity.description}. You are currently using the {agent.usingItem.NameWithStatus()}. Provided is a list of important memories relevant to the planned activity and items that are available for use. Will you choose to do something wih any the available items, stop using the current item, or do nothing?"})
         else:
             messages.append({'role': 'system', 'content': f"You are {agent.name} and you are currently trying to {plannedActivity.description}. Provided is a list of important memories relevant to the planned activity and items that are available for use. Will you choose to do something wih any the available items or do nothing?"})
 
@@ -100,13 +100,13 @@ class InteractionGenerator():
             messages.append({'role': 'user', 'content': f"Important memory: {memory}"})
 
         for item in availableItems:
-            messages.append({'role': 'user', 'content': f"Item available for use: {item.name}: {item.description}"})
+            messages.append({'role': 'user', 'content': f"Item available for use: {item.NameWithStatus()}: {item.description}"})
 
         if agent.currentItem is not None:
-            messages.append({'role': 'user', 'content': f"You are holding the {agent.currentItem.name} and can use it: {agent.currentItem.description}"})
+            messages.append({'role': 'user', 'content': f"You are holding the {agent.currentItem.NameWithStatus()}, and can use it: {agent.currentItem.description}"})
         
         if agent.usingItem is not None:
-            messages.append({'role': 'user', 'content': f"You are currently using the {agent.usingItem.name} and can continue using it, or stop: {agent.usingItem.description}"})
+            messages.append({'role': 'user', 'content': f"You are currently using the {agent.usingItem.NameWithStatus()}, and can continue using it or stop using it: {agent.usingItem.description}"})
         
         #Create the list of function definitions that are available to the LLM
         functions = [
@@ -124,7 +124,7 @@ class InteractionGenerator():
         #Call the LLM...
         response = llm.chat.completions.create(
             model = 'gpt-3.5-turbo',
-            temperature=0.8,
+            temperature=0.7,
             messages = messages,
             functions = functions, #Pass in the list of functions available to the LLM
             function_call = 'auto')

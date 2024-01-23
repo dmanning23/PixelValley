@@ -16,6 +16,9 @@ class AgentModel(Document):
 
     currentItem = EmbeddedDocumentField(ItemSubModel)
 
+    #is the agent currently using the held item?
+    isUsingHeldItem = BooleanField()
+
     #TODO: move all these filenames into the description or something
     portraitFilename = StringField()
     iconFilename = StringField()
@@ -53,6 +56,8 @@ class AgentModel(Document):
         else:
             self.currentItem = None
 
+        self.isUsingHeldItem = ((agent.currentItem is not None) and (agent.usingItem is not None) and (agent.currentItem.name == agent.usingItem.name))
+
         self.portraitFilename = agent.portraitFilename
         self.iconFilename = agent.iconFilename
         self.resizedIconFilename = agent.resizedIconFilename
@@ -76,5 +81,8 @@ class AgentModel(Document):
         
         if self.currentItem:
             agent.currentItem = self.currentItem.Hydrate()
-        
+
+        if self.isUsingHeldItem:
+            agent.usingItem = agent.currentItem
+
         return agent

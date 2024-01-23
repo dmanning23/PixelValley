@@ -471,7 +471,9 @@ def displayScenario(userId, scenario):
     for agent in scenario.GetAgents():
         st.write(agent)
         if agent.currentItem:
-            st.write(f"{agent.name} is holding the {agent.currentItem.name}")
+            st.write(f"{agent.name} is holding the {agent.currentItem.NameWithStatus()}")
+        if agent.usingItem:
+            st.write(f"{agent.name} is using the {agent.usingItem.NameWithStatus()}")
         if agent.portraitFilename:
             st.image(agent.portraitFilename)
         if agent.resizedIconFilename:

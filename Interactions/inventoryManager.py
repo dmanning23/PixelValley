@@ -32,6 +32,7 @@ class InventoryManager:
             self.agentRepository.Update(agent, homeScenarioId = scenario._id, locationId = location._id if location is not None else None)
 
             #TODO: some sort of item storage?
+            #TODO: is teh character using the held item?
 
             #create a memory that the item was dropped
             if location is None:

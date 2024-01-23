@@ -15,6 +15,9 @@ class BaseItemModel():
     #This will be populated if an item is being used by the character
     usingCharacterId = ObjectIdField()
 
+    status = StringField()
+    emoji = StringField()
+
     def Set(self,
             item,
             locationId=None,
@@ -27,6 +30,8 @@ class BaseItemModel():
         self.canBePickedUp = item.canBePickedUp
         self.locationId=locationId
         self.usingCharacterId = usingCharacterId
+        self.status = item.status
+        self.emoji = item.emoji
 
         #the state machine has to be set up separately
         if item.stateMachine is not None:
@@ -41,7 +46,9 @@ class BaseItemModel():
                     self.description,
                     self.canInteract,
                     self.canBePickedUp,
-                    _id = id)
+                    _id = id,
+                    status = self.status,
+                    emoji = self.emoji)
         
         if self.stateMachine is not None:
             item.stateMachine = self.stateMachine.Hydrate()
