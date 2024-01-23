@@ -3,13 +3,6 @@ from openai import OpenAI
 
 class InteractionGenerator():
 
-    noChangesFunctionDef = {
-        'name': 'no_changes',
-        'description': "Don't make any changes",
-        'parameters': {
-        }
-    }
-
     useItemFunctionDef = {
         'name': 'use_item',
         'description': 'Perform an action on an available item',
@@ -32,8 +25,12 @@ class InteractionGenerator():
                     'type': 'string',
                     'description': "An emoji that expresses the item's new status"
                 },
+                'reasoning': {
+                    'type': 'string',
+                    'description': 'The reason why I would like use this item'
+                }
             },
-        "required": [ "action", "itemName" ]
+        "required": [ "action", "itemName", "itemStatus", "emoji", "reasoning" ]
         }
     }
 
@@ -41,80 +38,87 @@ class InteractionGenerator():
         'name': 'stop_using_item',
         'description': 'Stop using the current item',
         'parameters': {
-        }
-    }
-
-    itemActionFunctionDef = {
-        'name': 'item_action',
-        'description': 'Use an item',
-        'parameters': {
             "type": "object",
             "properties": {
-                'action': {
+                'itemStatus': {
                     'type': 'string',
-                    'description': 'The action to perform on the item'
+                    'description': "If the status of the item is changed due to no longer being in use, this will be the item's new status"
                 },
+                'emoji': {
+                    'type': 'string',
+                    'description': "An emoji that expresses the item's new status"
+                },
+                'reasoning': {
+                    'type': 'string',
+                    'description': 'The reason why I would like to stop using this item'
+                }
             },
-        "required": ["action" ]
+            "required": [ "itemStatus", "emoji", "reasoning" ]
+        },
+    }
+
+    continueCurrentTaskFunctionDef = {
+        'name': 'continue_current_task',
+        'description': "I do not need to use or stop using any items to continue the current task.",
+        'parameters': {
         }
     }
 
-    def __init__(self):
-        pass
-
-    def _no_changes(self, agent):
-        #don't make any changes to the agent
-        return None
-
-    def _use_item(self, agent, action, itemName, status=None, emoji=None):
+    def _use_item(self, action, itemName, itemStatus, emoji, reasoning):
         #what item is the character trying to use?
-        return itemName
+        return action, itemName, itemStatus, emoji, reasoning
     
-    def _stop_using_item(self, agent):
+    def _stop_using_item(self, itemStatus, emoji, reasoning):
         #send a message to stop using the current item
-        return "Stop using item"
+        return "Stop using item", None, itemStatus, emoji, reasoning
+    
+    def _continue_current_task(self):
+        #don't make any changes to the agent
+        return None, None, None, None, None
 
-    def _item_action(self, agent, actionName):
-        #what action is the agent trying to perform?
-        return actionName
-
-    def _parseResponse(self, agent, response_message, available_functions):
+    def _parseResponse(self, response_message, available_functions):
         if response_message.function_call and response_message.function_call.arguments:
             function_called = response_message.function_call.name
             function_args  = json.loads(response_message.function_call.arguments)
             function_to_call = available_functions[function_called]
-            return function_to_call(agent, *list(function_args.values()))
+            return function_to_call(*list(function_args.values()))
         else:
             #The LLM didn't call a function but provided a response
             return None
 
-    def UseItem(self, agent, currentItem, availableItems, plannedActivity, importantMemories, llm = None):
+    def UseItem(self, agent, availableItems, plannedActivity, importantMemories, llm = None):
         if not llm:
             llm = OpenAI()
 
-        messages = [
-            {'role': 'system', 'content': f"You are {agent.name} and you are currently trying to {plannedActivity.description}. You are currently holding {currentItem.name}. Given the following list of important memories relevant to the planned activity, will you choose to do something wih any the available items?"},
-        ]
+        messages = []
+        if agent.usingItem is not None:
+            messages.append({'role': 'system', 'content': f"You are {agent.name} and you are currently trying to {plannedActivity.description}. You are currently using the {agent.usingItem.name}. Provided is a list of important memories relevant to the planned activity and items that are available for use. Will you choose to do something wih any the available items, stop using the current item, or do nothing?"})
+        else:
+            messages.append({'role': 'system', 'content': f"You are {agent.name} and you are currently trying to {plannedActivity.description}. Provided is a list of important memories relevant to the planned activity and items that are available for use. Will you choose to do something wih any the available items or do nothing?"})
 
         for memory in importantMemories:
             messages.append({'role': 'user', 'content': f"Important memory: {memory}"})
 
         for item in availableItems:
-            messages.append({'role': 'user', 'content': f"Available item: {item.name}: {item.description}"})
+            messages.append({'role': 'user', 'content': f"Item available for use: {item.name}: {item.description}"})
 
+        if agent.currentItem is not None:
+            messages.append({'role': 'user', 'content': f"You are holding the {agent.currentItem.name} and can use it: {agent.currentItem.description}"})
+        
+        if agent.usingItem is not None:
+            messages.append({'role': 'user', 'content': f"You are currently using the {agent.usingItem.name} and can continue using it, or stop: {agent.usingItem.description}"})
+        
         #Create the list of function definitions that are available to the LLM
         functions = [
-            InteractionGenerator.pickUpItemFunctionDef,
-            InteractionGenerator.dropItemFunctionDef,
             InteractionGenerator.useItemFunctionDef,
-            InteractionGenerator.noChangesFunctionDef,
+            InteractionGenerator.stopUsingItemFunctionDef,
+            InteractionGenerator.continueCurrentTaskFunctionDef,
         ]
 
         available_functions = {
-            "pick_up_item": self._pick_up_item,
-            "drop_item": self._drop_item,
             "use_item": self._use_item,
-            "no_changes":self._no_changes
+            "stop_using_item": self._stop_using_item,
+            "continue_current_task": self._continue_current_task
         }
 
         #Call the LLM...
@@ -124,68 +128,4 @@ class InteractionGenerator():
             messages = messages,
             functions = functions, #Pass in the list of functions available to the LLM
             function_call = 'auto')
-        return self._parseResponse(agent, response.choices[0].message, available_functions)
-
-    def AskToUseItem(self, agent, currentItem, interactableItems, plannedActivity, llm = None):
-        if not llm:
-            llm = OpenAI()
-
-        messages = [
-            {'role': 'system', 'content': f"You are {agent.name} and you are currently trying to {plannedActivity.description}. You are currently using the {currentItem.name}. Given the following list of available items, will you choose to use one of the available items, stop using the current item, or do nothing?"},
-        ]
-
-        for item in interactableItems:
-            messages.append({'role': 'user', 'content': f"{item.name}: {item.description}"})
-
-        #Create the list of function definitions that are available to the LLM
-        functions = [
-            InteractionGenerator.noChangesFunctionDef,
-            InteractionGenerator.useItemFunctionDef,
-            InteractionGenerator.stopUsingItemFunctionDef
-        ]
-
-        available_functions = {
-            "use_item": self._use_item,
-            "stop_using_item": self._stop_using_item,
-            "no_changes":self._no_changes
-        }
-
-        #Call the LLM...
-        response = llm.chat.completions.create(
-            model = 'gpt-3.5-turbo',
-            temperature=1.0,
-            messages = messages,
-            functions = functions, #Pass in the list of functions available to the LLM
-            function_call = 'auto')
-        return self._parseResponse(agent, response.choices[0].message, available_functions)
-    
-    def PerformItemAction(self, agent, currentItem, plannedActivity, memories, llm = None):
-        if not llm:
-            llm = OpenAI()
-
-        messages = [
-            {'role': 'system', 'content': f"You are {agent.name} and you are currently trying to {plannedActivity.description}. You have decided to use the {currentItem.name}. Given the following list of knwoledge items that you know about the {currentItem.name}, what action will you perform on the item?"},
-        ]
-
-        for memory in memories:
-            messages.append({'role': 'user', 'content': f"{memory}"})
-
-        #Create the list of function definitions that are available to the LLM
-        functions = [
-            InteractionGenerator.noChangesFunctionDef,
-            InteractionGenerator.itemActionFunctionDef,
-        ]
-
-        available_functions = {
-            "item_action": self._item_action,
-            "no_changes":self._no_changes
-        }
-
-        #Call the LLM...
-        response = llm.chat.completions.create(
-            model = 'gpt-3.5-turbo',
-            temperature=1.0,
-            messages = messages,
-            functions = functions, #Pass in the list of functions available to the LLM
-            function_call = 'auto')
-        return self._parseResponse(agent, response.choices[0].message, available_functions)
+        return self._parseResponse(response.choices[0].message, available_functions)

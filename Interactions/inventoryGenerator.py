@@ -71,6 +71,8 @@ class InventoryGenerator():
             llm = OpenAI()
 
         #TODO: update this to take a list of enums for possible actions
+            
+        #TODO: add important memories to this call?
 
         messages = []
         if currentItem is None:

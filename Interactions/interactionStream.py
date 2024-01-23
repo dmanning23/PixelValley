@@ -36,22 +36,23 @@ class InteractionStream():
         return location
     
     #get a list of items at a location
-    def _getAvailableItems(self, location):
+    def _getItemsThatCanBePickedUp(self, location):
         #get a list of items in the current location
         if location.items is not None:
             availableItems = Enumerable(location.items).where(lambda x: x.canBePickedUp)
         else:
             availableItems = []
         return availableItems
-
-    #get the agent's currently held item
-    def _getCurrentItem(self, agent):
-        if agent.currentItem is None:
-            currentItem = Item("Nothing", "Empty handed")
-        else:
-            currentItem = agent.currentItem
-        return currentItem
     
+    #get a list of items at a location
+    def _getInteractiveItems(self, location):
+        #get a list of items in the current location
+        if location.items is not None:
+            availableItems = Enumerable(location.items).where(lambda x: x.canInteract)
+        else:
+            availableItems = []
+        return availableItems
+
     #get the agent's currently using item
     def _getUsingItem(self, agent):
         if agent.usingItem is None:
@@ -62,10 +63,10 @@ class InteractionStream():
     
     def _moveAgent(self, agent, scenario, prevLocation, nextLocation, reasoning):
         #update the previous location
-        if prevLocation is not None:
-            prevLocation.agents.remove(agent)
-        else:
+        if prevLocation is None or prevLocation.name == "Outside":
             scenario.agents.remove(agent)
+        else:
+            prevLocation.agents.remove(agent)
 
         #update the new location
         if nextLocation is None:
@@ -146,7 +147,7 @@ class InteractionStream():
         plannedActivity = self.activityStream.GetCurrentPlannedActivity(agent, scenario.currentDateTime)
 
         #Limit the available items to things that can be picked up
-        availableItems = self._getAvailableItems(location)
+        availableItems = self._getItemsThatCanBePickedUp(location)
         availableItems = Enumerable(availableItems).where(lambda x: x.canBePickedUp).to_list()
 
         #Ask the agent if they would like to swap items
@@ -167,8 +168,7 @@ class InteractionStream():
 
     def UseItem(self, agent, scenario):
         location = self._findAgent(agent, scenario)
-        availableItems = self._getAvailableItems(location)
-        currentItem = self._getCurrentItem(agent)
+        availableItems = self._getInteractiveItems(location)
         plannedActivity = self.activityStream.GetCurrentPlannedActivity(agent, scenario.currentDateTime)
 
         #Limit the available items to things that can be interacted with
@@ -179,18 +179,22 @@ class InteractionStream():
         memories = self.memoryRetrieval.RetrieveMemories(agent, f"What items would be useful for {plannedActivity.description}?")
         
         #test the location changer!
-        if currentItem.name != "Nothing" or len(availableItems) > 0:
-            result = self.interactionGenerator.UseItem(agent, currentItem, availableItems, plannedActivity, memories)
+        if agent.currentItem is not None or len(availableItems) > 0:
+            action, itemName, itemStatus, emoji, reasoning = self.interactionGenerator.UseItem(agent, availableItems, plannedActivity, memories)
 
-            if result is not None:
-                if result == "Drop current item":
-                    if agent.currentItem is not None:
-                        self.inventoryManager.DropItem(agent, location)
-                        #TODO: tried to drop an item when not holding one
-                if result == "Stop using item":
+            if action is not None:
+                if action == "Stop using item":
+                    #TODO: set the item status?
+                    #TODO: set the item emoji?
+                    #TODO: persist all that stuff?
+                    #TODO: create relevant memories?
                     self._stopUsingItem(agent, location)
-                if result is not None:
-                    chosenItem = Enumerable(availableItems).first_or_default(lambda x: x.name.lower() == result.lower())
+                if action is not None:
+                    #TODO: is it the currently held item?
+                    if agent.currentItem is not None and (itemName.lower() == agent.currentItem.name.lower()):
+                        chosenItem = agent.currentItem
+                    else:
+                        chosenItem = Enumerable(availableItems).first_or_default(lambda x: x.name.lower() == itemName.lower())
 
                     #TODO: use the item?
                     #TODO: set the item status?
