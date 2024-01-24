@@ -81,7 +81,9 @@ def initializeScenario():
             selectContainer = st.container()
             with selectContainer:
                 with st.form(key="select scenario", clear_on_submit=True):
-                    selectedScenario  = st.selectbox("Select an existing scenario:", scenarios)
+                    selectedScenario  = st.selectbox("Select an existing scenario:",
+                                                     scenarios,
+                                                     format_func=lambda x: x.name)
                     select_button = st.form_submit_button(label="Select")
                     if select_button:
                         fetchScenario(userId, selectedScenario._id)
@@ -158,7 +160,8 @@ def createScenario(userId, scenarioDescription):
 
     with st.spinner("Reticulating splines..."):
         for item in items:
-            itemGen.GenerateFiniteStateMachine(item)
+            #We aren't using finite state machines in the final product.
+            #itemGen.GenerateFiniteStateMachine(item)
             pass
 
     #create all the villagers
@@ -362,7 +365,7 @@ def displayScenario(userId, scenario):
                     description = characterDescriptionGenerator.DescribeCharacter(agent)
                     description.agentId = agent._id
                     AgentDescriptionModel.objects.insert(description)
-                if agent.portraitFilename is None:
+                if not agent.portraitFilename:
                     agent.portraitFilename = characterPortraitGenerator.CreatePortrait(agent, description)
             #write out all the agents
             saveAgents(scenario)
@@ -381,7 +384,7 @@ def displayScenario(userId, scenario):
                     description = characterDescriptionGenerator.DescribeCharacter(agent)
                     description.agentId = agent._id
                     AgentDescriptionModel.objects.insert(description)
-                if agent.iconFilename is None or agent.resizedIconFilename is None:
+                if not agent.iconFilename or not agent.resizedIconFilename:
                     agent.iconFilename, agent.resizedIconFilename = characterIconGenerator.CreateIcon(agent, description)
             #write out all the agents
             saveAgents(scenario)
@@ -400,7 +403,7 @@ def displayScenario(userId, scenario):
                     description = characterDescriptionGenerator.DescribeCharacter(agent)
                     description.agentId = agent._id
                     AgentDescriptionModel.objects.insert(description)
-                if agent.chibiFilename is None or agent.resizedChibiFilename is None:
+                if not agent.chibiFilename or not agent.resizedChibiFilename:
                     agent.chibiFilename, agent.resizedChibiFilename = characterChibiGenerator.CreateChibi(agent, description)
             #write out all the agents
             saveAgents(scenario)
@@ -408,13 +411,19 @@ def displayScenario(userId, scenario):
         buildingExterior_button = st.button(label="Populate missing building exteriors")
         if buildingExterior_button:
             for location in scenario.locations:
-                if location.imageFilename is None or location.resizedImageFilename is None:
+                if not location.imageFilename or not location.resizedImageFilename:
                     location.imageFilename, location.resizedImageFilename = buildingExteriorGenerator.CreateLocation(location)
+            saveLocations(scenario)
+
+        buildingExterior_button = st.button(label="Redo building exteriors")
+        if buildingExterior_button:
+            for location in scenario.locations:
+                location.imageFilename, location.resizedImageFilename = buildingExteriorGenerator.CreateLocation(location, scenario)
             saveLocations(scenario)
 
         background_button = st.button(label="Create scenario background")
         if background_button:
-            if scenario.imageFilename is None:
+            if not scenario.imageFilename:
                 scenario.imageFilename = backgroundGenerator.CreateScenarioBackground(scenario)
             saveScenario(userId, scenario)
 
@@ -424,6 +433,21 @@ def displayScenario(userId, scenario):
                 result = characterDescriptionGenerator.DescribeCharacter(agent)
                 result.agentId = agent._id
                 AgentDescriptionModel.objects.insert(result)
+
+        characterDescriptions_button = st.button(label="Populate missing character descriptions")
+        if characterDescriptions_button:
+            for agent in scenario.GetAgents():
+                #get a character description
+                description = None
+                try:
+                    description = AgentDescriptionModel.objects.get(agentId=agent._id)
+                except:
+                    pass
+                if description is None:
+                    description = characterDescriptionGenerator.DescribeCharacter(agent)
+                    if description is not None:
+                        description.agentId = agent._id
+                        AgentDescriptionModel.objects.insert(description)
 
         redoCharacterImagery = st.button(label="Just redo all the characters")
         if redoCharacterImagery:
