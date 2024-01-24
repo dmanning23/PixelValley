@@ -17,6 +17,8 @@ class TimeStream():
 
             #TODO: will teh agents current activity change when time is updated?
 
+            #TODO: if the planned activity changes, how effective was the agent at completing the previous activity?
+            
             #TODO: check if a reflection should be triggered
 
             agent.IncrementTime()
