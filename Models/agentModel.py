@@ -7,9 +7,6 @@ class AgentModel(Document):
     age = IntField()
     gender = StringField()
     description = StringField()
-    homeScenarioId = ObjectIdField()
-    currentScenarioId = ObjectIdField()
-    locationId = ObjectIdField()
     currentTime = IntField()
     status = StringField()
     emoji = StringField()
@@ -19,7 +16,7 @@ class AgentModel(Document):
     #is the agent currently using the held item?
     isUsingHeldItem = BooleanField()
 
-    timeOfLastReflection = IntField()
+    timeOfLastReflection = IntField(default=0)
 
     #TODO: move all these filenames into the description or something
     portraitFilename = StringField()
@@ -28,26 +25,19 @@ class AgentModel(Document):
     chibiFilename = StringField()
     resizedChibiFilename = StringField()
 
-    def Set(self,
-            agent,
-            homeScenarioId,
-            currentScenarioId=None,
-            locationId=None):
+    #TODO: these are all moved out
+    homeScenarioId = ObjectIdField()
+    currentScenarioId = ObjectIdField()
+    locationId = ObjectIdField()
+
+    def Set(self, agent):
         if hasattr(agent, "_id"):
             self.id=agent._id
         self.name = agent.name
         self.age = agent.age
         self.gender = agent.gender
         self.description = agent.description
-        self.homeScenarioId = homeScenarioId
         self.currentTime = agent.currentTime
-
-        if currentScenarioId is None:
-            self.currentScenarioId = homeScenarioId
-        else:
-            self.currentScenarioId = currentScenarioId
-
-        self.locationId = locationId
 
         self.status = agent.status
         self.emoji = agent.emoji

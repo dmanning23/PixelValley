@@ -97,8 +97,8 @@ class MemoryRepository:
         memories = Enumerable(result).select(lambda x: Memory(**x))
         return memories.to_list()
 
-    def GetMemoriesSinceTimestamp(self, agent, numMemories):
-        result = self.collection.find({"agentId": agent._id, "time": { "$gt": agent.timeOfLastReflection }}).sort("time", -1)
+    def GetMemoriesSinceTimestamp(self, agent, timeStamp):
+        result = self.collection.find({"agentId": agent._id, "time": { "$gt": timeStamp }}).sort("time", -1)
 
         #parse into Memory objects
         memories = Enumerable(result).select(lambda x: Memory(**x))

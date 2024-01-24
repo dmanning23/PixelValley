@@ -1,50 +1,79 @@
 from Models.agentModel import AgentModel
+from Models.agentLocationModel import AgentLocationModel
 from py_linq import *
 
 class AgentRepository:
     @staticmethod
     def Create(agent, homeScenarioId, currentScenarioId=None, locationId=None):
         model = AgentModel()
-        model.Set(agent, homeScenarioId, currentScenarioId, locationId)
+        model.Set(agent)
 
         AgentModel.objects.insert(model)
         agent._id = model.id
+        AgentRepository.UpdateLocation(agent, homeScenarioId, currentScenarioId, locationId)
 
     @staticmethod
     def CreateOrUpdate(agent, homeScenarioId, currentScenarioId=None, locationId=None):
         if not hasattr(agent, "_id"):
             AgentRepository.Create(agent, homeScenarioId, currentScenarioId, locationId)
         else:
-            AgentRepository.Update(agent, homeScenarioId, currentScenarioId, locationId)
+            AgentRepository.Update(agent)
+            AgentRepository.UpdateLocation(agent, homeScenarioId, currentScenarioId, locationId)
 
     @staticmethod
-    def Update(agent, homeScenarioId, currentScenarioId=None, locationId=None):
+    def Update(agent):
         model = AgentModel()
-        model.Set(agent, homeScenarioId, currentScenarioId, locationId)
+        model.Set(agent)
         model.save()
-        if locationId is None:
-            AgentModel.objects(id==model.id).update(unset__locationId=1)
         if agent.currentItem is None:
-            AgentModel.objects(id==model.id).update(unset__currentItem=1)
+            AgentModel.objects(id=model.id).update(unset__currentItem=1)
 
+    @staticmethod
+    def UpdateLocation(agent, homeScenarioId, currentScenarioId=None, locationId=None):
+        #get the agentlocation model for this agent
+        model = AgentLocationModel.objects(agentId=agent._id).first()
+        
+        #create the model if one does not exist
+        if model is None:
+            model = AgentLocationModel()
+            model.Set(agentId=agent._id,
+                      homeScenarioId=homeScenarioId,
+                      currentScenarioId=currentScenarioId,
+                      locationId=locationId)
+            AgentLocationModel.objects.insert(model)
+        else:
+            #update the parameters
+            model.Set(agent._id, homeScenarioId, currentScenarioId, locationId)
+            #save the updated model
+            model.save()
+            if locationId is None:
+                AgentLocationModel.objects(id=model.id).update(unset__locationId=1)
+    
     @staticmethod
     def Get(agentId):
         model = AgentModel.objects.get(id=agentId)
         return model.Hydate()
-
+    
     @staticmethod
     def GetAgents(homeScenarioId=None, currentScenarioId=None, locationId=None):
-        models = []
         if locationId is not None:
             #get the agents in a specific location
-            models = AgentModel.objects(locationId=locationId)
+            locationModels = AgentLocationModel.objects(locationId=locationId)
         elif currentScenarioId is not None:
             #get ALL the agents that are currently in a specific scenario
-            models = AgentModel.objects(currentScenarioId=currentScenarioId)
+            locationModels = AgentLocationModel.objects(currentScenarioId=currentScenarioId)
         elif homeScenarioId is not None:
             #get ALL the agents that originated from a specific scenario
-            models = AgentModel.objects(homeScenarioId=homeScenarioId)
+            locationModels = AgentLocationModel.objects(homeScenarioId=homeScenarioId)
 
+        #get the model for each location model
+        models = []
+        for locationModel in locationModels:
+            model = AgentModel.objects(id=locationModel.agentId).first()
+            if model is None:
+                #TODO: an agent is missing
+                pass
+            models.append(model)
         #convert to enumerable list of models
         modelCollection = Enumerable(models)
 

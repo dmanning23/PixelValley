@@ -28,6 +28,7 @@ from Memory.memoryRepository import MemoryRepository
 from Memory.observationStream import ObservationStream
 from Memory.retrievalStream import RetrievalStream
 from Memory.reflectionGenerator import ReflectionGenerator
+from Memory.reflectionStream import ReflectionStream
 from Memory.goalsStream import GoalsStream
 from Memory.plannedActivityStream import PlannedActivityStream
 
@@ -206,6 +207,7 @@ def displayScenario(userId, scenario):
     goalRepo = GoalsRepository()
     retrieval = RetrievalStream(memRepo)
     reflectionGen = ReflectionGenerator(memRepo, retrieval)
+
     goalGen = GoalsGenerator()
     goalsStream = GoalsStream(memRepo, goalGen, goalRepo)
     activityGen = PlannedActivityGenerator()
@@ -213,6 +215,7 @@ def displayScenario(userId, scenario):
     interactionGen = InteractionGenerator()
     itemRepo = ItemRepository()
     agentRepo = AgentRepository()
+    reflectionStream = ReflectionStream(memRepo, reflectionGen, agentRepo)
     actionGenerator = ActionGenerator()
     conversationGenerator = ConversationGenerator()
     locationChanger = LocationChanger()
@@ -227,8 +230,8 @@ def displayScenario(userId, scenario):
     statusGenerator = StatusGenerator()
     inventoryGenerator = InventoryGenerator()
     itemManager = ItemManager(memRepo,
-                                        agentRepo,
-                                        itemRepo)
+                              agentRepo,
+                              itemRepo)
     iteractionStream = InteractionStream(activityStream,
                                          retrieval,
                                          interactionGen,
@@ -269,6 +272,11 @@ def displayScenario(userId, scenario):
         if reflect_button:
             for agent in scenario.GetAgents():
                 reflectionGen.CreateReflections(agent)
+
+        trigger_reflections_button = st.button(label="Trigger Reflections?")
+        if trigger_reflections_button:
+            for agent in scenario.GetAgents():
+                reflectionStream.TriggerReflection(agent)
 
         goals_button = st.button(label="Create Goals")
         if goals_button:

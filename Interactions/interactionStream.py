@@ -79,9 +79,9 @@ class InteractionStream():
 
         #persist the agent's changed location
         if nextLocation is None:
-            self.agentRepository.Update(agent, homeScenarioId=scenario._id)
+            self.agentRepository.UpdateLocation(agent, homeScenarioId=scenario._id)
         else:
-            self.agentRepository.Update(agent, homeScenarioId=scenario._id, locationId=nextLocation._id)
+            self.agentRepository.UpdateLocation(agent, homeScenarioId=scenario._id, locationId=nextLocation._id)
         
         #create a memory that the agent chose to move
         memory = f"I chose to go to {nextLocation.name}. {reasoning}"
