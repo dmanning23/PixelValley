@@ -27,7 +27,7 @@ from Repository.goalsRepository import GoalsRepository
 from Memory.memoryRepository import MemoryRepository
 from Memory.observationStream import ObservationStream
 from Memory.retrievalStream import RetrievalStream
-from Memory.reflectionStream import ReflectionStream
+from Memory.reflectionGenerator import ReflectionGenerator
 from Memory.goalsStream import GoalsStream
 from Memory.plannedActivityStream import PlannedActivityStream
 
@@ -205,7 +205,7 @@ def displayScenario(userId, scenario):
     obsStream = ObservationStream(memRepo)
     goalRepo = GoalsRepository()
     retrieval = RetrievalStream(memRepo)
-    reflection = ReflectionStream(memRepo, retrieval)
+    reflectionGen = ReflectionGenerator(memRepo, retrieval)
     goalGen = GoalsGenerator()
     goalsStream = GoalsStream(memRepo, goalGen, goalRepo)
     activityGen = PlannedActivityGenerator()
@@ -268,7 +268,7 @@ def displayScenario(userId, scenario):
         reflect_button = st.button(label="Create Reflections")
         if reflect_button:
             for agent in scenario.GetAgents():
-                reflection.CreateReflections(agent)
+                reflectionGen.CreateReflections(agent)
 
         goals_button = st.button(label="Create Goals")
         if goals_button:

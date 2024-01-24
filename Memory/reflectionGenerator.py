@@ -91,7 +91,7 @@ class ReflectionGenerator():
         for recentMemory in recentMemories:
             messages.append({'role': 'user', 'content': recentMemory.description})
 
-        functions = [ ReflectionStream.askQuestionsFunctionDef ]
+        functions = [ ReflectionGenerator.askQuestionsFunctionDef ]
 
         response = self.llm.chat.completions.create(
             model = 'gpt-3.5-turbo',
@@ -112,7 +112,7 @@ class ReflectionGenerator():
         for memory in memories:
             messages.append({'role': 'user', 'content': memory.description})
 
-        functions = [ ReflectionStream.createInsightFunctionDef ]
+        functions = [ ReflectionGenerator.createInsightFunctionDef ]
 
         #Call the LLM...
         response = self.llm.chat.completions.create(
