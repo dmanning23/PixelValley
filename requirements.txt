@@ -11,3 +11,5 @@ pytimeparse
 webuiapi
 rembg
 pathlib
+mongoengine
+pymongo
