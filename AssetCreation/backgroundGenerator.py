@@ -20,12 +20,12 @@ class BackgroundGenerator:
         self.api.set_options(self.options)
 
         #Build the prompt
-        user_input = f"({scenario.seed}), {scenario.name} in the year {scenario.currentDateTime.year}"
-        prompt = f"(landscape), ((nature)), (isometric), Isometric_Setting, <lora:Stylized_Setting_SDXL:1>, {user_input}"
+        user_input = f"({scenario.seed}),{scenario.name} in the year {scenario.currentDateTime.year}"
+        prompt = f"(landscape),((nature)),(isometric),Isometric_Setting,<lora:Stylized_Setting_SDXL:1>,{user_input}"
 
         #create the character picture
         result = self.api.txt2img(prompt=prompt,
-            negative_prompt="1girl, text, cropped, word, low quality, normal quality, soft line username, (watermark), (signature), blurry, soft, curved line, sketch, ugly, logo, pixelated, lowres, buildings, (building),",
+            negative_prompt="1girl,text,cropped,word,low quality,normal quality,soft line username,(watermark),(signature),blurry,soft,curved line,sketch,ugly,logo,pixelated,lowres,buildings,(building),",
             cfg_scale=7,
             width=2048,
             height=1024,

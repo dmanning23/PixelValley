@@ -8,3 +8,9 @@ class AgentDescriptionModel(Document):
     clothing = ListField()
     distinguishingFeatures = ListField()
     agentId = ObjectIdField()
+
+    portraitFilename = StringField()
+    iconFilename = StringField()
+    resizedIconFilename = StringField()
+    chibiFilename = StringField()
+    resizedChibiFilename = StringField()

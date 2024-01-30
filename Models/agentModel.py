@@ -19,13 +19,13 @@ class AgentModel(Document):
     timeOfLastReflection = IntField(default=0)
 
     #TODO: move all these filenames into the description or something
+
+    #TODO: these are all moved out
     portraitFilename = StringField()
     iconFilename = StringField()
     resizedIconFilename = StringField()
     chibiFilename = StringField()
     resizedChibiFilename = StringField()
-
-    #TODO: these are all moved out
     homeScenarioId = ObjectIdField()
     currentScenarioId = ObjectIdField()
     locationId = ObjectIdField()
@@ -51,12 +51,6 @@ class AgentModel(Document):
         self.isUsingHeldItem = agent.IsUsingHeldItem()
         self.timeOfLastReflection = agent.timeOfLastReflection
 
-        self.portraitFilename = agent.portraitFilename
-        self.iconFilename = agent.iconFilename
-        self.resizedIconFilename = agent.resizedIconFilename
-        self.chibiFilename = agent.chibiFilename
-        self.resizedChibiFilename = agent.resizedChibiFilename
-
     def Hydrate(self):
         agent = Agent(self.name,
                      self.age,
@@ -66,12 +60,7 @@ class AgentModel(Document):
                      currentTime=self.currentTime,
                      status = self.status,
                      emoji = self.emoji,
-                     timeOfLastReflection=self.timeOfLastReflection,
-                     portraitFilename = self.portraitFilename,
-                     iconFilename = self.iconFilename,
-                     resizedIconFilename = self.resizedIconFilename,
-                     chibiFilename = self.chibiFilename,
-                     resizedChibiFilename = self.resizedChibiFilename,)
+                     timeOfLastReflection=self.timeOfLastReflection,)
         
         if self.currentItem:
             agent.currentItem = self.currentItem.Hydrate()

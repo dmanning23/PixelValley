@@ -29,7 +29,7 @@ class BuildingExteriorGenerator:
 
         #Build the prompt
         user_input = f'{location.name} in {scenario.name},in the year {scenario.currentDateTime.year}'
-        prompt = f"(((isometric))),(Isometric_Setting),(building exterior),((black background)),<lora:Stylized_Setting_SDXL:2>,bright colors,{user_input}"
+        prompt = f"(((isometric))),(Isometric_Setting),(building exterior),((black background)),<lora:Stylized_Setting_SDXL:4>,bright colors,{user_input}"
 
         #create the character picture
         result = self.api.txt2img(prompt=prompt,

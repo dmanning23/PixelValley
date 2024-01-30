@@ -1,23 +1,5 @@
 
 class Agent:
-    """
-    An agent in the simulation.
-
-    Attributes:
-    name: string
-        name of the character
-    age: integer
-        age of the character
-    gender: string
-        chosen gender of the character
-    description:
-        a short description of the character's personality
-    currentTime:
-        this is an integer that is used to age the agent's memories.
-        It is stored here rather than in the simulation because agents will 
-        eventually be allowed to move between simulations.
-    """
-
     def __init__(self,
                  name,
                  age,
@@ -29,12 +11,7 @@ class Agent:
                  usingItem = None,
                  status = "Idle",
                  emoji = "",
-                 timeOfLastReflection = 0,
-                 portraitFilename = "",
-                 iconFilename = "",
-                 resizedIconFilename = "",
-                 chibiFilename = "",
-                 resizedChibiFilename = ""):
+                 timeOfLastReflection = 0):
         if _id is not None:
             self._id = _id
         self.name = name
@@ -57,13 +34,6 @@ class Agent:
 
         #Time of last reflection
         self.timeOfLastReflection = timeOfLastReflection
-
-        self.portraitFilename = portraitFilename
-        self.iconFilename = iconFilename
-        self.resizedIconFilename = resizedIconFilename
-
-        self.chibiFilename = chibiFilename
-        self.resizedChibiFilename = resizedChibiFilename
 
     def __str__(self) -> str:
         return f"{self.name} is a {self.age} year old {self.gender}. {self.description}"
