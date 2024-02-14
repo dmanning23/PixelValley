@@ -172,10 +172,8 @@ class InteractionStream():
     def SetAgentStatus(self, agent, scenario):
         location = self._findAgent(agent, scenario)
         plannedActivity = self.activityStream.GetCurrentPlannedActivity(agent, scenario.currentDateTime)
-        usingItem = self._getUsingItem(agent)
-        currentItem = self._getCurrentItem(agent)
 
-        status, emoji = self.statusGenerator.SetStatus(scenario, agent, currentItem, usingItem, location, plannedActivity)
+        status, emoji = self.statusGenerator.SetStatus(scenario, agent, agent.currentItem, agent.usingItem, location, plannedActivity)
         if status is not None or emoji is not None:
             #change the agent's status
             agent.status = status

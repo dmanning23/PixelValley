@@ -56,10 +56,13 @@ class StatusGenerator():
             {'role': 'user', 'content': f"Your current status message is {agent.status}"},
             {'role': 'user', 'content': f"Your current emoji is {agent.emoji}"},
             {'role': 'user', 'content': f"You are currently {plannedActivity.description}"},
-            {'role': 'user', 'content': f"You have a {currentItem.name}"},
-            {'role': 'user', 'content': f"You are using the {usingItem.name}"},
             {'role': 'user', 'content': f"You are in the {currentLocation.name}"},
         ]
+
+        if currentItem is not None:
+            messages.append({'role': 'user', 'content': f"You have a {currentItem.name}"})
+        if usingItem is not None:
+            messages.append({'role': 'user', 'content': f"You are using the {usingItem.name}"})
 
         #Create the list of function definitions that are available to the LLM
         functions = [

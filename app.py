@@ -461,7 +461,11 @@ def displayScenario(userId, scenario):
 
     st.subheader(f"Villagers in {scenario.name}:")
     for agent in scenario.GetAgents():
-        description = AgentDescriptionModel.objects.get(agentId=agent._id)
+        try:
+            description = AgentDescriptionModel.objects.get(agentId=agent._id)
+        except:
+            description = None
+        
         st.write(agent)
         if agent.currentItem:
             st.write(f"{agent.name} is holding the {agent.currentItem.NameWithStatus()}")
@@ -541,15 +545,15 @@ def populateMissingCharacterDescriptions(scenario, characterDescriptionGenerator
                 description.agentId = agent._id
                 AgentDescriptionModel.objects.insert(description)
         else:
-            if agent.portraitFilename:
+            if hasattr(agent, "portraitFilename") and agent.portraitFilename:
                 description.portraitFilename = agent.portraitFilename
-            if agent.iconFilename:
+            if hasattr(agent, "iconFilename") and agent.iconFilename:
                 description.iconFilename = agent.iconFilename
-            if agent.resizedIconFilename:
+            if hasattr(agent, "resizedIconFilename") and agent.resizedIconFilename:
                 description.resizedIconFilename = agent.resizedIconFilename
-            if agent.chibiFilename:
+            if hasattr(agent, "chibiFilename") and agent.chibiFilename:
                 description.chibiFilename = agent.chibiFilename
-            if agent.resizedChibiFilename:
+            if hasattr(agent, "resizedChibiFilename") and agent.resizedChibiFilename:
                 description.resizedChibiFilename = agent.resizedChibiFilename
             description.save()
 
@@ -585,5 +589,5 @@ def createScenarioBackground(userId, scenario, backgroundGenerator):
 def populateMissingBuildingExteriors(scenario, buildingExteriorGenerator):
     for location in scenario.locations:
         if not location.imageFilename or not location.resizedImageFilename:
-            location.imageFilename, location.resizedImageFilename = buildingExteriorGenerator.CreateLocation(location)
+            location.imageFilename, location.resizedImageFilename = buildingExteriorGenerator.CreateLocation(location, scenario)
     saveLocations(scenario)
