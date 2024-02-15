@@ -83,7 +83,17 @@ class AgentRepository:
     #Get the agents that are standing outside
     @staticmethod
     def GetOutsideAgents(currentScenarioId):
-        models = AgentModel.objects(currentScenarioId=currentScenarioId, locationId=None)
+        locationModels = AgentLocationModel.objects(currentScenarioId=currentScenarioId, locationId=None)
+        
+        #get the model for each location model
+        models = []
+        for locationModel in locationModels:
+            model = AgentModel.objects(id=locationModel.agentId).first()
+            if model is None:
+                #TODO: an agent is missing
+                pass
+            models.append(model)
+
         modelCollection = Enumerable(models)
         return modelCollection.select(lambda x: x.Hydrate()).to_list()
 
