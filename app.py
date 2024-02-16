@@ -23,6 +23,7 @@ from Repository.locationRepository import LocationRepository
 from Repository.agentRepository import AgentRepository
 from Repository.itemRepository import ItemRepository
 from Repository.goalsRepository import GoalsRepository
+from Repository.simulationRepository import SimulationRepository
 
 from Memory.memoryRepository import MemoryRepository
 from Memory.observationStream import ObservationStream
@@ -50,6 +51,7 @@ from AssetCreation.buildingExteriorGenerator import BuildingExteriorGenerator
 from AssetCreation.backgroundGenerator import BackgroundGenerator
 from AssetCreation.characterIconGenerator import CharacterIconGenerator
 from AssetCreation.characterChibiGenerator import CharacterChibiGenerator
+from AssetCreation.assetManager import AssetManager
 
 def main():
 
@@ -186,18 +188,18 @@ def createScenario(userId, scenarioDescription):
                 scenario.locations[locationIndex].agents.append(agent)
 
     #Store the scenario
+    simulationRepository = SimulationRepository()
     with st.spinner("Saving scenario..."):
-        saveScenario(userId, scenario)
+        simulationRepository.SaveScenario(userId, scenario)
 
     with st.spinner("Saving locations..."):
-        saveLocations(scenario)
+        simulationRepository.SaveLocations(scenario)
 
     with st.spinner("Saving items..."):
-        saveItems(scenario)
+        simulationRepository.SaveItems(scenario)
 
-    #save all the villagers
     with st.spinner("Saving villagers..."):
-        saveAgents(scenario)
+        simulationRepository.SaveAgents(scenario)
 
     #store the scenario
     st.session_state["scenario"] = scenario
@@ -253,6 +255,8 @@ def displayScenario(userId, scenario):
     characterIconGenerator = CharacterIconGenerator()
     characterDescriptionGenerator = CharacterDescriptionGenerator()
     characterChibiGenerator = CharacterChibiGenerator()
+    assetManager = AssetManager()
+    simulationRepository = SimulationRepository()
     
     clear_button = st.button(label="Clear memory")
     if clear_button:
@@ -352,34 +356,34 @@ def displayScenario(userId, scenario):
     with assetContainer:
         profilePic_button = st.button(label="Populate missing profile pictures")
         if profilePic_button:
-            populateMissingCharacterDescriptions(scenario, characterDescriptionGenerator)
-            populateMissingCharacterProfile(scenario, characterPortraitGenerator)
+            assetManager.PopulateMissingCharacterDescriptions(scenario, characterDescriptionGenerator)
+            assetManager.PopulateMissingCharacterProfile(scenario, characterPortraitGenerator)
 
         #TODO: move agent images to description
             
         icon_button = st.button(label="Populate missing character icons")
         if icon_button:
-            populateMissingCharacterDescriptions(scenario, characterDescriptionGenerator)
-            populateMissingCharacterIcons(scenario, characterIconGenerator)
+            assetManager.PopulateMissingCharacterDescriptions(scenario, characterDescriptionGenerator)
+            assetManager.PopulateMissingCharacterIcons(scenario, characterIconGenerator)
 
         icon_button = st.button(label="Populate missing character chibis")
         if icon_button:
-            populateMissingCharacterDescriptions(scenario, characterDescriptionGenerator)
-            populateMissingCharacterChibis(scenario, characterChibiGenerator)
+            assetManager.PopulateMissingCharacterDescriptions(scenario, characterDescriptionGenerator)
+            assetManager.PopulateMissingCharacterChibis(scenario, characterChibiGenerator)
 
         buildingExterior_button = st.button(label="Populate missing building exteriors")
         if buildingExterior_button:
-            populateMissingBuildingExteriors(scenario, buildingExteriorGenerator)
+            assetManager.PopulateMissingBuildingExteriors(scenario, buildingExteriorGenerator)
 
         buildingExterior_button = st.button(label="Redo building exteriors")
         if buildingExterior_button:
             for location in scenario.locations:
                 location.imageFilename, location.resizedImageFilename = buildingExteriorGenerator.CreateLocation(location, scenario)
-            saveLocations(scenario)
+            simulationRepository.SaveLocations(scenario)
 
         background_button = st.button(label="Create scenario background")
         if background_button:
-            createScenarioBackground(userId, scenario, backgroundGenerator)
+            assetManager.CreateScenarioBackground(userId, scenario, backgroundGenerator)
 
         describe_character = st.button(label="Create character descriptions")
         if describe_character:
@@ -390,23 +394,23 @@ def displayScenario(userId, scenario):
 
         characterDescriptions_button = st.button(label="Populate missing character descriptions")
         if characterDescriptions_button:
-            populateMissingCharacterDescriptions(scenario, characterDescriptionGenerator)
+            assetManager.PopulateMissingCharacterDescriptions(scenario, characterDescriptionGenerator)
 
         populateMissingCharacterArtwork_button = st.button(label="Populate all missing character artwork")
         if populateMissingCharacterArtwork_button:
-            populateMissingCharacterDescriptions(scenario, characterDescriptionGenerator)
-            populateMissingCharacterProfile(scenario, characterPortraitGenerator)
-            populateMissingCharacterIcons(scenario, characterIconGenerator)
-            populateMissingCharacterChibis(scenario, characterChibiGenerator)
+            assetManager.PopulateMissingCharacterDescriptions(scenario, characterDescriptionGenerator)
+            assetManager.PopulateMissingCharacterProfile(scenario, characterPortraitGenerator)
+            assetManager.PopulateMissingCharacterIcons(scenario, characterIconGenerator)
+            assetManager.PopulateMissingCharacterChibis(scenario, characterChibiGenerator)
 
         populateMissingArtwork_button = st.button(label="Populate all missing artwork")
         if populateMissingArtwork_button:
-            createScenarioBackground(userId, scenario, backgroundGenerator)
-            populateMissingBuildingExteriors(scenario, buildingExteriorGenerator)
-            populateMissingCharacterDescriptions(scenario, characterDescriptionGenerator)
-            populateMissingCharacterProfile(scenario, characterPortraitGenerator)
-            populateMissingCharacterIcons(scenario, characterIconGenerator)
-            populateMissingCharacterChibis(scenario, characterChibiGenerator)
+            assetManager.CreateScenarioBackground(userId, scenario, backgroundGenerator)
+            assetManager.PopulateMissingBuildingExteriors(scenario, buildingExteriorGenerator)
+            assetManager.PopulateMissingCharacterDescriptions(scenario, characterDescriptionGenerator)
+            assetManager.PopulateMissingCharacterProfile(scenario, characterPortraitGenerator)
+            assetManager.PopulateMissingCharacterIcons(scenario, characterIconGenerator)
+            assetManager.PopulateMissingCharacterChibis(scenario, characterChibiGenerator)
 
         redoCharacterImagery = st.button(label="Just redo all the characters")
         if redoCharacterImagery:
@@ -436,11 +440,11 @@ def displayScenario(userId, scenario):
     with databaseContainer:
         writeAgents_button = st.button(label="Write agents to DB")
         if writeAgents_button:
-            saveAgents(scenario)
+            simulationRepository.SaveAgents(scenario)
 
         writeItems_button = st.button(label="Write items to DB")
         if writeItems_button:
-            saveItems(scenario)
+            simulationRepository.SaveItems(scenario)
 
         goOutside_button = st.button(label="Everybody go outside")
         if goOutside_button:
@@ -511,83 +515,3 @@ def writeLocation(location, level = 0):
         st.subheader(f"Child locations of {location.name}:")
         for child in location.locations:
             writeLocation(child, level)
-
-def saveScenario(userId, scenario):
-    ScenarioRepository.CreateOrUpdate(userId, scenario)
-
-def saveAgents(scenario):
-    #write out all the agents
-    if scenario.agents is not None:
-        for agent in scenario.agents:
-            AgentRepository.CreateOrUpdate(agent, homeScenarioId=scenario._id)
-    for location in scenario.locations:
-        AgentRepository.CreateOrUpdateFromLocation(location, homeScenarioId=scenario._id)
-
-def saveItems(scenario):
-    for location in scenario.locations:
-            ItemRepository.CreateOrUpdateFromLocation(location)
-
-def saveLocations(scenario):
-    for location in scenario.locations:
-            LocationRepository.CreateOrUpdateLocations(location, scenario._id)
-
-def populateMissingCharacterDescriptions(scenario, characterDescriptionGenerator):
-    for agent in scenario.GetAgents():
-        #get a character description
-        description = None
-        try:
-            description = AgentDescriptionModel.objects.get(agentId=agent._id)
-        except:
-            pass
-        if description is None:
-            description = characterDescriptionGenerator.DescribeCharacter(agent)
-            if description is not None:
-                description.agentId = agent._id
-                AgentDescriptionModel.objects.insert(description)
-        else:
-            if hasattr(agent, "portraitFilename") and agent.portraitFilename:
-                description.portraitFilename = agent.portraitFilename
-            if hasattr(agent, "iconFilename") and agent.iconFilename:
-                description.iconFilename = agent.iconFilename
-            if hasattr(agent, "resizedIconFilename") and agent.resizedIconFilename:
-                description.resizedIconFilename = agent.resizedIconFilename
-            if hasattr(agent, "chibiFilename") and agent.chibiFilename:
-                description.chibiFilename = agent.chibiFilename
-            if hasattr(agent, "resizedChibiFilename") and agent.resizedChibiFilename:
-                description.resizedChibiFilename = agent.resizedChibiFilename
-            description.save()
-
-def populateMissingCharacterProfile(scenario, characterPortraitGenerator):
-    agents = scenario.GetAgents()
-    for agent in agents:
-        description = AgentDescriptionModel.objects.get(agentId=agent._id)
-        if not description.portraitFilename:
-            description.portraitFilename = characterPortraitGenerator.CreatePortrait(agent, description)
-            description.save()
-
-def populateMissingCharacterIcons(scenario, characterIconGenerator):
-    agents = scenario.GetAgents()
-    for agent in agents:
-        description = AgentDescriptionModel.objects.get(agentId=agent._id)
-        if not description.iconFilename or not description.resizedIconFilename:
-            description.iconFilename, description.resizedIconFilename = characterIconGenerator.CreateIcon(agent, description)
-            description.save()
-
-def populateMissingCharacterChibis(scenario, characterChibiGenerator):
-    agents = scenario.GetAgents()
-    for agent in agents:
-        description = AgentDescriptionModel.objects.get(agentId=agent._id)
-        if not description.chibiFilename or not description.resizedChibiFilename:
-            description.chibiFilename, description.resizedChibiFilename = characterChibiGenerator.CreateChibi(agent, description)
-            description.save()
-
-def createScenarioBackground(userId, scenario, backgroundGenerator):
-    if not scenario.imageFilename:
-        scenario.imageFilename = backgroundGenerator.CreateScenarioBackground(scenario)
-    saveScenario(userId, scenario)
-
-def populateMissingBuildingExteriors(scenario, buildingExteriorGenerator):
-    for location in scenario.locations:
-        if not location.imageFilename or not location.resizedImageFilename:
-            location.imageFilename, location.resizedImageFilename = buildingExteriorGenerator.CreateLocation(location, scenario)
-    saveLocations(scenario)
