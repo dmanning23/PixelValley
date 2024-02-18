@@ -63,7 +63,11 @@ class ScenarioRepository():
             #get the scenarios that match
             scenarioModels = []
             for model in models:
-                scenarioModels.append(ScenarioModel.objects.get(id=model.scenarioId))
+                try:
+                    scenarioModel = ScenarioModel.objects.get(id=model.scenarioId)
+                    scenarioModels.append(scenarioModel)
+                except:
+                    pass
 
             #convert to enumerable list of models
             modelCollection = Enumerable(scenarioModels)

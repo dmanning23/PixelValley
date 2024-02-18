@@ -132,6 +132,8 @@ class Simulator:
         simulationRepository.SaveItems(scenario)
         simulationRepository.SaveAgents(scenario)
 
+        return scenario
+
     def InitializeScenario(self, userId, scenario):
         memRepo = MemoryRepository()
         obsStream = ObservationStream(memRepo)

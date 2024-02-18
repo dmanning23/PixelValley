@@ -1,10 +1,6 @@
-from langchain.schema.messages import SystemMessage, HumanMessage
-from langchain.chat_models import ChatOpenAI
 import json
 from Simulation.item import Item
 from openai import OpenAI
-from langchain.schema.messages import SystemMessage, HumanMessage
-from langchain.chat_models import ChatOpenAI
 from Generators.finiteStateMachineGenerator import FiniteStateMachineGenerator
 
 class ItemGenerator():
@@ -77,15 +73,6 @@ class ItemGenerator():
             #The LLM didn't call a function but provided a response
             #return response_message.content
             return None
-
-    def Generate(self, description, llm = None):
-        if llm is None:
-            llm = ChatOpenAI()
-        messages = [
-            SystemMessage(content="Expand the following description of an item."),
-            HumanMessage(content=description),]
-        result = llm.invoke(messages)
-        return result.content
     
     def GenerateItems(self, location, llm = None):
         if not llm:

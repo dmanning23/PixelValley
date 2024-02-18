@@ -26,6 +26,9 @@ class ScenarioGenerator:
     }
 
     def _generate_scenario(self, seed, name, time=None):
+        #TODO: python datetime doesnt support BC time >:(
+        if time <= 0:
+            time = 1
         return Scenario(name=name, currentDateTime=time, seed=seed)
 
     def _parseResponse(self, seed, response_message):

@@ -7,6 +7,7 @@ from mongoengine import *
 from py_linq import *
 
 from Simulation.timeStream import TimeStream
+from Simulation.simulator import Simulator
 
 from Models.agentDescriptionModel import AgentDescriptionModel
 
@@ -100,6 +101,15 @@ def initializeScenario():
                     if not user_input:
                         user_input = f"A cozy little village"
                     createScenario(userId, user_input)
+
+            with st.form(key="big create", clear_on_submit=True):
+                user_input  = st.text_area(label="Enter a short description of the scenario: ", key="bigInput", height = 100)
+                create_button = st.form_submit_button(label="Big Create")
+
+                if create_button:
+                    if not user_input:
+                        user_input = f"A cozy little village"
+                    bigCreate(userId, user_input)
 
 def fetchScenario(userId, scenarioId):
     
@@ -202,6 +212,15 @@ def createScenario(userId, scenarioDescription):
         simulationRepository.SaveAgents(scenario)
 
     #store the scenario
+    st.session_state["scenario"] = scenario
+    st.rerun()
+
+def bigCreate(userId, scenarioDescription):
+    simulator = Simulator()
+    with st.spinner("Running the Big Create..."):
+        scenario = simulator.CreateScenario(userId, scenarioDescription)
+    with st.spinner("Initializing the scenario..."):
+        simulator.InitializeScenario(userId, scenario)
     st.session_state["scenario"] = scenario
     st.rerun()
 

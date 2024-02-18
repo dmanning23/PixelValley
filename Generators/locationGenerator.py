@@ -26,9 +26,9 @@ class LocationGenerator():
                                 'type': 'string',
                                 'description': "A description of the location."
                             },
-                            "canBeSubdivided" :{
+                            "isBuilding" :{
                                 "type": "boolean",
-                                "description": "True if the description describes a location that can be subdivided, False otherwise"
+                                "description": "Whether or not if this location is a building"
                             }
                         },
                         "required": ["name", "description"]
@@ -38,21 +38,6 @@ class LocationGenerator():
             "required": ["locations",]
         }
     }
-    
-    canSubdivideFunctionDef = {
-        'name': 'can_subdivide',
-        'description': 'Given the description of a location, determine whether it can be further subdivided',
-        'parameters': {
-            "type": "object",
-            "properties": {
-                "canBeSubdivided" :{
-                    "type": "boolean",
-                    "description": "True if the description describes a location that can be subdivided, otherwise false"
-                }
-            },
-            "required": ["canBeSubdivided",]
-        }
-    }
 
     def _generate_locations(self, locations):
         response = []
@@ -60,11 +45,8 @@ class LocationGenerator():
             response.append(self._generate_location(**location))
         return response
 
-    def _generate_location(self, name, description, canBeSubdivided = False):
-        return Location(name, description, canSubdivide=canBeSubdivided)
-    
-    def _can_subdivide(self, canSubdivide):
-        return canSubdivide
+    def _generate_location(self, name, description, isBuilding = False):
+        return Location(name, description, canSubdivide=isBuilding)
 
     def _parseResponse(self, response_message):
         if response_message.function_call and response_message.function_call.arguments:
@@ -81,7 +63,6 @@ class LocationGenerator():
             #Create a list of all the available functions
             available_functions = {
                 "generate_locations": self._generate_locations,
-                "can_subdivide": self._can_subdivide,
             }
             
             function_to_call = available_functions[function_called]
@@ -99,7 +80,7 @@ class LocationGenerator():
             llm = OpenAI()
 
         messages = [
-            {'role': 'system', 'content': "Given the following scenario, generate a list of physical locations"},
+            {'role': 'system', 'content': "Given the following scenario, generate a list of 5 or more buildings"},
             {'role': 'user', 'content': f"{scenario.name} in the year {scenario.currentDateTime.year}: {scenario.seed}"}
         ]
 
@@ -118,36 +99,12 @@ class LocationGenerator():
             return [] #if it gets here, there was a problem with the description
         else:
             return locations
-    
-    def CanSubdivide(self, location, llm):
-
-        #Create our list of messages for creating locations
-        messages = [
-            {'role': 'system', 'content': "Based on the following description of a location, can the location be further decomposed into a list of sub-locations?"},
-            {'role': 'user', 'content': location.name}
-        ]
-
-        #Create the list of function definitions that are available to the LLM
-        functions = [ LocationGenerator.canSubdivideFunctionDef ]
-
-        #Call the LLM...
-        response = llm.chat.completions.create(
-            model = 'gpt-3.5-turbo',
-            temperature=1,
-            messages = messages,
-            functions = functions, #Pass in the list of functions available to the LLM
-            function_call = 'auto')
-        canSubdivide = self._parseResponse(response.choices[0].message)
-        if canSubdivide is None:
-            return False #don't recurse if the LLM returns text
-        else:
-            return canSubdivide
 
     def _generateChildLocations(self, location, llm):
         
         #Create our list of messages for creating locations
         messages = [
-            {'role': 'system', 'content': """Based on the following description of a location, decompose it into a list of sub-locations.
+            {'role': 'system', 'content': """Based on the following description of a building, create a list of rooms that would be found inside.
              Do not return any areas that match the same name and description that was provided."""},
             {'role': 'user', 'content': location.name}
         ]

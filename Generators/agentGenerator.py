@@ -51,49 +51,43 @@ class AgentGenerator():
     def _generate_character(self, name, age, gender, description):
         return Agent(name, age, gender, description)
 
-    def _parseResponse(self, response_message):
-        if response_message.function_call and response_message.function_call.arguments:
-            #Which function call was invoked?
-            function_called = response_message.function_call.name
-            
-            #Extract the arguments from the AI payload
-            function_args  = json.loads(response_message.function_call.arguments)
-            
-            #Create a list of all the available functions
-            available_functions = {
-                "generate_characters": self._generate_characters,
-            }
-            
+    def _parseResponse(self, response_message, available_functions):
+        if response_message.tool_calls and response_message.tool_calls[0].function.arguments:
+            function_called = response_message.tool_calls[0].function.name
+            function_args  = json.loads(response_message.tool_calls[0].function.arguments)
             function_to_call = available_functions[function_called]
-
-            #Call the function with the provided arguments
             return function_to_call(*list(function_args.values()))
         else:
             #The LLM didn't call a function but provided a response
             #return response_message.content
             return None
-    
+
     def GenerateCharacters(self, scenario, llm = None):
         if not llm:
             #create the client API
             llm = OpenAI()
 
         messages = [
-            {'role': 'system', 'content': "Given the following name and description of a location, generate a list of characters that could be found in that scenario."},
+            {'role': 'system', 'content': "Given the following name and description of a location, generate a list of 5 or more characters that could be found in that scenario."},
             {'role': 'user', 'content': f"{scenario}"}
         ]
 
         #Create the list of function definitions that are available to the LLM
-        functions = [ AgentGenerator.generateCharactersFunctionDef ]
+        functions = [ 
+            { "type": "function", "function": AgentGenerator.generateCharactersFunctionDef }
+        ]
+        available_functions = {
+            "generate_characters": self._generate_characters,
+        }
 
         #Call the LLM...
         response = llm.chat.completions.create(
             model = 'gpt-3.5-turbo',
             temperature=1.2,
             messages = messages,
-            functions = functions, #Pass in the list of functions available to the LLM
-            function_call = 'auto')
-        items = self._parseResponse(response.choices[0].message)
+            tool_choice={"type": "function", "function": {"name": "generate_characters"}},
+            tools = functions)
+        items = self._parseResponse(response.choices[0].message, available_functions)
         if items is None:
             return [] #if it gets here, there was a problem with the description
         else:
