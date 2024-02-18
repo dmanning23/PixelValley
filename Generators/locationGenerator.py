@@ -80,7 +80,7 @@ class LocationGenerator():
             llm = OpenAI()
 
         messages = [
-            {'role': 'system', 'content': "Given the following scenario, generate a list of 5 or more buildings"},
+            {'role': 'system', 'content': "Given the following scenario, generate a list of 6 or more buildings"},
             {'role': 'user', 'content': f"{scenario.name} in the year {scenario.currentDateTime.year}: {scenario.seed}"}
         ]
 
