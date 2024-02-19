@@ -66,3 +66,15 @@ class AssetManager:
                 location.imageFilename, location.resizedImageFilename = buildingExteriorGenerator.CreateLocation(location, scenario)
         simulationRepository = SimulationRepository()
         simulationRepository.SaveLocations(scenario)
+
+    def PopulateMissingBuildingInteriors(self, scenario, buildingInteriorGenerator):
+        for location in scenario.locations:
+            self._populateMissingBuildingInteriors(location, scenario, buildingInteriorGenerator)
+        simulationRepository = SimulationRepository()
+        simulationRepository.SaveLocations(scenario)
+
+    def _populateMissingBuildingInteriors(self, location, scenario, buildingInteriorGenerator):
+        if not location.imageInteriorFilename or not location.resizedImageInteriorFilename:
+            location.imageInteriorFilename, location.resizedImageInteriorFilename = buildingInteriorGenerator.CreateLocation(location, scenario)
+        for childLocation in location.locations:
+            self._populateMissingBuildingInteriors(childLocation, scenario, buildingInteriorGenerator)

@@ -44,6 +44,7 @@ from ConversationEngine.conversationStarter import ConversationStarter
 
 from AssetCreation.characterPortraitGenerator import CharacterPortraitGenerator
 from AssetCreation.buildingExteriorGenerator import BuildingExteriorGenerator
+from AssetCreation.buildingInteriorGenerator import BuildingInteriorGenerator
 from AssetCreation.backgroundGenerator import BackgroundGenerator
 from AssetCreation.characterIconGenerator import CharacterIconGenerator
 from AssetCreation.characterChibiGenerator import CharacterChibiGenerator
@@ -146,6 +147,7 @@ class Simulator:
 
         characterPortraitGenerator = CharacterPortraitGenerator()
         buildingExteriorGenerator = BuildingExteriorGenerator()
+        buildingInteriorGenerator = BuildingInteriorGenerator()
         backgroundGenerator = BackgroundGenerator()
         characterIconGenerator = CharacterIconGenerator()
         characterDescriptionGenerator = CharacterDescriptionGenerator()
@@ -166,6 +168,7 @@ class Simulator:
         #Populate all the artwork
         assetManager.CreateScenarioBackground(userId, scenario, backgroundGenerator)
         assetManager.PopulateMissingBuildingExteriors(scenario, buildingExteriorGenerator)
+        assetManager.PopulateMissingBuildingInteriors(scenario, buildingInteriorGenerator)
         assetManager.PopulateMissingCharacterDescriptions(scenario, characterDescriptionGenerator)
         assetManager.PopulateMissingCharacterProfile(scenario, characterPortraitGenerator)
         assetManager.PopulateMissingCharacterIcons(scenario, characterIconGenerator)

@@ -9,6 +9,8 @@ class LocationModel(Document):
     description = StringField()
     imageFilename = StringField()
     resizedImageFilename = StringField()
+    imageInteriorFilename = StringField()
+    resizedImageInteriorFilename = StringField()
 
     def Set(self, location, scenarioId, parentLocationId=None):
         if hasattr(location, "_id"):
@@ -20,6 +22,8 @@ class LocationModel(Document):
         self.canSubdivide = location.canSubdivide 
         self.imageFilename = location.imageFilename
         self.resizedImageFilename = location.resizedImageFilename
+        self.imageInteriorFilename = location.imageInteriorFilename
+        self.resizedImageInteriorFilename = location.resizedImageInteriorFilename
 
     def Hydrate(self):
         return Location(self.name,
@@ -27,4 +31,6 @@ class LocationModel(Document):
                         canSubdivide=self.canSubdivide,
                         _id = self.id,
                         imageFilename = self.imageFilename,
-                        resizedImageFilename = self.resizedImageFilename)
+                        resizedImageFilename = self.resizedImageFilename,
+                        imageInteriorFilename = self.imageInteriorFilename,
+                        resizedImageInteriorFilename = self.resizedImageInteriorFilename)

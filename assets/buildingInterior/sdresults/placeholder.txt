@@ -1,0 +1,1 @@
+This folder will contain images created from Stable Diffusion.

@@ -23,7 +23,9 @@ class Location:
                  agents = None,
                  _id = None,
                  imageFilename = "",
-                 resizedImageFilename = ""):
+                 resizedImageFilename = "",
+                 imageInteriorFilename = "",
+                 resizedImageInteriorFilename = ""):
         if _id is not None:
             self._id = _id
         self.name = name
@@ -34,6 +36,8 @@ class Location:
         self.agents = agents
         self.imageFilename = imageFilename
         self.resizedImageFilename = resizedImageFilename
+        self.imageInteriorFilename = imageInteriorFilename
+        self.resizedImageInteriorFilename = resizedImageInteriorFilename
 
     def __str__(self) -> str:
         return f"{self.name}: {self.description}"

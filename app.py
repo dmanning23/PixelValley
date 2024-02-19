@@ -49,6 +49,7 @@ from ConversationEngine.conversationStarter import ConversationStarter
 
 from AssetCreation.characterPortraitGenerator import CharacterPortraitGenerator
 from AssetCreation.buildingExteriorGenerator import BuildingExteriorGenerator
+from AssetCreation.buildingInteriorGenerator import BuildingInteriorGenerator
 from AssetCreation.backgroundGenerator import BackgroundGenerator
 from AssetCreation.characterIconGenerator import CharacterIconGenerator
 from AssetCreation.characterChibiGenerator import CharacterChibiGenerator
@@ -270,6 +271,7 @@ def displayScenario(userId, scenario):
     timeStream = TimeStream()
     characterPortraitGenerator = CharacterPortraitGenerator()
     buildingExteriorGenerator = BuildingExteriorGenerator()
+    buildingInteriorGenerator = BuildingInteriorGenerator()
     backgroundGenerator = BackgroundGenerator()
     characterIconGenerator = CharacterIconGenerator()
     characterDescriptionGenerator = CharacterDescriptionGenerator()
@@ -394,6 +396,10 @@ def displayScenario(userId, scenario):
         if buildingExterior_button:
             assetManager.PopulateMissingBuildingExteriors(scenario, buildingExteriorGenerator)
 
+        buildingInterior_button = st.button(label="Populate missing building interiors")
+        if buildingInterior_button:
+            assetManager.PopulateMissingBuildingInteriors(scenario, buildingInteriorGenerator)
+
         buildingExterior_button = st.button(label="Redo building exteriors")
         if buildingExterior_button:
             for location in scenario.locations:
@@ -426,6 +432,7 @@ def displayScenario(userId, scenario):
         if populateMissingArtwork_button:
             assetManager.CreateScenarioBackground(userId, scenario, backgroundGenerator)
             assetManager.PopulateMissingBuildingExteriors(scenario, buildingExteriorGenerator)
+            assetManager.PopulateMissingBuildingInteriors(scenario, buildingInteriorGenerator)
             assetManager.PopulateMissingCharacterDescriptions(scenario, characterDescriptionGenerator)
             assetManager.PopulateMissingCharacterProfile(scenario, characterPortraitGenerator)
             assetManager.PopulateMissingCharacterIcons(scenario, characterIconGenerator)
@@ -513,7 +520,9 @@ def writeLocation(location, level = 0):
     #write the location
     st.header(f"{level}: {location}")
     if location.imageFilename:
-            st.image(location.imageFilename)
+        st.image(location.imageFilename)
+    if location.imageInteriorFilename:
+        st.image(location.imageInteriorFilename)
 
     #write all the items
     st.subheader(f"Items in {location.name}:")
