@@ -54,7 +54,7 @@ class BuildingExteriorGenerator:
 
         #resize the image
         width, height = output_image.size
-        newSize = (width // 2, height // 2)
+        newSize = (int(width / 1.5), int(height / 1.5))
         resized_image = output_image.resize(newSize)
 
         #save to the resized folder
