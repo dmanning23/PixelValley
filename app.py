@@ -453,13 +453,13 @@ def displayScenario(userId, scenario):
                     AgentDescriptionModel.objects.insert(description)
 
                 #redo the portrait
-                description.portraitFilename = characterPortraitGenerator.CreatePortrait(agent, description)
+                description.portraitFilename = characterPortraitGenerator.CreatePortrait(agent, scenario, description)
 
                 #redo the icon
-                description.iconFilename, description.resizedIconFilename = characterIconGenerator.CreateIcon(agent)
+                description.iconFilename, description.resizedIconFilename = characterIconGenerator.CreateIcon(agent, scenario, description)
 
                 #redo the head icon
-                description.chibiFilename, description.resizedChibiFilename = characterChibiGenerator.CreateChibi(agent, description)
+                description.chibiFilename, description.resizedChibiFilename = characterChibiGenerator.CreateChibi(agent, scenario, description)
                 description.save()
 
     databaseContainer = st.container()

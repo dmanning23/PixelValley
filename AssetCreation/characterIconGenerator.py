@@ -11,10 +11,12 @@ class CharacterIconGenerator:
 
         #Set the model to be used by stable diffusion
         self.options = {}
-        self.options['sd_model_checkpoint'] = 'bluePencilXL_v300.safetensors [2e29ce9ae7]' 
+        #self.options['sd_model_checkpoint'] = 'bluePencilXL_v300.safetensors [2e29ce9ae7]' 
+        self.options['sd_model_checkpoint'] = 'dreamshaper_8.safetensors [879db523c3]'
 
         #Set the model to be used for removing the background of the image
-        self.session = new_session("isnet-anime")
+        #self.session = new_session("isnet-anime")
+        self.session = new_session("u2net_human_seg")
 
         self.sdresults = "./assets/charactericon/sdresults"
         self.nobackground = "./assets/charactericon/nobackground"
@@ -23,13 +25,13 @@ class CharacterIconGenerator:
         Path(self.nobackground).mkdir(parents=True, exist_ok=True)
         Path(self.resized).mkdir(parents=True, exist_ok=True)
 
-    def CreateIcon(self, agent, description=None):
+    def CreateIcon(self, agent, scenario, description=None):
 
         self.api.set_options(self.options)
 
         #Build the prompt
-        user_input = f'{agent.name} is a {agent.age} year old {agent.gender},"{agent.description}"'
-        prompt = f"(one person),<lora:q-v1:2>,(painterly),chibi,full body,black background,{user_input}"
+        user_input = f'character in {scenario.name} in the year {scenario.currentDateTime.year},{agent.name} is a {agent.age} year old {agent.gender},"{agent.description}"'
+        prompt = f"(one person),(painterly),(full body),feet,black background,{user_input}"
 
         if description is not None:
             if description.hair:
@@ -45,10 +47,10 @@ class CharacterIconGenerator:
 
         #create the character picture
         result = self.api.txt2img(prompt=prompt,
-            negative_prompt="tiling,out of frame,extra limbs,body out of frame,watermark,signature,cut off,low contrast,underexposed,overexposed,bad art,beginner,amateur,bloodshot eyes,blurry,out of focus,circular border,",
+            negative_prompt="tiling,out of frame,extra limbs,body out of frame,watermark,signature,(cut off),low contrast,underexposed,overexposed,bad art,beginner,amateur,bloodshot eyes,blurry,out of focus,circular border,",
             cfg_scale=5,
             width=512,
-            height=768,
+            height=896,
             steps=40,
             save_images=True)
         

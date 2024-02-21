@@ -28,16 +28,18 @@ class BuildingInteriorGenerator:
         self.api.set_options(self.options)
 
         #Build the prompt
-        user_input = f'inside the {location.name} in {scenario.name},in the year {scenario.currentDateTime.year},{location.description}'
-        prompt = f"(((isometric))),(Isometric_Setting),(building interior),inside,interior,((black background)),<lora:Stylized_Setting_SDXL:4>,bright colors,{user_input}"
+        user_input = f'inside the {location.name} in {scenario.name},in the year {scenario.currentDateTime.year},"{location.description}"'
+        prompt = f"(building interior),inside,interior,<lora:howlbgsv3:1>,bright colors,{user_input}"
 
         #create the character picture
         result = self.api.txt2img(prompt=prompt,
             negative_prompt="text,word,monochrome,cropped,low quality,normal quality,soft line,username,(watermark),(signature),blurry,soft,sketch,ugly,logo,pixelated,lowres,out of frame,cut off,blurry,foggy,reflection,outside,exterior,building exterior",
             cfg_scale=7,
-            width=768,
+            width=1024,
             height=512,
             steps=40,
+            #hr_scale=2,
+            #hr_upscaler="Latent",
             save_images=True)
         
         #save the image to the sdresults folder
@@ -45,20 +47,13 @@ class BuildingInteriorGenerator:
         sdfilename = f"{self.sdresults}/{filename}"
         result.image.save(sdfilename, "PNG")
 
-        #remove the background
-        output_image = remove(result.image, session=self.session)
-
-        #save the image to the nobackground folder
-        nbfilename = f"{self.nobackground}/{filename}"
-        output_image.save(nbfilename, "PNG")
-
         #resize the image
-        width, height = output_image.size
-        newSize = (int(width / 1.5), int(height / 1.5))
-        resized_image = output_image.resize(newSize)
+        width, height = result.image.size
+        newSize = (int(width * 2), int(height * 2))
+        resized_image = result.image.resize(newSize)
 
         #save to the resized folder
         resizedFilename = f"{self.resized}/{filename}"
         resized_image.save(resizedFilename, "PNG")
 
-        return nbfilename, resizedFilename
+        return sdfilename, resizedFilename

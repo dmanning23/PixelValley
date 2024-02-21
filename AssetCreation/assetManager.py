@@ -1,5 +1,6 @@
 from Models.agentDescriptionModel import AgentDescriptionModel
 from Repository.simulationRepository import SimulationRepository
+from Repository.locationRepository import LocationRepository
 
 class AssetManager:
 
@@ -34,7 +35,7 @@ class AssetManager:
         for agent in agents:
             description = AgentDescriptionModel.objects.get(agentId=agent._id)
             if not description.portraitFilename:
-                description.portraitFilename = characterPortraitGenerator.CreatePortrait(agent, description)
+                description.portraitFilename = characterPortraitGenerator.CreatePortrait(agent, scenario, description)
                 description.save()
 
     def PopulateMissingCharacterIcons(self, scenario, characterIconGenerator):
@@ -42,7 +43,7 @@ class AssetManager:
         for agent in agents:
             description = AgentDescriptionModel.objects.get(agentId=agent._id)
             if not description.iconFilename or not description.resizedIconFilename:
-                description.iconFilename, description.resizedIconFilename = characterIconGenerator.CreateIcon(agent, description)
+                description.iconFilename, description.resizedIconFilename = characterIconGenerator.CreateIcon(agent, scenario, description)
                 description.save()
 
     def PopulateMissingCharacterChibis(self, scenario, characterChibiGenerator):
@@ -50,7 +51,7 @@ class AssetManager:
         for agent in agents:
             description = AgentDescriptionModel.objects.get(agentId=agent._id)
             if not description.chibiFilename or not description.resizedChibiFilename:
-                description.chibiFilename, description.resizedChibiFilename = characterChibiGenerator.CreateChibi(agent, description)
+                description.chibiFilename, description.resizedChibiFilename = characterChibiGenerator.CreateChibi(agent, scenario, description)
                 description.save()
 
     def CreateScenarioBackground(self, userId, scenario, backgroundGenerator):
@@ -68,13 +69,13 @@ class AssetManager:
         simulationRepository.SaveLocations(scenario)
 
     def PopulateMissingBuildingInteriors(self, scenario, buildingInteriorGenerator):
+        locationRepository = LocationRepository()
         for location in scenario.locations:
-            self._populateMissingBuildingInteriors(location, scenario, buildingInteriorGenerator)
-        simulationRepository = SimulationRepository()
-        simulationRepository.SaveLocations(scenario)
+            self._populateMissingBuildingInteriors(location, scenario, buildingInteriorGenerator, locationRepository)
 
-    def _populateMissingBuildingInteriors(self, location, scenario, buildingInteriorGenerator):
-        if not location.imageInteriorFilename or not location.resizedImageInteriorFilename:
+    def _populateMissingBuildingInteriors(self, location, scenario, buildingInteriorGenerator, locationRepository, parentLocationId=None):
+        if not location.imageInteriorFilename:
             location.imageInteriorFilename, location.resizedImageInteriorFilename = buildingInteriorGenerator.CreateLocation(location, scenario)
+            locationRepository.CreateOrUpdate(location, scenario._id, parentLocationId)
         for childLocation in location.locations:
-            self._populateMissingBuildingInteriors(childLocation, scenario, buildingInteriorGenerator)
+            self._populateMissingBuildingInteriors(childLocation, scenario, buildingInteriorGenerator, locationRepository, location._id)

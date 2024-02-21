@@ -11,10 +11,12 @@ class CharacterChibiGenerator:
 
         #Set the model to be used by stable diffusion
         self.options = {}
-        self.options['sd_model_checkpoint'] = 'AnythingV5Ink_ink.safetensors [a1535d0a42]' 
+        #self.options['sd_model_checkpoint'] = 'AnythingV5Ink_ink.safetensors [a1535d0a42]' 
+        self.options['sd_model_checkpoint'] = 'dreamshaper_8.safetensors [879db523c3]'
 
         #Set the model to be used for removing the background of the image
-        self.session = new_session("isnet-anime")
+        #self.session = new_session("isnet-anime")
+        self.session = new_session("u2net_human_seg")
 
         self.sdresults = "./assets/characterchibi/sdresults"
         self.nobackground = "./assets/characterchibi/nobackground"
@@ -23,12 +25,12 @@ class CharacterChibiGenerator:
         Path(self.nobackground).mkdir(parents=True, exist_ok=True)
         Path(self.resized).mkdir(parents=True, exist_ok=True)
 
-    def CreateChibi(self, agent, description=None):
+    def CreateChibi(self, agent, scenario, description=None):
 
         self.api.set_options(self.options)
 
         #Build the prompt
-        user_input = f'{agent.name} is a {agent.age} year old {agent.gender},"{agent.description}"'
+        user_input = f'character in {scenario.name} in the year {scenario.currentDateTime.year},{agent.name} is a {agent.age} year old {agent.gender},"{agent.description}"'
         prompt = f"(one person),<lora:Chibi_emote_party:1>,chibi emote,(chibi style),icon,head,(head shot),(black background),{user_input}"
 
         if description is not None:

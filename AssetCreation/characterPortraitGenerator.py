@@ -13,25 +13,25 @@ class CharacterPortraitGenerator:
 
         #Set the model to be used by stable diffusion
         self.options = {}
-        self.options['sd_model_checkpoint'] = 'bluePencilXL_v300.safetensors [2e29ce9ae7]' 
-        #self.options['sd_model_checkpoint'] = 'dreamshaper_8.safetensors [879db523c3]' 
+        #self.options['sd_model_checkpoint'] = 'bluePencilXL_v300.safetensors [2e29ce9ae7]' 
+        self.options['sd_model_checkpoint'] = 'dreamshaper_8.safetensors [879db523c3]' 
 
         #Set the model to be used for removing the background of the image
-        self.session = new_session("isnet-anime")
-        #self.session = new_session("u2net_human_seg")
+        #self.session = new_session("isnet-anime")
+        self.session = new_session("u2net_human_seg")
 
         self.sdresults = "./assets/portraits/sdresults"
         self.nobackground = "./assets/portraits/nobackground"
         Path(self.sdresults).mkdir(parents=True, exist_ok=True)
         Path(self.nobackground).mkdir(parents=True, exist_ok=True)
 
-    def CreatePortrait(self, agent, description=None):
+    def CreatePortrait(self, agent, scenario, description=None):
 
         self.api.set_options(self.options)
 
         #Build the prompt
-        user_input = f'{agent.name} is a {agent.age} year old {agent.gender},"{agent.description}"'
-        prompt = f"game icon,(head shot),(painterly),black background,{user_input},"
+        user_input = f'character in {scenario.name} in the year {scenario.currentDateTime.year},{agent.name} is a {agent.age} year old {agent.gender},"{agent.description}"'
+        prompt = f"((head shot)),(painterly),black background,{user_input},"
 
         if description is not None:
             if description.hair:
