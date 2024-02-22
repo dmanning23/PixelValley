@@ -13,6 +13,8 @@ assets/charactericon/resized/
 assets/characterchibi/nobackground/
 assets/characterchibi/sdresults/
 assets/characterchibi/resized/
+assets/buildingInterior/sdresults/
+assets/buildingInterior/resized/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
