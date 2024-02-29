@@ -1,0 +1,196 @@
+repo_name: dmanning23/PixelValley
+report_id: b138206be491842db5e348838e206c00
+version: 0.1
+repo_type: Public
+timestamp: '2024-02-29T20:02:23+00:00'
+requested_by: dmanning23
+provider: github
+branch: main
+detected_tools_count: 15
+tools:
+- name: Python
+  description: A clear and powerful object-oriented programming language, comparable
+    to Perl, Ruby, Scheme, or Java.
+  website_url: https://www.python.org
+  open_source: true
+  hosted_saas: false
+  category: Languages & Frameworks
+  sub_category: Languages
+  image_url: https://img.stackshare.io/service/993/pUBY5pVj.png
+  detection_source_url: https://github.com/dmanning23/PixelValley
+  detection_source: Repo Metadata
+- name: MongoDB
+  description: The database for giant ideas
+  website_url: http://www.mongodb.com/
+  open_source: true
+  hosted_saas: false
+  category: Data Stores
+  sub_category: Databases
+  image_url: https://img.stackshare.io/service/1030/leaf-360x360.png
+  detection_source_url: https://github.com/dmanning23/PixelValley/blob/main/requirements.txt
+  detection_source: requirements.txt
+  last_updated_by: Dan Manning
+  last_updated_on: 2024-01-25 00:25:09.000000000 Z
+- name: Git
+  description: Fast, scalable, distributed revision control system
+  website_url: http://git-scm.com/
+  open_source: true
+  hosted_saas: false
+  category: Build, Test, Deploy
+  sub_category: Version Control System
+  image_url: https://img.stackshare.io/service/1046/git.png
+  detection_source_url: https://github.com/dmanning23/PixelValley
+  detection_source: Repo Metadata
+- name: PyPI
+  description: A repository of software for the Python programming language
+  website_url: https://pypi.org/
+  open_source: false
+  hosted_saas: false
+  category: Build, Test, Deploy
+  sub_category: Hosted Package Repository
+  image_url: https://img.stackshare.io/service/12572/-RIWgodF_400x400.jpg
+  detection_source_url: https://github.com/dmanning23/PixelValley/blob/main/requirements.txt
+  detection_source: requirements.txt
+  last_updated_by: Dan Manning
+  last_updated_on: 2023-11-22 19:19:45.000000000 Z
+- name: NumPy
+  description: Fundamental package for scientific computing with Python
+  website_url: http://www.numpy.org/
+  license: BSD-3-Clause
+  open_source: true
+  hosted_saas: false
+  category: Libraries
+  sub_category: Data Science Tools
+  image_url: https://img.stackshare.io/service/2179/default_332f874a2edb2686f578aa6389313efcea1eec41.png
+  detection_source_url: https://github.com/dmanning23/PixelValley/blob/main/requirements.txt
+  detection_source: requirements.txt
+  last_updated_by: Dan Manning
+  last_updated_on: 2023-11-22 19:19:45.000000000 Z
+- name: OpenAI
+  description: Creating safe AGI that benefits all
+  website_url: https://openai.com/
+  open_source: false
+  hosted_saas: false
+  category: Communications
+  sub_category: Large Language Models
+  image_url: https://img.stackshare.io/service/48786/default_8b1119bcbb159cebebc2f6cfc9cd2e359b169d22.jpg
+  detection_source_url: https://github.com/dmanning23/PixelValley/blob/main/requirements.txt
+  detection_source: requirements.txt
+  last_updated_by: Dan Manning
+  last_updated_on: 2023-11-22 19:19:45.000000000 Z
+- name: Streamlit
+  description: A Python app framework built specifically for Machine Learning and
+    Data Science teams
+  website_url: https://streamlit.io
+  license: Apache-2.0
+  open_source: true
+  hosted_saas: false
+  category: Application Utilities
+  sub_category: Machine Learning Tools
+  image_url: https://img.stackshare.io/service/11393/default_67e251b5860795095fe91618cf3ef8d09257469a.png
+  detection_source_url: https://github.com/dmanning23/PixelValley/blob/main/requirements.txt
+  detection_source: requirements.txt
+  last_updated_by: Dan Manning
+  last_updated_on: 2023-12-12 19:15:38.000000000 Z
+- name: langchain
+  description: Building applications with LLMs through composability
+  package_url: https://pypi.org/project/langchain
+  open_source: false
+  hosted_saas: false
+  category: Build, Test, Deploy
+  sub_category: Package Managers
+  image_url: https://img.stackshare.io/package/pypi/image.png
+  detection_source_url: https://github.com/dmanning23/PixelValley/blob/main/requirements.txt
+  detection_source: requirements.txt
+  last_updated_by: Dan Manning
+  last_updated_on: 2023-12-11 19:17:55.000000000 Z
+- name: mongoengine
+  description: MongoEngine is a Python Object-Document Mapper for working with MongoDB
+  package_url: https://pypi.org/project/mongoengine
+  license: MIT
+  open_source: true
+  hosted_saas: false
+  category: Libraries
+  sub_category: PyPI Packages
+  image_url: https://img.stackshare.io/package/20205/default_efffdba05724e2e5174a1a195cbf53e4099f40b6.png
+  detection_source_url: https://github.com/dmanning23/PixelValley/blob/main/requirements.txt
+  detection_source: requirements.txt
+  last_updated_by: Dan Manning
+  last_updated_on: 2024-01-25 00:25:09.000000000 Z
+- name: openai
+  description: The official Python library for the openai API
+  package_url: https://pypi.org/project/openai
+  open_source: false
+  hosted_saas: false
+  category: Build, Test, Deploy
+  sub_category: Package Managers
+  image_url: https://img.stackshare.io/package/pypi/image.png
+  detection_source_url: https://github.com/dmanning23/PixelValley/blob/main/requirements.txt
+  detection_source: requirements.txt
+  last_updated_by: Dan Manning
+  last_updated_on: 2023-11-22 19:19:45.000000000 Z
+- name: pandas
+  description: Powerful data structures for data analysis
+  package_url: https://pypi.org/project/pandas
+  license: BSD-3-Clause
+  open_source: true
+  hosted_saas: false
+  category: Libraries
+  sub_category: PyPI Packages
+  image_url: https://img.stackshare.io/package/19837/default_85689b353a3a9409328e253ea28d859d29151e0c.png
+  detection_source_url: https://github.com/dmanning23/PixelValley/blob/main/requirements.txt
+  detection_source: requirements.txt
+  last_updated_by: Dan Manning
+  last_updated_on: 2023-12-20 02:18:25.000000000 Z
+- name: parsedatetime
+  description: Parse human-readable date/time text
+  package_url: https://pypi.org/project/parsedatetime
+  license: Apache-2.0
+  open_source: true
+  hosted_saas: false
+  category: Libraries
+  sub_category: PyPI Packages
+  image_url: https://img.stackshare.io/package/20300/default_00525766b5d1b7a358cc1912c2d8907cee4c2347.png
+  detection_source_url: https://github.com/dmanning23/PixelValley/blob/main/requirements.txt
+  detection_source: requirements.txt
+  last_updated_by: Dan Manning
+  last_updated_on: 2024-01-17 21:57:18.000000000 Z
+- name: pathlib
+  description: Object-oriented filesystem paths
+  package_url: https://pypi.org/project/pathlib
+  license: MIT
+  open_source: true
+  hosted_saas: false
+  category: Libraries
+  sub_category: PyPI Packages
+  image_url: https://img.stackshare.io/package/20231/default_cb6acd0ec3f2884b905de7c1ca3a23418f37ebb3.png
+  detection_source_url: https://github.com/dmanning23/PixelValley/blob/main/requirements.txt
+  detection_source: requirements.txt
+  last_updated_by: Dan Manning
+  last_updated_on: 2024-01-25 00:23:11.000000000 Z
+- name: pymongo
+  description: Python driver for MongoDB &lt;http://www.mongodb.org&gt;
+  package_url: https://pypi.org/project/pymongo
+  license: Apache-2.0
+  open_source: true
+  hosted_saas: false
+  category: Libraries
+  sub_category: PyPI Packages
+  image_url: https://img.stackshare.io/package/19865/default_7975a21f3bf03129dc3bc4168cf7cb7ee2cc14cc.png
+  detection_source_url: https://github.com/dmanning23/PixelValley/blob/main/requirements.txt
+  detection_source: requirements.txt
+  last_updated_by: Dan Manning
+  last_updated_on: 2024-01-25 00:25:09.000000000 Z
+- name: pytimeparse
+  description: Time expression parser
+  package_url: https://pypi.org/project/pytimeparse
+  license: MIT
+  open_source: true
+  hosted_saas: false
+  category: Libraries
+  sub_category: PyPI Packages
+  image_url: https://img.stackshare.io/package/20418/default_7799ed711e8dbb6945e10dca5ca55fe0bfa61d26.png
+  detection_source_url: https://github.com/dmanning23/PixelValley/blob/main/requirements.txt
+  detection_source: requirements.txt
+  last_updated_by: Dan Manning
+  last_updated_on: 2024-01-17 21:57:18.000000000 Z
