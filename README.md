@@ -2,6 +2,10 @@
 
 Dive into the enchanting world of Pixel Valley, where pixels come to life, characters wander, and stories unfold in a cozy, virtual haven. This open-source game combines the magic of artificial intelligence with the charm of a village simulator to create a truly unique gaming experience.
 
+![Overworld](./Screenshot.png?raw=true "Overworld")
+
+![Building Interior](./Screenshot2.png?raw=true "Building Interior")
+
 ## Try it now:
 
 TODO: deploy to StreamLit
