@@ -13,3 +13,4 @@ rembg
 pathlib
 mongoengine
 pymongo
+boto3

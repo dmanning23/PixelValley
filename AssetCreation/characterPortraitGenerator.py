@@ -20,8 +20,8 @@ class CharacterPortraitGenerator:
         #self.session = new_session("isnet-anime")
         self.session = new_session("u2net_human_seg")
 
-        self.sdresults = "./assets/portraits/sdresults"
-        self.nobackground = "./assets/portraits/nobackground"
+        self.sdresults = "assets/portraits/sdresults"
+        self.nobackground = "assets/portraits/nobackground"
         Path(self.sdresults).mkdir(parents=True, exist_ok=True)
         Path(self.nobackground).mkdir(parents=True, exist_ok=True)
 

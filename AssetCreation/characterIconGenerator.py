@@ -18,9 +18,9 @@ class CharacterIconGenerator:
         #self.session = new_session("isnet-anime")
         self.session = new_session("u2net_human_seg")
 
-        self.sdresults = "./assets/charactericon/sdresults"
-        self.nobackground = "./assets/charactericon/nobackground"
-        self.resized = "./assets/charactericon/resized"
+        self.sdresults = "assets/charactericon/sdresults"
+        self.nobackground = "assets/charactericon/nobackground"
+        self.resized = "assets/charactericon/resized"
         Path(self.sdresults).mkdir(parents=True, exist_ok=True)
         Path(self.nobackground).mkdir(parents=True, exist_ok=True)
         Path(self.resized).mkdir(parents=True, exist_ok=True)

@@ -68,7 +68,7 @@ class AgentGenerator():
             llm = OpenAI()
 
         messages = [
-            {'role': 'system', 'content': "Given the following name and description of a location, generate a list of 6 or more characters that could be found in that scenario."},
+            {'role': 'system', 'content': "Given the following name and description of a location, generate a list of 7 or more characters that could be found in that scenario."},
             {'role': 'user', 'content': f"{scenario}"}
         ]
 

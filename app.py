@@ -54,6 +54,7 @@ from AssetCreation.backgroundGenerator import BackgroundGenerator
 from AssetCreation.characterIconGenerator import CharacterIconGenerator
 from AssetCreation.characterChibiGenerator import CharacterChibiGenerator
 from AssetCreation.assetManager import AssetManager
+from AssetCreation.s3Uploader import *
 
 def main():
 
@@ -483,6 +484,11 @@ def displayScenario(userId, scenario):
             agents = scenario.GetAgents()
             for agent in agents:
                 itemManager.DropItem(scenario, agent, None, "There was an emergency.")
+
+        upload_button = st.button(label="Upload to s3")
+        if upload_button:
+            #upload_file("bg2.png", "pixelvalley", "bg2.png")
+            assetManager.UploadToS3(scenario)
 
     #output the user's prompt
     st.write(scenario)

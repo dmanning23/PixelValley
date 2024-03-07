@@ -12,7 +12,7 @@ class BackgroundGenerator:
         self.options = {}
         self.options['sd_model_checkpoint'] = "fantasyWorld_v10.safetensors [524882ba22]"
 
-        self.sdresults = "./assets/background/sdresults"
+        self.sdresults = "assets/background/sdresults"
         Path(self.sdresults).mkdir(parents=True, exist_ok=True)
 
     def CreateScenarioBackground(self, scenario):

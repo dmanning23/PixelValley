@@ -18,9 +18,9 @@ class CharacterChibiGenerator:
         #self.session = new_session("isnet-anime")
         self.session = new_session("u2net_human_seg")
 
-        self.sdresults = "./assets/characterchibi/sdresults"
-        self.nobackground = "./assets/characterchibi/nobackground"
-        self.resized = "./assets/characterchibi/resized"
+        self.sdresults = "assets/characterchibi/sdresults"
+        self.nobackground = "assets/characterchibi/nobackground"
+        self.resized = "assets/characterchibi/resized"
         Path(self.sdresults).mkdir(parents=True, exist_ok=True)
         Path(self.nobackground).mkdir(parents=True, exist_ok=True)
         Path(self.resized).mkdir(parents=True, exist_ok=True)

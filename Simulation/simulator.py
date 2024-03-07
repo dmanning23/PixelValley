@@ -174,5 +174,16 @@ class Simulator:
         assetManager.PopulateMissingCharacterIcons(scenario, characterIconGenerator)
         assetManager.PopulateMissingCharacterChibis(scenario, characterChibiGenerator)
 
+        #Verify all those creates worked
+        assetManager.CreateScenarioBackground(userId, scenario, backgroundGenerator)
+        assetManager.PopulateMissingBuildingExteriors(scenario, buildingExteriorGenerator)
+        assetManager.PopulateMissingBuildingInteriors(scenario, buildingInteriorGenerator)
+        assetManager.PopulateMissingCharacterDescriptions(scenario, characterDescriptionGenerator)
+        assetManager.PopulateMissingCharacterProfile(scenario, characterPortraitGenerator)
+        assetManager.PopulateMissingCharacterIcons(scenario, characterIconGenerator)
+        assetManager.PopulateMissingCharacterChibis(scenario, characterChibiGenerator)
+
+        assetManager.UploadToS3(scenario)
+
     def AdvanceScenario(self, userId, scenario):
         pass

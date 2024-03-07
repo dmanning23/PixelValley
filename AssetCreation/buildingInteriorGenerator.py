@@ -16,9 +16,9 @@ class BuildingInteriorGenerator:
         #Set the model to be used for removing the background of the image
         self.session = new_session("u2net")
 
-        self.sdresults = "./assets/buildingInterior/sdresults"
-        self.nobackground = "./assets/buildingInterior/nobackground"
-        self.resized = "./assets/buildingInterior/resized"
+        self.sdresults = "assets/buildingInterior/sdresults"
+        self.nobackground = "assets/buildingInterior/nobackground"
+        self.resized = "assets/buildingInterior/resized"
         Path(self.sdresults).mkdir(parents=True, exist_ok=True)
         Path(self.nobackground).mkdir(parents=True, exist_ok=True)
         Path(self.resized).mkdir(parents=True, exist_ok=True)
