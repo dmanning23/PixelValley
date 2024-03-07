@@ -2,6 +2,10 @@
 
 Dive into the enchanting world of Pixel Valley, where pixels come to life, characters wander, and stories unfold in a cozy, virtual haven. This open-source game combines the magic of artificial intelligence with the charm of a village simulator to create a truly unique gaming experience.
 
+![Overworld](./Screenshot.png?raw=true "Overworld")
+
+![Building Interior](./Screenshot2.png?raw=true "Building Interior")
+
 ## Try it now:
 
 TODO: deploy to StreamLit
@@ -35,3 +39,14 @@ TODO: license?
 
 ## Let the Pixel Magic Begin!
 Embark on a journey of whimsy, wonder, and AI-driven adventures. Pixel Valley awaits, and the pixels are calling you. Join us in creating and shaping this enchanting world!
+
+## Tech Stack
+dmanning23/PixelValley is built on the following main stack:
+
+- [Python](https://www.python.org) – Languages
+- [MongoDB](http://www.mongodb.com/) – Databases
+- [NumPy](http://www.numpy.org/) – Data Science Tools
+- [OpenAI](https://openai.com/) – Large Language Models
+- [Streamlit](https://streamlit.io) – Machine Learning Tools
+
+Full tech stack [here](/techstack.md)
