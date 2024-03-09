@@ -5,11 +5,19 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "streamlit debug",
-            "type": "python",
+            "name": "PV debug",
+            "type": "debugpy",
             "request": "launch",
             "module": "streamlit",
             "args": ["run", "streamlit_app.py"],
+            "justMyCode": true,
+        },
+        {
+            "name": "Chat debug",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "streamlit",
+            "args": ["run", "agentChat.py"],
             "justMyCode": true,
         }
     ]

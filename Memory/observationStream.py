@@ -93,10 +93,10 @@ class ObservationStream():
             for locationAgent in agents:
                 if locationAgent.usingItem is not None:
                     if agent._id != locationAgent._id:
-                        observation = f"{locationAgent.name} is using the {locationAgent.currentItem.name}"
+                        observation = f"{locationAgent.name} is using the {locationAgent.usingItem.name}"
                     else:
                         #use "I" observations when location agent matches agent
-                        observation = f"I am using the {locationAgent.currentItem.name}"
+                        observation = f"I am using the {locationAgent.usingItem.name}"
                     self.memoryRepository.CreateMemory(agent, observation)
 
     def _createItemInLocationMemories(self, agent, location):

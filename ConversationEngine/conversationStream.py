@@ -15,7 +15,12 @@ class ConversationStream():
         location = scenario.FindAgent(agent)
 
         #Get a list of agents in that location that are NOT the agent
-        locationAgents = Enumerable(location.agents)
+        if location is not None:
+            locationAgents = Enumerable(location.agents)
+        elif scenario.agents is not None:
+            locationAgents = scenario.agents
+        else:
+            locationAgents = []
         locationAgents = locationAgents.where(lambda x: x._id != agent._id).to_list()
 
         #Get the planned activity of the agent
@@ -74,6 +79,6 @@ class ConversationStream():
                 conversationModel.save()
 
     def ConversationPipeline(self, scenario, agent):
-        conversationModel, chosenAgents = self.conversationStream.StartConversation(scenario, agent)
+        conversationModel, chosenAgents = self.StartConversation(scenario, agent)
         if chosenAgents is not None and len(chosenAgents) > 1:
-            return self.conversationStream.CreateConversation(scenario, conversationModel, chosenAgents)
+            return self.CreateConversation(scenario, conversationModel, chosenAgents)

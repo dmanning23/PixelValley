@@ -61,7 +61,7 @@ def main():
     #Set up the api key for OpenAI
     os.environ["OPENAI_API_KEY"] = openAIapikey
 
-     #spin up mongoDB
+    #spin up mongoDB
     connect(host=mongoUri, db="pixelValley") #connect for mongoengine
 
     initializeScenario()
@@ -279,6 +279,7 @@ def displayScenario(userId, scenario):
     characterChibiGenerator = CharacterChibiGenerator()
     assetManager = AssetManager()
     simulationRepository = SimulationRepository()
+    simulator = Simulator()
     
     clear_button = st.button(label="Clear memory")
     if clear_button:
@@ -288,6 +289,11 @@ def displayScenario(userId, scenario):
     time_button = st.button(label="Increment Time")
     if time_button:
         timeStream.IncrementTime(userId, scenario)
+
+    #Run an update loop
+    update_button = st.button(label="Run Update Loop")
+    if update_button:
+        simulator.AdvanceScenario(userId, scenario)
 
     createContainer = st.container()
     with createContainer:
@@ -372,7 +378,7 @@ def displayScenario(userId, scenario):
         conversation_button4 = st.button(label="Conversation Pipeline!")
         if conversation_button4:
             agents = scenario.GetAgents()
-            conversation = iteractionStream.Conversation(scenario, agents[0])
+            conversation = conversationStream.ConversationPipeline(scenario, agents[0])
 
     assetContainer = st.container()
     with assetContainer:

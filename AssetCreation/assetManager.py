@@ -2,6 +2,7 @@ from Models.agentDescriptionModel import AgentDescriptionModel
 from Repository.simulationRepository import SimulationRepository
 from Repository.locationRepository import LocationRepository
 from AssetCreation.s3Uploader import *
+from keys import s3Bucket
 
 class AssetManager:
 
@@ -39,6 +40,7 @@ class AssetManager:
                 try:
                     description.portraitFilename = characterPortraitGenerator.CreatePortrait(agent, scenario, description)
                     description.save()
+                    upload_file(description.portraitFilename, s3Bucket)
                 except:
                     pass
 
@@ -50,6 +52,8 @@ class AssetManager:
                 try:
                     description.iconFilename, description.resizedIconFilename = characterIconGenerator.CreateIcon(agent, scenario, description)
                     description.save()
+                    upload_file(description.iconFilename, s3Bucket)
+                    upload_file(description.resizedIconFilename, s3Bucket)
                 except:
                     pass
 
@@ -61,6 +65,8 @@ class AssetManager:
                 try:
                     description.chibiFilename, description.resizedChibiFilename = characterChibiGenerator.CreateChibi(agent, scenario, description)
                     description.save()
+                    upload_file(description.chibiFilename, s3Bucket)
+                    upload_file(description.resizedChibiFilename, s3Bucket)
                 except:
                     #TODO: log errors?
                     pass
@@ -69,8 +75,9 @@ class AssetManager:
         try:
             if not scenario.imageFilename:
                 scenario.imageFilename = backgroundGenerator.CreateScenarioBackground(scenario)
-            simulationRepository = SimulationRepository()
-            simulationRepository.SaveScenario(userId, scenario)
+                simulationRepository = SimulationRepository()
+                simulationRepository.SaveScenario(userId, scenario)
+                upload_file(scenario.imageFilename, s3Bucket)
         except:
             pass
 
@@ -81,6 +88,8 @@ class AssetManager:
                 try:
                     location.imageFilename, location.resizedImageFilename = buildingExteriorGenerator.CreateLocation(location, scenario)
                     locationRepository.CreateOrUpdate(location, scenario._id)
+                    upload_file(location.imageFilename, s3Bucket)
+                    upload_file(location.resizedImageFilename, s3Bucket)
                 except:
                     pass
 
@@ -94,6 +103,8 @@ class AssetManager:
             try:
                 location.imageInteriorFilename, location.resizedImageInteriorFilename = buildingInteriorGenerator.CreateLocation(location, scenario)
                 locationRepository.CreateOrUpdate(location, scenario._id, parentLocationId)
+                upload_file(location.imageInteriorFilename, s3Bucket)
+                upload_file(location.resizedImageInteriorFilename, s3Bucket)
             except:
                 pass
         for childLocation in location.locations:
@@ -102,38 +113,38 @@ class AssetManager:
     def UploadToS3(self, scenario):
         try:
             if scenario.imageFilename:
-                upload_file(scenario.imageFilename, "pixelvalley")
+                upload_file(scenario.imageFilename, s3Bucket)
             agents = scenario.GetAgents()
             for agent in agents:
                 description = AgentDescriptionModel.objects.get(agentId=agent._id)
                 if description.portraitFilename:
-                    upload_file(description.portraitFilename, "pixelvalley")
+                    upload_file(description.portraitFilename, s3Bucket)
 
                 if description.iconFilename:
-                    upload_file(description.iconFilename, "pixelvalley")
+                    upload_file(description.iconFilename, s3Bucket)
                 if description.resizedIconFilename:
-                    upload_file(description.resizedIconFilename, "pixelvalley")
+                    upload_file(description.resizedIconFilename, s3Bucket)
 
                 if description.chibiFilename:
-                    upload_file(description.chibiFilename, "pixelvalley")
+                    upload_file(description.chibiFilename, s3Bucket)
                 if description.resizedChibiFilename:
-                    upload_file(description.resizedChibiFilename, "pixelvalley")
+                    upload_file(description.resizedChibiFilename, s3Bucket)
 
             for location in scenario.locations:
                 if location.imageFilename:
-                    upload_file(location.imageFilename, "pixelvalley")
+                    upload_file(location.imageFilename, s3Bucket)
                 if location.resizedImageFilename:
-                    upload_file(location.resizedImageFilename, "pixelvalley")
+                    upload_file(location.resizedImageFilename, s3Bucket)
 
                 if location.imageInteriorFilename:
-                    upload_file(location.imageInteriorFilename, "pixelvalley")
+                    upload_file(location.imageInteriorFilename, s3Bucket)
                 if location.resizedImageInteriorFilename:
-                    upload_file(location.resizedImageInteriorFilename, "pixelvalley")
+                    upload_file(location.resizedImageInteriorFilename, s3Bucket)
 
                 for childLocation in location.locations:
                     if childLocation.imageInteriorFilename:
-                        upload_file(childLocation.imageInteriorFilename, "pixelvalley")
+                        upload_file(childLocation.imageInteriorFilename, s3Bucket)
                     if childLocation.resizedImageInteriorFilename:
-                        upload_file(childLocation.resizedImageInteriorFilename, "pixelvalley")
+                        upload_file(childLocation.resizedImageInteriorFilename, s3Bucket)
         except:
             pass

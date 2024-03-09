@@ -186,4 +186,75 @@ class Simulator:
         assetManager.UploadToS3(scenario)
 
     def AdvanceScenario(self, userId, scenario):
-        pass
+        memRepo = MemoryRepository()
+        obsStream = ObservationStream(memRepo)
+        goalRepo = GoalsRepository()
+        retrieval = RetrievalStream(memRepo)
+        reflectionGen = ReflectionGenerator(memRepo, retrieval)
+
+        activityGen = PlannedActivityGenerator()
+        activityStream = PlannedActivityStream(memRepo, activityGen, goalRepo, retrieval)
+        interactionGen = InteractionGenerator()
+        itemRepo = ItemRepository()
+        agentRepo = AgentRepository()
+        reflectionStream = ReflectionStream(memRepo, reflectionGen, agentRepo)
+        actionGenerator = ActionGenerator()
+        conversationGenerator = ConversationGenerator()
+        locationChanger = LocationChanger()
+        conversationSummarizer = ConversationSummarizer()
+        conversationStarter = ConversationStarter()
+        conversationStream = ConversationStream(conversationGenerator,
+                                                activityStream,
+                                                retrieval,
+                                                memRepo,
+                                                conversationSummarizer,
+                                                conversationStarter)
+        statusGenerator = StatusGenerator()
+        inventoryGenerator = InventoryGenerator()
+        itemManager = ItemManager(memRepo,
+                                agentRepo,
+                                itemRepo)
+        iteractionStream = InteractionStream(activityStream,
+                                            retrieval,
+                                            interactionGen,
+                                            itemRepo,
+                                            memRepo,
+                                            agentRepo,
+                                            actionGenerator,
+                                            locationChanger,
+                                            statusGenerator,
+                                            inventoryGenerator,
+                                            itemManager)
+        timeStream = TimeStream()
+
+        #increment the time for each agent
+        timeStream.IncrementTime(userId, scenario)
+
+        #TODO: if the day has turned over, create planned actions for the day
+
+        #Create some observational memories
+        obsStream.CreateScenarioObservations(scenario)
+
+        #Reflect if so desired
+        for agent in scenario.GetAgents():
+            reflectionStream.TriggerReflection(agent)
+
+        #Interactions!
+        #Move?
+        for agent in scenario.GetAgents():
+            iteractionStream.ChangeLocation(agent, scenario)
+
+        #Pick an item up?
+        for agent in scenario.GetAgents():
+            iteractionStream.SwapItems(agent, scenario)
+
+        #Use an item?
+        for agent in scenario.GetAgents():
+            iteractionStream.UseItem(agent, scenario)
+
+        #Talk to another agent
+        for agent in scenario.GetAgents():
+            conversationStream.ConversationPipeline(scenario, agent)
+
+        for agent in scenario.GetAgents():
+            iteractionStream.SetAgentStatus(agent, scenario)

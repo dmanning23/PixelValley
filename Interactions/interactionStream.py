@@ -80,15 +80,14 @@ class InteractionStream():
         #persist the agent's changed location
         if nextLocation is None:
             self.agentRepository.UpdateLocation(agent, homeScenarioId=scenario._id)
+            memory = f"I chose to go to outside. {reasoning}"
+            self.memoryRepository.CreateMemory(agent, memory)
         else:
             self.agentRepository.UpdateLocation(agent, homeScenarioId=scenario._id, locationId=nextLocation._id)
-        
-        #create a memory that the agent chose to move
-        memory = f"I chose to go to {nextLocation.name}. {reasoning}"
-        self.memoryRepository.CreateMemory(agent, memory)
-        #TODO: create observations? or wait until the next timestep?
-        #TODO: if the agent is using an item, stop using it and create a memory
-        #TODO: start the agent walking to the new location
+            #create a memory that the agent chose to move
+            memory = f"I chose to go to {nextLocation.name}. {reasoning}"
+            self.memoryRepository.CreateMemory(agent, memory)
+            #TODO: start the agent walking to the new location
 
     def ChangeLocation(self, agent, scenario):
         location = self._findAgent(agent, scenario)
@@ -126,6 +125,9 @@ class InteractionStream():
             if itemName is not None:
                 if itemName == "Drop current item":
                     if agent.currentItem is not None:
+                        #The agent has chosen to drop the iotem they are currently holding... Are they also using it?
+                        if agent.usingItem is not None and (agent.currentItem.name == agent.currentItem.name):
+                            self.itemManager.StopUsingItem(agent, location, None, None, reasoning)
                         self.itemManager.DropItem(scenario, agent, location, reasoning)
                         #TODO: tried to drop an item when not holding one
                 else:
@@ -133,7 +135,7 @@ class InteractionStream():
                     chosenItem = Enumerable(availableItems).first_or_default(lambda x: x.name.lower() == itemName.lower())
                     if chosenItem is not None:
                         #pick up the chosen item
-                        self.itemManager.PickUpItem(scenario, chosenItem, agent, location, reasoning)
+                        self.itemManager.PickUpItem(chosenItem, agent, location, reasoning)
                         #TODO: tried to pick up an nonexistent or unreachable item
 
     def UseItem(self, agent, scenario):
@@ -145,16 +147,15 @@ class InteractionStream():
         #availableItems.append(self._getCurrentItem(agent))
         #availableItems = Enumerable(location.items).where(lambda x: x.canInteract)
 
-        #get a list of memories that are relevant to that activity
-        memories = self.memoryRetrieval.RetrieveMemories(agent, f"What items would be useful for {plannedActivity.description}?")
-        
-        #test the location changer!
         if agent.currentItem is not None or len(availableItems) > 0:
+
+            #get a list of memories that are relevant to that activity
+            memories = self.memoryRetrieval.RetrieveMemories(agent, f"What items would be useful for {plannedActivity.description}?")
             action, itemName, itemStatus, emoji, reasoning = self.interactionGenerator.UseItem(agent, availableItems, plannedActivity, memories)
 
             if action is not None:
                 if action == "Stop using item":
-                    self.itemManager.StopUsingItem(scenario, agent, location, itemStatus, emoji, reasoning)
+                    self.itemManager.StopUsingItem(agent, location, itemStatus, emoji, reasoning)
                 elif action:
                     #is it the currently held item?
                     if agent.currentItem is not None and (itemName.lower() == agent.currentItem.name.lower()):
@@ -165,7 +166,7 @@ class InteractionStream():
                     #TODO: how effective is it to perform {action} on {item} to {plannedActivity}?
 
                     if chosenItem is not None:
-                        self.itemManager.UseItem(scenario, chosenItem, agent, action, location, itemStatus, emoji, reasoning)
+                        self.itemManager.UseItem(chosenItem, agent, action, location, itemStatus, emoji, reasoning)
 
                     #TODO: tried to use a non-existent or unreachable item
 
