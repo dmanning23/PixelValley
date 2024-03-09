@@ -159,7 +159,7 @@ class Simulator:
 
         #Create the agent goals
         for agent in scenario.GetAgents():
-                goalsStream.CreateGoals(agent, scenario)
+            goalsStream.CreateGoals(agent, scenario)
 
         #Create the agent's daily plans
         for agent in scenario.GetAgents():
@@ -182,8 +182,6 @@ class Simulator:
         assetManager.PopulateMissingCharacterProfile(scenario, characterPortraitGenerator)
         assetManager.PopulateMissingCharacterIcons(scenario, characterIconGenerator)
         assetManager.PopulateMissingCharacterChibis(scenario, characterChibiGenerator)
-
-        assetManager.UploadToS3(scenario)
 
     def AdvanceScenario(self, userId, scenario):
         memRepo = MemoryRepository()

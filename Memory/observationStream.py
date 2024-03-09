@@ -61,19 +61,19 @@ class ObservationStream():
         if agents is not None:
             for locationAgent in agents:
                 if agent._id != locationAgent._id:
-                    observation = f"{locationAgent.name} is a {locationAgent.age} year old {locationAgent.gender}"
+                    observation = f"I saw {locationAgent.name}, who is a {locationAgent.age} year old {locationAgent.gender}"
                     self.memoryRepository.CreateMemory(agent, observation)
 
                 #use "I" observations if the subject is the same agent
                 if location is not None:
                     if agent._id != locationAgent._id:
-                        observation = f"{locationAgent.name} is in {location.name}"
+                        observation = f"I saw that {locationAgent.name} is in {location.name}"
                     else:
                         observation = f"I am in {location.name}"
                     self.memoryRepository.CreateMemory(agent, observation)
                 else:
                     if agent._id != locationAgent._id:
-                        observation = f"{locationAgent.name} is outside"
+                        observation = f"I saw that {locationAgent.name} is outside"
                     else:
                         observation = f"I am outside"
                     self.memoryRepository.CreateMemory(agent, observation)
@@ -83,7 +83,7 @@ class ObservationStream():
             for locationAgent in agents:
                 if locationAgent.currentItem is not None:
                     if agent._id != locationAgent._id:
-                        observation = f"{locationAgent.name} is holding a {locationAgent.currentItem.name}"
+                        observation = f"I observed that {locationAgent.name} is holding a {locationAgent.currentItem.name}"
                     else:
                         observation = f"I am holding a {locationAgent.currentItem.name}"
                     self.memoryRepository.CreateMemory(agent, observation)
@@ -93,7 +93,7 @@ class ObservationStream():
             for locationAgent in agents:
                 if locationAgent.usingItem is not None:
                     if agent._id != locationAgent._id:
-                        observation = f"{locationAgent.name} is using the {locationAgent.usingItem.name}"
+                        observation = f"I observed that {locationAgent.name} is using the {locationAgent.usingItem.name}"
                     else:
                         #use "I" observations when location agent matches agent
                         observation = f"I am using the {locationAgent.usingItem.name}"

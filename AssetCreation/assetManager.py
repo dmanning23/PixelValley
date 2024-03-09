@@ -107,8 +107,9 @@ class AssetManager:
                 upload_file(location.resizedImageInteriorFilename, s3Bucket)
             except:
                 pass
-        for childLocation in location.locations:
-            self._populateMissingBuildingInteriors(childLocation, scenario, buildingInteriorGenerator, locationRepository, location._id)
+        if location.locations is not None:
+            for childLocation in location.locations:
+                self._populateMissingBuildingInteriors(childLocation, scenario, buildingInteriorGenerator, locationRepository, location._id)
 
     def UploadToS3(self, scenario):
         try:
