@@ -43,7 +43,8 @@ def main():
 
             #Choose an agent
             repo = AgentRepository()
-            agents = repo.GetAgents("6580b18f0b38cba6f29e3f88")
+            agents = repo.GetAgents("65eccd03635456e5173ad235") #High Elves
+            #agents = repo.GetAgents("6580b18f0b38cba6f29e3f88") #Pirate Village
             agent = st.selectbox("Select an agent to chat with:", agents, format_func=lambda x: x.name)
             
             #Get the user input

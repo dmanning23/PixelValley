@@ -21,7 +21,7 @@ class ConversationStream():
             locationAgents = scenario.agents
         else:
             locationAgents = []
-        locationAgents = locationAgents.where(lambda x: x._id != agent._id).to_list()
+        locationAgents = Enumerable(locationAgents).where(lambda x: x._id != agent._id).to_list()
 
         #Get the planned activity of the agent
         plannedActivity = self.activityStream.GetCurrentPlannedActivity(agent, scenario.currentDateTime)
