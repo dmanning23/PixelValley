@@ -1,5 +1,5 @@
 import json
-from openai import OpenAI
+from openai import AsyncOpenAI
 
 class LocationChanger():
 
@@ -36,9 +36,9 @@ class LocationChanger():
             #The LLM didn't call a function but provided a response
             return None, None
 
-    def AskToChangeLocation(self, agent, currentLocation, plannedActivity, importantMemories, llm = None):
+    async def AskToChangeLocation(self, agent, currentLocation, plannedActivity, importantMemories, llm = None):
         if not llm:
-            llm = OpenAI()
+            llm = AsyncOpenAI()
 
         messages = [
             {'role': 'system', 'content': f"You are {agent.name} and your current task is {plannedActivity.description}. You are currently in {currentLocation.name}. Given the following relevant memories, where is the best location to continue your task and why?"},
@@ -55,7 +55,7 @@ class LocationChanger():
             "choose_location": self._choose_location,
         }
         
-        response = llm.chat.completions.create(
+        response = await llm.chat.completions.create(
             model = 'gpt-3.5-turbo',
             temperature=1.0,
             messages = messages,

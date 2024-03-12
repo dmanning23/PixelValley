@@ -1,6 +1,6 @@
 import json
 from Simulation.item import Item
-from openai import OpenAI
+from openai import AsyncOpenAI
 from Generators.finiteStateMachineGenerator import FiniteStateMachineGenerator
 
 class ItemGenerator():
@@ -74,10 +74,10 @@ class ItemGenerator():
             #return response_message.content
             return None
     
-    def GenerateItems(self, location, llm = None):
+    async def GenerateItems(self, location, llm = None):
         if not llm:
             #create the client API
-            llm = OpenAI()
+            llm = AsyncOpenAI()
 
         messages = [
             {'role': 'system', 'content': "Given the following name and description of a location, generate a list of items that can be found at that location."},
@@ -88,7 +88,7 @@ class ItemGenerator():
         functions = [ ItemGenerator.generateItemsFunctionDef ]
 
         #Call the LLM...
-        response = llm.chat.completions.create(
+        response = await llm.chat.completions.create(
             model = 'gpt-3.5-turbo',
             temperature=1,
             messages = messages,
@@ -107,20 +107,20 @@ class ItemGenerator():
         
     #TODO: create items that are sitting outside in this scenario
         
-    def PopulateLocations(self, location, llm=None):
+    async def PopulateLocations(self, location, llm=None):
         #Create the items for the location
-        location.items = self.GenerateItems(location, llm)
+        location.items = await self.GenerateItems(location, llm)
         items = location.items
 
         #Recurse into the child locations
         if location.locations is not None:
             for childLocation in location.locations:
-                items = items + self.PopulateLocations(childLocation, llm)
+                items = items + await self.PopulateLocations(childLocation, llm)
 
         #return all the items that were created for this location as well as child locations
         return items
         
-    def GenerateFiniteStateMachine(self, item, llm = None):
+    async def GenerateFiniteStateMachine(self, item, llm = None):
         if item.canInteract:
             fsmGen = FiniteStateMachineGenerator()
-            item.stateMachine = fsmGen.GenerateStateMachine(item.name)
+            item.stateMachine = await fsmGen.GenerateStateMachine(item.name)

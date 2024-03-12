@@ -1,6 +1,6 @@
 import json
 from Simulation.agent import Agent
-from openai import OpenAI
+from openai import AsyncOpenAI
 
 class AgentGenerator():
 
@@ -62,10 +62,10 @@ class AgentGenerator():
             #return response_message.content
             return None
 
-    def GenerateCharacters(self, scenario, llm = None):
+    async def GenerateCharacters(self, scenario, llm = None):
         if not llm:
             #create the client API
-            llm = OpenAI()
+            llm = AsyncOpenAI()
 
         messages = [
             {'role': 'system', 'content': "Given the following name and description of a location, generate a list of 7 or more characters that could be found in that scenario."},
@@ -81,7 +81,7 @@ class AgentGenerator():
         }
 
         #Call the LLM...
-        response = llm.chat.completions.create(
+        response = await llm.chat.completions.create(
             model = 'gpt-3.5-turbo',
             temperature=1.2,
             messages = messages,

@@ -1,5 +1,5 @@
 import json
-from openai import OpenAI
+from openai import AsyncOpenAI
 
 class InventoryGenerator():
 
@@ -66,9 +66,9 @@ class InventoryGenerator():
             #The LLM didn't call a function but provided a response
             return None, None
 
-    def ManageInventory(self, agent, currentItem, pickableItems, plannedActivity, memories, llm = None):
+    async def ManageInventory(self, agent, currentItem, pickableItems, plannedActivity, memories, llm = None):
         if not llm:
-            llm = OpenAI()
+            llm = AsyncOpenAI()
 
         #TODO: update this to take a list of enums for possible actions
             
@@ -100,7 +100,7 @@ class InventoryGenerator():
         }
 
         #Call the LLM...
-        response = llm.chat.completions.create(
+        response = await llm.chat.completions.create(
             model = 'gpt-3.5-turbo',
             temperature=0.6,
             messages = messages,

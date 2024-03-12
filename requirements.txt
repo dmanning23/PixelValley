@@ -14,3 +14,4 @@ pathlib
 mongoengine
 pymongo
 boto3
+asyncio

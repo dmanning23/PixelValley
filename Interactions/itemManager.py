@@ -9,10 +9,10 @@ class ItemManager:
         self.agentRepository = agentRepository
         self.itemRepository = itemRepository
 
-    def PickUpItem(self, item, agent, location, reasoning):
+    async def PickUpItem(self, item, agent, location, reasoning):
         #TODO: can agents hold more than one item?
         #drop the current item
-        self.DropItem(agent, location, "I tried to pick something up while already holding an item")
+        await self.DropItem(agent, location, "I tried to pick something up while already holding an item")
 
         #update the agent
         agent.currentItem = item
@@ -22,9 +22,9 @@ class ItemManager:
 
         #create a memory that the item was picked up
         observation = f"I picked up the {item.name} in the {location.name}. {reasoning}"
-        self.memoryRepository.CreateMemory(agent, observation)
+        await self.memoryRepository.CreateMemory(agent, observation)
 
-    def DropItem(self, agent, location, reasoning):
+    async def DropItem(self, agent, location, reasoning):
         if agent.currentItem is not None:
             item = agent.currentItem
             #update the agent
@@ -37,16 +37,16 @@ class ItemManager:
 
             #is teh character using the held item?
             if agent.IsUsingHeldItem():
-                self.StopUsingItem(agent, location, "", "", f"I was using the {item.name} but put it down, so it is no longer in use.")
+                await self.StopUsingItem(agent, location, "", "", f"I was using the {item.name} but put it down, so it is no longer in use.")
 
             #create a memory that the item was dropped
             if location is None:
                 observation = f"I put down the {item.name}. {reasoning}"
             else:
                 observation = f"I put down the {item.name} in the {location.name}. {reasoning}"
-            self.memoryRepository.CreateMemory(agent, observation)
+            await self.memoryRepository.CreateMemory(agent, observation)
 
-    def UseItem(self, item, agent, action, location, itemStatus, emoji, reasoning):
+    async def UseItem(self, item, agent, action, location, itemStatus, emoji, reasoning):
 
         #TODO: is the item currently in use?
 
@@ -65,9 +65,9 @@ class ItemManager:
             self.itemRepository.Update(item, locationId=location._id, usingCharacterId=agent._id)
 
         observation = f"I performed the action {action} on the {item.NameWithStatus()}. {reasoning}"
-        self.memoryRepository.CreateMemory(agent, observation)
+        await self.memoryRepository.CreateMemory(agent, observation)
 
-    def StopUsingItem(self, agent, location, itemStatus, emoji, reasoning):
+    async def StopUsingItem(self, agent, location, itemStatus, emoji, reasoning):
         if agent.usingItem is not None:
             #Are the using and held item the same?
             if (agent.currentItem is not None and (agent.usingItem.name == agent.currentItem.name)):
@@ -85,4 +85,4 @@ class ItemManager:
                 self.itemRepository.Update(item, locationId=location._id)
 
             #create the memory
-            self.memoryRepository.CreateMemory(agent, f"I stopped using the {item.NameWithStatus()}. {reasoning}")
+            await self.memoryRepository.CreateMemory(agent, f"I stopped using the {item.NameWithStatus()}. {reasoning}")

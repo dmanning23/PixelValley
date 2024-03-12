@@ -1,5 +1,5 @@
 import json
-from openai import OpenAI
+from openai import AsyncOpenAI
 
 class StatusGenerator():
 
@@ -45,9 +45,9 @@ class StatusGenerator():
             #The LLM didn't call a function but provided a response
             return None, None
 
-    def SetStatus(self, scenario, agent, currentItem, usingItem, currentLocation, plannedActivity, llm = None):
+    async def SetStatus(self, scenario, agent, currentItem, usingItem, currentLocation, plannedActivity, llm = None):
         if not llm:
-            llm = OpenAI()
+            llm = AsyncOpenAI()
 
         messages = [
             {'role': 'system', 'content': f"Given the following sitution, set your status to an appropriate message."},
@@ -76,7 +76,7 @@ class StatusGenerator():
         }
 
         #Call the LLM...
-        response = llm.chat.completions.create(
+        response = await llm.chat.completions.create(
             model = 'gpt-3.5-turbo',
             temperature=0.65,
             messages = messages,

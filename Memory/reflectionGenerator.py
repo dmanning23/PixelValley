@@ -1,5 +1,5 @@
 import json
-from openai import OpenAI
+from openai import AsyncOpenAI
 
 class ReflectionGenerator():
 
@@ -44,20 +44,20 @@ class ReflectionGenerator():
     def __init__(self, memoryRepository, retrievalStream, llm=None):
         if not llm:
             #create the client API
-            self.llm = OpenAI()
+            self.llm = AsyncOpenAI()
 
         self.memoryRepository = memoryRepository
         self.retrievalStream = retrievalStream
 
-    def _ask_questions(self, agent, questions):
+    async def _ask_questions(self, agent, questions):
         for question in questions:
-            self.AskQuestion(agent, question)
-    
-    def _create_insight(self, agent, insights):
-        for insight in insights:
-            self.memoryRepository.CreateMemory(agent, insight)
+            await self.AskQuestion(agent, question)
 
-    def _parseResponse(self, agent, response_message):
+    async def _create_insight(self, agent, insights):
+        for insight in insights:
+            await self.memoryRepository.CreateMemory(agent, insight)
+
+    async def _parseResponse(self, agent, response_message):
         if response_message.function_call and response_message.function_call.arguments:
             #Which function call was invoked?
             function_called = response_message.function_call.name
@@ -74,14 +74,14 @@ class ReflectionGenerator():
             function_to_call = available_functions[function_called]
 
             #Call the function with the provided arguments
-            function_to_call(agent, *list(function_args.values()))
+            await function_to_call(agent, *list(function_args.values()))
         else:
             #The LLM didn't call a function but provided a response
             #return response_message.content
             #TODO: tweak the function calls so they always get called. It should never return text!
             pass
 
-    def CreateReflections(self, agent):
+    async def CreateReflections(self, agent):
         #Get the 100 most recent memories for the agent
         recentMemories = self.memoryRepository.GetRecentMemories(agent, 100)
 
@@ -93,17 +93,17 @@ class ReflectionGenerator():
 
         functions = [ ReflectionGenerator.askQuestionsFunctionDef ]
 
-        response = self.llm.chat.completions.create(
+        response = await self.llm.chat.completions.create(
             model = 'gpt-3.5-turbo',
             temperature=1.0,
             messages = messages,
             functions = functions, #Pass in the list of functions available to the LLM
             function_call = 'auto')
-        self._parseResponse(agent, response.choices[0].message)
+        await self._parseResponse(agent, response.choices[0].message)
         
-    def AskQuestion(self, agent, question):
+    async def AskQuestion(self, agent, question):
         #get the relevant memories of the question
-        memories = self.retrievalStream.RetrieveMemories(agent, question)
+        memories = await self.retrievalStream.RetrieveMemories(agent, question)
 
         messages = [
             {'role': 'system', 'content': f"Given the following statements about {agent.name}, what are three high-level insights that we can infer?"},
@@ -115,10 +115,10 @@ class ReflectionGenerator():
         functions = [ ReflectionGenerator.createInsightFunctionDef ]
 
         #Call the LLM...
-        response = self.llm.chat.completions.create(
+        response = await self.llm.chat.completions.create(
             model = 'gpt-3.5-turbo',
             temperature=1.0,
             messages = messages,
             functions = functions, #Pass in the list of functions available to the LLM
             function_call = 'auto')
-        self._parseResponse(agent, response.choices[0].message)
+        await self._parseResponse(agent, response.choices[0].message)

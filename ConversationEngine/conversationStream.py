@@ -11,7 +11,7 @@ class ConversationStream():
         self.conversationSummarizer = conversationSummarizer
         self.conversationStarter = conversationStarter
 
-    def StartConversation(self, scenario, agent):
+    async def StartConversation(self, scenario, agent):
         location = scenario.FindAgent(agent)
 
         #Get a list of agents in that location that are NOT the agent
@@ -29,15 +29,15 @@ class ConversationStream():
         #get memories for each agent
         memories = []
         for locationAgent in locationAgents:
-            locationAgentMemories = self.retrieval.RetrieveMemories(agent, f'What is my relationship with {locationAgent.name}?', 4)
+            locationAgentMemories = await self.retrieval.RetrieveMemories(agent, f'What is my relationship with {locationAgent.name}?', 4)
             memories.append(locationAgentMemories)
 
         #Choose whether or not to start a conversation
-        agents, reasoning = self.conversationStarter.StartConversation(scenario, agent, plannedActivity, locationAgents, memories)
+        agents, reasoning = await self.conversationStarter.StartConversation(scenario, agent, plannedActivity, locationAgents, memories)
 
         if agents is not None:
             #create memory that Agent decided to talk to Agent1, Agent2, etc.
-            self.memoryRepository.CreateMemory(agent, reasoning)
+            await self.memoryRepository.CreateMemory(agent, reasoning)
 
             #create the conversation
             conversationModel = ConversationModel(initiatingAgent = agent._id, reasoning = reasoning)
@@ -48,7 +48,7 @@ class ConversationStream():
         #This agent chose not to start a conversation
         return None, None
 
-    def CreateConversation(self, scenario, conversationModel, agents):
+    async def CreateConversation(self, scenario, conversationModel, agents):
             #get the planned activity of each agent
             plannedActivities = []
             for agent in agents:
@@ -60,25 +60,25 @@ class ConversationStream():
                 agentMemories = []
                 for j in range(len(agents)):
                     if i != j:
-                        agentMemories.extend(self.retrieval.RetrieveMemories(agents[i], f'What is my relationship with {agents[j].name}?', 5))
+                        agentMemories.extend(await self.retrieval.RetrieveMemories(agents[i], f'What is my relationship with {agents[j].name}?', 5))
                 memories.append(agentMemories)
 
             #create a conversation
-            conversationModel = self.conversationGenerator.CreateConversation(scenario, conversationModel, agents, plannedActivities, memories)
+            conversationModel = await self.conversationGenerator.CreateConversation(scenario, conversationModel, agents, plannedActivities, memories)
 
             if conversationModel is not None:
                 #summarize the conversation for each agent
                 for agent in agents:
                     #create memories for each agent
-                    self.memoryRepository.CreateMemory(agent, f"I had a conversation at {scenario.currentDateTime}: {conversationModel.summary}")
-                    summaries = self.conversationSummarizer.SummarizeConversation(agent, conversationModel)
+                    await self.memoryRepository.CreateMemory(agent, f"I had a conversation at {scenario.currentDateTime}: {conversationModel.summary}")
+                    summaries = await self.conversationSummarizer.SummarizeConversation(agent, conversationModel)
                     if summaries is not None:
                         for summary in summaries:
-                            self.memoryRepository.CreateMemory(agent, f"{summary}")
+                            await self.memoryRepository.CreateMemory(agent, f"{summary}")
                 #save the conversation
                 conversationModel.save()
 
-    def ConversationPipeline(self, scenario, agent):
-        conversationModel, chosenAgents = self.StartConversation(scenario, agent)
+    async def ConversationPipeline(self, scenario, agent):
+        conversationModel, chosenAgents = await self.StartConversation(scenario, agent)
         if chosenAgents is not None and len(chosenAgents) > 1:
-            return self.CreateConversation(scenario, conversationModel, chosenAgents)
+            return await self.CreateConversation(scenario, conversationModel, chosenAgents)

@@ -1,6 +1,7 @@
 from random import *
 from mongoengine import *
 from py_linq import *
+import asyncio
 
 from Simulation.timeStream import TimeStream
 
@@ -183,7 +184,7 @@ class Simulator:
         assetManager.PopulateMissingCharacterIcons(scenario, characterIconGenerator)
         assetManager.PopulateMissingCharacterChibis(scenario, characterChibiGenerator)
 
-    def AdvanceScenario(self, userId, scenario):
+    async def AdvanceScenario(self, userId, scenario):
         memRepo = MemoryRepository()
         obsStream = ObservationStream(memRepo)
         goalRepo = GoalsRepository()
@@ -226,33 +227,50 @@ class Simulator:
         timeStream = TimeStream()
 
         #increment the time for each agent
+        print("IncrementTime")
         timeStream.IncrementTime(userId, scenario)
 
         #TODO: if the day has turned over, create planned actions for the day
 
         #Create some observational memories
-        obsStream.CreateScenarioObservations(scenario)
+        print("CreateScenarioObservations")
+        try:
+            await obsStream.CreateScenarioObservations(scenario)
+        except:
+            #TODO: some sort of json error occurred
+            pass
 
         #Reflect if so desired
-        for agent in scenario.GetAgents():
-            reflectionStream.TriggerReflection(agent)
+        print("reflectionTasks")
+        async with asyncio.TaskGroup() as reflectionTasks:
+            for agent in scenario.GetAgents():
+                reflectionTasks.create_task(reflectionStream.TriggerReflection(agent))
 
         #Interactions!
         #Move?
-        for agent in scenario.GetAgents():
-            iteractionStream.ChangeLocation(agent, scenario)
+        print("locationTasks")
+        async with asyncio.TaskGroup() as locationTasks:
+            for agent in scenario.GetAgents():
+                locationTasks.create_task(iteractionStream.ChangeLocation(agent, scenario))
 
         #Pick an item up?
-        for agent in scenario.GetAgents():
-            iteractionStream.SwapItems(agent, scenario)
+        print("pickUpItemTasks")
+        async with asyncio.TaskGroup() as pickUpItemTasks:
+            for agent in scenario.GetAgents():
+                pickUpItemTasks.create_task(iteractionStream.SwapItems(agent, scenario))
 
         #Use an item?
-        for agent in scenario.GetAgents():
-            iteractionStream.UseItem(agent, scenario)
+        print("useItemTasks")
+        async with asyncio.TaskGroup() as useItemTasks:
+            for agent in scenario.GetAgents():
+                useItemTasks.create_task(iteractionStream.UseItem(agent, scenario))
 
         #Talk to another agent
+        print("ConversationPipeline")
         for agent in scenario.GetAgents():
-            conversationStream.ConversationPipeline(scenario, agent)
+            await conversationStream.ConversationPipeline(scenario, agent)
 
-        for agent in scenario.GetAgents():
-            iteractionStream.SetAgentStatus(agent, scenario)
+        print("setStatusTasks")
+        async with asyncio.TaskGroup() as setStatusTasks:
+            for agent in scenario.GetAgents():
+                setStatusTasks.create_task(iteractionStream.SetAgentStatus(agent, scenario))

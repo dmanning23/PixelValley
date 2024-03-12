@@ -11,7 +11,7 @@ class ReflectionStream:
         self.reflectionGenerator = reflectionGenerator
         self.agentRepository = agentRepository
 
-    def TriggerReflection(self, agent):
+    async def TriggerReflection(self, agent):
         #get the memories since last reflection
         memories = self.memoryRepository.GetMemoriesSinceTimestamp(agent, agent.timeOfLastReflection)
 
@@ -23,7 +23,7 @@ class ReflectionStream:
         #has it passed the threshold?
         if sum >= self._reflectionTriggerThreshold:
             #Trigger a reflection
-            self.reflectionGenerator.CreateReflections(agent)
+            await self.reflectionGenerator.CreateReflections(agent)
             #update the agent "time since reflection"
             agent.timeOfLastReflection = agent.currentTime
             self.agentRepository.Update(agent)

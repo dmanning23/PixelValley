@@ -1,5 +1,5 @@
 import json
-from openai import OpenAI
+from openai import AsyncOpenAI
 from py_linq import *
 from Models.agentDescriptionModel import AgentDescriptionModel
 
@@ -76,9 +76,9 @@ class CharacterDescriptionGenerator():
             #return response_message.content
             return None
         
-    def DescribeCharacter(self, agent, llm = None):
+    async def DescribeCharacter(self, agent, llm = None):
         if not llm:
-            llm = OpenAI()
+            llm = AsyncOpenAI()
         messages = [
             {'role': 'system', 'content': f"Extrapolate the physical appearance of the following character."},
             {'role': 'system', 'content': f"Answer the following questions: What do they look like? What color is their hair? What color are their eyes? What are they wearing? Do they have any distinguishing features? etc."}, 
@@ -94,7 +94,7 @@ class CharacterDescriptionGenerator():
             "describe_character": self._describe_character
         }
 
-        response = llm.chat.completions.create(
+        response = await llm.chat.completions.create(
             model = 'gpt-3.5-turbo',
             temperature=1.4,
             messages = messages,

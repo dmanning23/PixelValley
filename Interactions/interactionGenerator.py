@@ -1,5 +1,5 @@
 import json
-from openai import OpenAI
+from openai import AsyncOpenAI
 
 class InteractionGenerator():
 
@@ -86,9 +86,9 @@ class InteractionGenerator():
             #The LLM didn't call a function but provided a response
             return None, None, None, None, None
 
-    def UseItem(self, agent, availableItems, plannedActivity, importantMemories, llm = None):
+    async def UseItem(self, agent, availableItems, plannedActivity, importantMemories, llm = None):
         if not llm:
-            llm = OpenAI()
+            llm = AsyncOpenAI()
 
         messages = []
         if agent.usingItem is not None:
@@ -122,7 +122,7 @@ class InteractionGenerator():
         }
 
         #Call the LLM...
-        response = llm.chat.completions.create(
+        response = await llm.chat.completions.create(
             model = 'gpt-3.5-turbo',
             temperature=0.6,
             messages = messages,

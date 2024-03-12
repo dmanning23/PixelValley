@@ -1,6 +1,6 @@
 from Memory.plannedActivity import PlannedActivity
 import json
-from openai import OpenAI
+from openai import AsyncOpenAI
 
 class PlannedActivityGenerator():
 
@@ -69,9 +69,9 @@ class PlannedActivityGenerator():
             #The LLM didn't call a function but provided a response
             return None
 
-    def GenerateDailyPlans(self, agent, goals, importantMemories, llm = None):
+    async def GenerateDailyPlans(self, agent, goals, importantMemories, llm = None):
         if not llm:
-            llm = OpenAI()
+            llm = AsyncOpenAI()
 
         messages = [
             {'role': 'system', 'content': "Given the following description of a character, their short and long term goals, and a list of important things to remember for today, create a daily plan of activities for the entire day."},
@@ -90,7 +90,7 @@ class PlannedActivityGenerator():
         functions = [ PlannedActivityGenerator.createPlansFunctionDef ]
 
         #Call the LLM...
-        response = llm.chat.completions.create(
+        response = await llm.chat.completions.create(
             model = 'gpt-3.5-turbo',
             temperature=1.0,
             messages = messages,
@@ -101,9 +101,9 @@ class PlannedActivityGenerator():
             plannedActivities = []
         return plannedActivities
     
-    def BreakDownPlannedActivity(self, agent, plannedActivity, llm = None):
+    async def BreakDownPlannedActivity(self, agent, plannedActivity, llm = None):
         if not llm:
-            llm = OpenAI()
+            llm = AsyncOpenAI()
 
         messages = [
             {'role': 'system', 'content': "Given the following itinerary item, break it down into a list of finer-grained actions of 15-30 minute chunks."},
@@ -114,7 +114,7 @@ class PlannedActivityGenerator():
         functions = [ PlannedActivityGenerator.createPlansFunctionDef ]
 
         #Call the LLM...
-        response = llm.chat.completions.create(
+        response = await llm.chat.completions.create(
             model = 'gpt-3.5-turbo',
             temperature=1.0,
             messages = messages,
