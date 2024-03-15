@@ -2,6 +2,7 @@
 #This object represents a single memory for an agent.
 class Memory():
 
+    #TODO: rename to max time
     _timeWeight = 3.0
     _timeDecay = 0.005
 
@@ -36,5 +37,6 @@ class Memory():
         #normalize the time
         timeScore = (self._timeWeight - ((currentTime - self.time) * self._timeDecay)) / self._timeWeight
 
+        #TODO: weight the time
         #Add the time, importance, and relevance to get the final score
         return timeScore + (self.importance * self._importanceWeight) + self.relevance

@@ -1,5 +1,5 @@
 import json
-from openai import OpenAI
+from openai import AsyncOpenAI
 from py_linq import *
 
 class ConversationSummarizer():
@@ -60,9 +60,9 @@ class ConversationSummarizer():
             #return response_message.content
             return None
         
-    def SummarizeConversation(self, agent, conversation, llm = None):
+    async def SummarizeConversation(self, agent, conversation, llm = None):
         if not llm:
-            llm = OpenAI()
+            llm = AsyncOpenAI()
         messages = [
             {'role': 'system', 'content': f"You are {agent.name}. From your point of view, are there any important facts you should remember from the following conversation?"},
         ]
@@ -77,7 +77,7 @@ class ConversationSummarizer():
             "ignore_conversation": self._ignore_conversation
         }
 
-        response = llm.chat.completions.create(
+        response = await llm.chat.completions.create(
             model = 'gpt-3.5-turbo',
             temperature=0.3,
             messages = messages,

@@ -61,7 +61,7 @@ class InteractionStream():
             usingItem = agent.usingItem
         return usingItem
     
-    def _moveAgent(self, agent, scenario, prevLocation, nextLocation, reasoning):
+    async def _moveAgent(self, agent, scenario, prevLocation, nextLocation, reasoning):
         #update the previous location
         if prevLocation is None or prevLocation.name == "Outside":
             scenario.agents.remove(agent)
@@ -81,33 +81,33 @@ class InteractionStream():
         if nextLocation is None:
             self.agentRepository.UpdateLocation(agent, homeScenarioId=scenario._id)
             memory = f"I chose to go to outside. {reasoning}"
-            self.memoryRepository.CreateMemory(agent, memory)
+            await self.memoryRepository.CreateMemory(agent, memory)
         else:
             self.agentRepository.UpdateLocation(agent, homeScenarioId=scenario._id, locationId=nextLocation._id)
             #create a memory that the agent chose to move
             memory = f"I chose to go to {nextLocation.name}. {reasoning}"
-            self.memoryRepository.CreateMemory(agent, memory)
+            await self.memoryRepository.CreateMemory(agent, memory)
             #TODO: start the agent walking to the new location
 
-    def ChangeLocation(self, agent, scenario):
+    async def ChangeLocation(self, agent, scenario):
         location = self._findAgent(agent, scenario)
 
         #get the agents current planned activity
         plannedActivity = self.activityStream.GetCurrentPlannedActivity(agent, scenario.currentDateTime)
         
         #get a list of memories that are relevant to that activity
-        memories = self.memoryRetrieval.RetrieveMemories(agent, f"What is the best location to {plannedActivity.description}?")
+        memories = await self.memoryRetrieval.RetrieveMemories(agent, f"What is the best location to {plannedActivity.description}?")
         
         #Check if the agent wants to change locations
-        chosenLocation, reasoning = self.locationChanger.AskToChangeLocation(agent, location, plannedActivity, memories)
+        chosenLocation, reasoning = await self.locationChanger.AskToChangeLocation(agent, location, plannedActivity, memories)
         if chosenLocation is not None:
             #Find the location they want to go to
             nextLocation = scenario.FindLocation(chosenLocation)
             if chosenLocation.lower() == "outside" or nextLocation is not None:
-                self._moveAgent(agent, scenario, location, nextLocation, reasoning)
+                await self._moveAgent(agent, scenario, location, nextLocation, reasoning)
                 #TODO: tried to go to a nonexistent location
 
-    def SwapItems(self, agent, scenario):
+    async def SwapItems(self, agent, scenario):
         location = self._findAgent(agent, scenario)
         
         #Limit the available items to things that can be picked up
@@ -119,26 +119,26 @@ class InteractionStream():
             plannedActivity = self.activityStream.GetCurrentPlannedActivity(agent, scenario.currentDateTime)
 
             #get a list of memories that are relevant to that activity
-            memories = self.memoryRetrieval.RetrieveMemories(agent, f"What items would be useful for {plannedActivity.description}?")
+            memories = await self.memoryRetrieval.RetrieveMemories(agent, f"What items would be useful for {plannedActivity.description}?")
 
-            itemName, reasoning = self.inventoryGenerator.ManageInventory(agent, agent.currentItem, availableItems, plannedActivity, memories)
+            itemName, reasoning = await self.inventoryGenerator.ManageInventory(agent, agent.currentItem, availableItems, plannedActivity, memories)
             if itemName is not None:
                 if itemName == "Drop current item":
                     if agent.currentItem is not None:
                         #The agent has chosen to drop the iotem they are currently holding... Are they also using it?
                         if agent.usingItem is not None and (agent.currentItem.name == agent.currentItem.name):
-                            self.itemManager.StopUsingItem(agent, location, None, None, reasoning)
-                        self.itemManager.DropItem(scenario, agent, location, reasoning)
+                            await self.itemManager.StopUsingItem(agent, location, None, None, reasoning)
+                        await self.itemManager.DropItem(scenario, agent, location, reasoning)
                         #TODO: tried to drop an item when not holding one
                 else:
                     #The agent has chosen to swap items, set their current item
                     chosenItem = Enumerable(availableItems).first_or_default(lambda x: x.name.lower() == itemName.lower())
                     if chosenItem is not None:
                         #pick up the chosen item
-                        self.itemManager.PickUpItem(chosenItem, agent, location, reasoning)
+                        await self.itemManager.PickUpItem(chosenItem, agent, location, reasoning)
                         #TODO: tried to pick up an nonexistent or unreachable item
 
-    def UseItem(self, agent, scenario):
+    async def UseItem(self, agent, scenario):
         location = self._findAgent(agent, scenario)
         availableItems = self._getInteractiveItems(location)
         plannedActivity = self.activityStream.GetCurrentPlannedActivity(agent, scenario.currentDateTime)
@@ -150,12 +150,12 @@ class InteractionStream():
         if agent.currentItem is not None or len(availableItems) > 0:
 
             #get a list of memories that are relevant to that activity
-            memories = self.memoryRetrieval.RetrieveMemories(agent, f"What items would be useful for {plannedActivity.description}?")
-            action, itemName, itemStatus, emoji, reasoning = self.interactionGenerator.UseItem(agent, availableItems, plannedActivity, memories)
+            memories = await self.memoryRetrieval.RetrieveMemories(agent, f"What items would be useful for {plannedActivity.description}?")
+            action, itemName, itemStatus, emoji, reasoning = await self.interactionGenerator.UseItem(agent, availableItems, plannedActivity, memories)
 
             if action is not None:
                 if action == "Stop using item":
-                    self.itemManager.StopUsingItem(agent, location, itemStatus, emoji, reasoning)
+                    await self.itemManager.StopUsingItem(agent, location, itemStatus, emoji, reasoning)
                 elif action:
                     #is it the currently held item?
                     if agent.currentItem is not None and (itemName.lower() == agent.currentItem.name.lower()):
@@ -166,15 +166,15 @@ class InteractionStream():
                     #TODO: how effective is it to perform {action} on {item} to {plannedActivity}?
 
                     if chosenItem is not None:
-                        self.itemManager.UseItem(chosenItem, agent, action, location, itemStatus, emoji, reasoning)
+                        await self.itemManager.UseItem(chosenItem, agent, action, location, itemStatus, emoji, reasoning)
 
                     #TODO: tried to use a non-existent or unreachable item
 
-    def SetAgentStatus(self, agent, scenario):
+    async def SetAgentStatus(self, agent, scenario):
         location = self._findAgent(agent, scenario)
         plannedActivity = self.activityStream.GetCurrentPlannedActivity(agent, scenario.currentDateTime)
 
-        status, emoji = self.statusGenerator.SetStatus(scenario, agent, agent.currentItem, agent.usingItem, location, plannedActivity)
+        status, emoji = await self.statusGenerator.SetStatus(scenario, agent, agent.currentItem, agent.usingItem, location, plannedActivity)
         if status is not None or emoji is not None:
             #change the agent's status
             agent.status = status
@@ -186,7 +186,7 @@ class InteractionStream():
             else:
                 self.agentRepository.CreateOrUpdate(agent, homeScenarioId=scenario._id, locationId = location._id)
 
-    def PlanActions(self, agent, scenario):
+    async def PlanActions(self, agent, scenario):
         location = self._findAgent(agent, scenario)
 
         #get the agents current planned activity
@@ -194,13 +194,13 @@ class InteractionStream():
         
         #get a list of memories that are relevant to that activity
         #memories = self.memoryRetrieval.RetrieveMemories(agent, f"What do I know that will help {plannedActivity.description}?")
-        memories = self.memoryRetrieval.RetrieveMemories(agent, f"What are important places for {plannedActivity.description}?", 10)
-        memories.extend(self.memoryRetrieval.RetrieveMemories(agent, f"What items would help {plannedActivity.description}?", 10))
-        memories.extend(self.memoryRetrieval.RetrieveMemories(agent, f"Who would help {plannedActivity.description}?", 10))
+        memories = await self.memoryRetrieval.RetrieveMemories(agent, f"What are important places for {plannedActivity.description}?", 10)
+        memories.extend(await self.memoryRetrieval.RetrieveMemories(agent, f"What items would help {plannedActivity.description}?", 10))
+        memories.extend(await self.memoryRetrieval.RetrieveMemories(agent, f"Who would help {plannedActivity.description}?", 10))
 
         #Check if the agent wants to change locations
         #result = self.actionGenerator.CreateActions(scenario.currentDateTime, agent, location, plannedActivity, memories)
-        result = self.actionGenerator.BreakDownPlannedActivity(agent, plannedActivity, memories)
+        result = await self.actionGenerator.BreakDownPlannedActivity(agent, plannedActivity, memories)
         if result is not None:
             #TODO: parse the list of chosen actions?
             pass

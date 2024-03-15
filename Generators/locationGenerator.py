@@ -1,6 +1,6 @@
 import json
 from Simulation.location import Location
-from openai import OpenAI
+from openai import AsyncOpenAI
 from Generators.itemGenerator import ItemGenerator
 
 class LocationGenerator():
@@ -74,10 +74,10 @@ class LocationGenerator():
             #return response_message.content
             return None
 
-    def Generate(self, scenario, llm = None):
+    async def Generate(self, scenario, llm = None):
         if not llm:
             #create the client API
-            llm = OpenAI()
+            llm = AsyncOpenAI()
 
         messages = [
             {'role': 'system', 'content': "Given the following scenario, generate a list of 6 or more buildings"},
@@ -88,7 +88,7 @@ class LocationGenerator():
         functions = [ LocationGenerator.generateLocationsFunctionDef ]
 
         #Call the LLM...
-        response = llm.chat.completions.create(
+        response = await llm.chat.completions.create(
             model = 'gpt-3.5-turbo',
             temperature=1.2, #Use a really high temp so the LLM can get creative
             messages = messages,
@@ -100,7 +100,7 @@ class LocationGenerator():
         else:
             return locations
 
-    def _generateChildLocations(self, location, llm):
+    async def _generateChildLocations(self, location, llm):
         
         #Create our list of messages for creating locations
         messages = [
@@ -113,7 +113,7 @@ class LocationGenerator():
         functions = [ LocationGenerator.generateLocationsFunctionDef ]
 
         #Call the LLM...
-        response = llm.chat.completions.create(
+        response = await llm.chat.completions.create(
             model = 'gpt-3.5-turbo',
             temperature=1, #Use a really low temp so the LLM doesn't go crazy
             messages = messages,
@@ -125,10 +125,10 @@ class LocationGenerator():
         else:
             return locations
 
-    def GenerateChildLocations(self, location, level = 0, maxLevel = 2, llm = None):
+    async def GenerateChildLocations(self, location, level = 0, maxLevel = 2, llm = None):
         if not llm:
             #create the client API
-            llm = OpenAI()
+            llm = AsyncOpenAI()
 
         #stop recursing at some point
         if level >= maxLevel:
@@ -142,13 +142,9 @@ class LocationGenerator():
 
             #Generate the child locations from the LLM
             location.locations = []
-            childLocations = self._generateChildLocations(location, llm)
+            childLocations = await self._generateChildLocations(location, llm)
             for child in childLocations:
                 if location.name != child.name: #The OpenAI api has a tendency to return the same thing we just fed it :/
                     location.locations.append(child)
                     #Recurse into child locations
-                    self.GenerateChildLocations(location=child, level=level, maxLevel=maxLevel, llm=llm)
-
-    def GenerateItems(self, location, llm = None):
-        itemGen = ItemGenerator()
-        location.items = itemGen.GenerateItems(location, llm)
+                    await self.GenerateChildLocations(location=child, level=level, maxLevel=maxLevel, llm=llm)

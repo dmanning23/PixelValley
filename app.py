@@ -5,6 +5,8 @@ from keys import mongoUri
 from random import *
 from mongoengine import *
 from py_linq import *
+import time
+import asyncio
 
 from Simulation.timeStream import TimeStream
 from Simulation.simulator import Simulator
@@ -293,7 +295,12 @@ def displayScenario(userId, scenario):
     #Run an update loop
     update_button = st.button(label="Run Update Loop")
     if update_button:
-        simulator.AdvanceScenario(userId, scenario)
+        t0 = time.time()
+        asyncio.run(simulator.AdvanceScenario(userId, scenario))
+        t1 = time.time()
+        elapsedTime = {t1-t0}
+        st.header(f"Elapsed time: {elapsedTime}")
+        print(f"Total time: {elapsedTime}")
 
     createContainer = st.container()
     with createContainer:

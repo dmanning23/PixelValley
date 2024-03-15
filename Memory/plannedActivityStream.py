@@ -9,10 +9,10 @@ class PlannedActivityStream:
         self.goalRepository = goalRepository
         self.retrieval = retrieval
 
-    def CreatePlannedActivities(self, agent, scenario):
+    async def CreatePlannedActivities(self, agent, scenario):
         goals = self.goalRepository.GetGoals(agent)
-        memories = self.retrieval.RetrieveMemories(agent, f"What are important things to remember while planning my schedule for today?")
-        plans = self.plannedActivityGenerator.GenerateDailyPlans(agent, goals, memories)
+        memories = await self.retrieval.RetrieveMemories(agent, f"What are important things to remember while planning my schedule for today?")
+        plans = await self.plannedActivityGenerator.GenerateDailyPlans(agent, goals, memories)
 
         for plan in plans:
             #Store this planned item
@@ -35,6 +35,7 @@ class PlannedActivityStream:
         #tore plans
         PlannedActivity.objects.insert(activity)
         
+        #TODO: does this need to be remembered?
         #create planned activity memories
         #self.memoryRepository.CreateMemory(agent, f'On {activity.date.strftime("%d %B, %Y")}, I plan to {activity.description} at {activity.starttime} for {activity.timeframe}')
 

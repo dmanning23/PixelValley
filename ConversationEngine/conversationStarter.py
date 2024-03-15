@@ -1,5 +1,5 @@
 import json
-from openai import OpenAI
+from openai import AsyncOpenAI
 from py_linq import *
 
 class ConversationStarter():
@@ -71,10 +71,10 @@ class ConversationStarter():
             #return response_message.content
             return None, None
         
-    def StartConversation(self, scenario, agent, agentPlannedActivity, availableAgents, agentMemories, llm = None):
+    async def StartConversation(self, scenario, agent, agentPlannedActivity, availableAgents, agentMemories, llm = None):
         if not llm:
             #create the client API
-            llm = OpenAI()
+            llm = AsyncOpenAI()
 
         messages = [
             {'role': 'system', 'content': f'It is {scenario.currentDateTime}. {agent.name}\'s current task is {agentPlannedActivity.description}. The following is a list of nearby characters and relevant memories about each character. Decide whether {agent.name} would continue with their current task or initiate a conversation with one or two characters.'},
@@ -92,7 +92,7 @@ class ConversationStarter():
             "initiate_conversation": self._initiate_conversation,
         }
         
-        response = llm.chat.completions.create(
+        response = await llm.chat.completions.create(
             model = 'gpt-3.5-turbo',
             temperature=0.3,
             messages = messages,

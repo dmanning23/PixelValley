@@ -1,6 +1,8 @@
 from random import *
 from mongoengine import *
 from py_linq import *
+import asyncio
+import time
 
 from Simulation.timeStream import TimeStream
 
@@ -183,7 +185,7 @@ class Simulator:
         assetManager.PopulateMissingCharacterIcons(scenario, characterIconGenerator)
         assetManager.PopulateMissingCharacterChibis(scenario, characterChibiGenerator)
 
-    def AdvanceScenario(self, userId, scenario):
+    async def AdvanceScenario(self, userId, scenario):
         memRepo = MemoryRepository()
         obsStream = ObservationStream(memRepo)
         goalRepo = GoalsRepository()
@@ -226,33 +228,74 @@ class Simulator:
         timeStream = TimeStream()
 
         #increment the time for each agent
+        t0 = time.time()
         timeStream.IncrementTime(userId, scenario)
+        t1 = time.time()
+        elapsedTime = {t1-t0}
+        print(f"IncrementTime: {elapsedTime}")
 
         #TODO: if the day has turned over, create planned actions for the day
 
         #Create some observational memories
-        obsStream.CreateScenarioObservations(scenario)
+        try:
+            t0 = time.time()
+            await obsStream.CreateScenarioObservations(scenario)
+            t1 = time.time()
+            elapsedTime = {t1-t0}
+            print(f"CreateScenarioObservations: {elapsedTime}")
+        except:
+            #TODO: some sort of json error occurred
+            pass
 
         #Reflect if so desired
-        for agent in scenario.GetAgents():
-            reflectionStream.TriggerReflection(agent)
+        t0 = time.time()
+        async with asyncio.TaskGroup() as reflectionTasks:
+            for agent in scenario.GetAgents():
+                reflectionTasks.create_task(reflectionStream.TriggerReflection(agent))
+        t1 = time.time()
+        elapsedTime = {t1-t0}
+        print(f"reflectionTasks: {elapsedTime}")
 
         #Interactions!
         #Move?
-        for agent in scenario.GetAgents():
-            iteractionStream.ChangeLocation(agent, scenario)
-
+        t0 = time.time()
+        async with asyncio.TaskGroup() as locationTasks:
+            for agent in scenario.GetAgents():
+                locationTasks.create_task(iteractionStream.ChangeLocation(agent, scenario))
+        t1 = time.time()
+        elapsedTime = {t1-t0}
+        print(f"locationTasks: {elapsedTime}")
+        
         #Pick an item up?
-        for agent in scenario.GetAgents():
-            iteractionStream.SwapItems(agent, scenario)
+        t0 = time.time()
+        async with asyncio.TaskGroup() as pickUpItemTasks:
+            for agent in scenario.GetAgents():
+                pickUpItemTasks.create_task(iteractionStream.SwapItems(agent, scenario))
+        t1 = time.time()
+        elapsedTime = {t1-t0}
+        print(f"pickUpItemTasks: {elapsedTime}")
 
         #Use an item?
-        for agent in scenario.GetAgents():
-            iteractionStream.UseItem(agent, scenario)
+        t0 = time.time()
+        async with asyncio.TaskGroup() as useItemTasks:
+            for agent in scenario.GetAgents():
+                useItemTasks.create_task(iteractionStream.UseItem(agent, scenario))
+        t1 = time.time()
+        elapsedTime = {t1-t0}
+        print(f"useItemTasks: {elapsedTime}")
 
         #Talk to another agent
+        t0 = time.time()
         for agent in scenario.GetAgents():
-            conversationStream.ConversationPipeline(scenario, agent)
+            await conversationStream.ConversationPipeline(scenario, agent)
+        t1 = time.time()
+        elapsedTime = {t1-t0}
+        print(f"ConversationPipeline: {elapsedTime}")
 
-        for agent in scenario.GetAgents():
-            iteractionStream.SetAgentStatus(agent, scenario)
+        t0 = time.time()
+        async with asyncio.TaskGroup() as setStatusTasks:
+            for agent in scenario.GetAgents():
+                setStatusTasks.create_task(iteractionStream.SetAgentStatus(agent, scenario))
+        t1 = time.time()
+        elapsedTime = {t1-t0}
+        print(f"setStatusTasks: {elapsedTime}")

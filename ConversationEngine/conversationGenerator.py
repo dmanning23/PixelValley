@@ -1,7 +1,7 @@
 import json
 from ConversationEngine.conversationModel import DialogueModel
 from ConversationEngine.conversationModel import ConversationModel
-from openai import OpenAI
+from openai import AsyncOpenAI
 from py_linq import *
 
 class ConversationGenerator():
@@ -65,9 +65,9 @@ class ConversationGenerator():
             #return response_message.content
             return None
         
-    def CreateConversation(self, scenario, conversationModel, agents, agentPlannedActivities, agentMemories, llm = None):
+    async def CreateConversation(self, scenario, conversationModel, agents, agentPlannedActivities, agentMemories, llm = None):
         if not llm:
-            llm = OpenAI()
+            llm = AsyncOpenAI()
 
         messages = [
             {'role': 'system', 'content': f'It is {scenario.currentDateTime}. {agents[0].name} has decided to initiate a conversation. {conversationModel.reasoning} Given the following list of characters in the conversation and relevant context of memories from each character, generate a conversation between them.'},
@@ -87,7 +87,7 @@ class ConversationGenerator():
             "create_conversation": self._create_conversation,
         }
         
-        response = llm.chat.completions.create(
+        response = await llm.chat.completions.create(
             model = 'gpt-3.5-turbo',
             temperature=0.3,
             messages = messages,

@@ -2,7 +2,7 @@ from langchain.schema.messages import SystemMessage, HumanMessage
 from langchain.chat_models import ChatOpenAI
 from Simulation.scenario import Scenario
 import json
-from openai import OpenAI
+from openai import AsyncOpenAI
 
 class ScenarioGenerator:
 
@@ -53,10 +53,10 @@ class ScenarioGenerator:
             #return response_message.content
             return None
     
-    def GenerateScenario(self, shortDescription, llm = None):
+    async def GenerateScenario(self, shortDescription, llm = None):
         if not llm:
             #create the client API
-            llm = OpenAI()
+            llm = AsyncOpenAI()
 
         messages = [
             {'role': 'system', 'content': "Expand the following description of a scenario."},
@@ -67,7 +67,7 @@ class ScenarioGenerator:
         functions = [ ScenarioGenerator.generateScenarioFunctionDef ]
 
         #Call the LLM...
-        response = llm.chat.completions.create(
+        response = await llm.chat.completions.create(
             model = 'gpt-3.5-turbo',
             temperature=1.0,
             messages = messages,
@@ -79,11 +79,11 @@ class ScenarioGenerator:
         scenario.description = self.Generate(f"{scenario.name} in the year {scenario.currentDateTime.year}: {scenario.seed}")
         return scenario
 
-    def Generate(self, description, llm = None):
+    async def Generate(self, description, llm = None):
         if llm is None:
             llm = ChatOpenAI()
         messages = [
             SystemMessage(content="Expand the following description of a scenario."),
             HumanMessage(content=description)]
-        result = llm.invoke(messages)
+        result = await llm.ainvoke(messages)
         return result.content

@@ -1,5 +1,5 @@
 import json
-from openai import OpenAI
+from openai import AsyncOpenAI
 from Memory.goal import Goal
 
 #This class is for our agents to make long and short term goals
@@ -65,9 +65,9 @@ class GoalsGenerator:
             #The LLM didn't call a function but provided a response
             return None
 
-    def GenerateGoals(self, agent, scenario, llm = None):
+    async def GenerateGoals(self, agent, scenario, llm = None):
         if not llm:
-            llm = OpenAI()
+            llm = AsyncOpenAI()
 
         messages = [
             {'role': 'system', 'content': "Given the following description of a character and the scenario they are located in, create a list of long and short term goals for them."},
@@ -79,7 +79,7 @@ class GoalsGenerator:
         functions = [ GoalsGenerator.createGoalsFunctionDef ]
 
         #Call the LLM...
-        response = llm.chat.completions.create(
+        response = await llm.chat.completions.create(
             model = 'gpt-3.5-turbo',
             temperature=1.0,
             messages = messages,

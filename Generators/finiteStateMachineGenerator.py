@@ -1,5 +1,5 @@
 import json
-from openai import OpenAI
+from openai import AsyncOpenAI
 from Simulation.finiteStateMachine import FiniteStateMachine
 
 class FiniteStateMachineGenerator():
@@ -83,9 +83,9 @@ class FiniteStateMachineGenerator():
             #return response_message.content
             return None
     
-    def GenerateStateMachine(self, item, llm=None):
+    async def GenerateStateMachine(self, item, llm=None):
         if llm is None:
-            llm = OpenAI()
+            llm = AsyncOpenAI()
 
         messages = [
             {'role': 'system', 'content': """Given the following item, generate a finite state machine."
@@ -100,7 +100,7 @@ class FiniteStateMachineGenerator():
         functions = [ FiniteStateMachineGenerator.generateFiniteStateMachineFunctionDef ]
 
         #Call the LLM...
-        response = llm.chat.completions.create(
+        response = await llm.chat.completions.create(
             model = 'gpt-3.5-turbo',
             temperature=1,
             messages = messages,

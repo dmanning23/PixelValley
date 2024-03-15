@@ -6,7 +6,7 @@ class RetrievalStream():
     def __init__(self, memoryRepository):
         self.memoryRepository = memoryRepository
 
-    def RetrieveMemories(self, agent, query, numMemories=30):
+    async def RetrieveMemories(self, agent, query, numMemories=30):
         #TODO: calculate embedding vector relevance for recent and important memories?
         #Get the most recent memories
         #recent = self.memoryRepository.GetRecentMemories(agent, 30)
@@ -15,8 +15,9 @@ class RetrievalStream():
         #important = self.memoryRepository.GetImportantMemories(agent, 30)
 
         #Get the most relevent memories
-        relevant = self.memoryRepository.GetRelevantMemories(agent, numMemories * 4, query)
+        relevant = await self.memoryRepository.GetRelevantMemories(agent, numMemories * 4, query)
 
+        #TODO: append timestamp to beginning of each memory
         #sort by score and return the top 10 memories
         #memories = Enumerable(recent + important + relevant)
         memories = Enumerable(relevant)
