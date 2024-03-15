@@ -1,3 +1,4 @@
+import asyncio
 
 class ObservationStream():
 
@@ -9,20 +10,24 @@ class ObservationStream():
     async def CreateScenarioObservations(self, scenario):
         #Create the outside observations
         if scenario.agents is not None:
-            for agent in scenario.agents:
-                await self.CreateAgentObservations(agent, scenario.agents, childLocations=scenario.locations)
+            async with asyncio.TaskGroup() as agentTasks:
+                for agent in scenario.agents:
+                    agentTasks.create_task(self.CreateAgentObservations(agent, scenario.agents, childLocations=scenario.locations))
 
         if scenario.locations is not None:
-            for location in scenario.locations:
-                await self._createLocationObservations(location)
+            async with asyncio.TaskGroup() as locationTasks:
+                for location in scenario.locations:
+                    locationTasks.create_task(self._createLocationObservations(location))
 
     async def _createLocationObservations(self, location, parentLocation=None):
         if location.agents is not None:
-            for agent in location.agents:
-                await self.CreateAgentObservations(agent, location.agents, location, parentLocation, location.locations)
+            async with asyncio.TaskGroup() as agentTasks:
+                for agent in location.agents:
+                    agentTasks.create_task(self.CreateAgentObservations(agent, location.agents, location, parentLocation, location.locations))
         if location.locations is not None:
-            for childLocation in location.locations:
-                await self._createLocationObservations(childLocation, location)
+            async with asyncio.TaskGroup() as locationTasks:
+                for childLocation in location.locations:
+                    locationTasks.create_task(self._createLocationObservations(childLocation, location))
 
     async def CreateAgentObservations(self, 
                            agent,

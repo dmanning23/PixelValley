@@ -124,7 +124,7 @@ class InteractionGenerator():
         #Call the LLM...
         response = await llm.chat.completions.create(
             model = 'gpt-3.5-turbo',
-            temperature=0.6,
+            temperature=0.5,
             messages = messages,
             functions = functions, #Pass in the list of functions available to the LLM
             function_call = 'auto')

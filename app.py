@@ -300,7 +300,7 @@ def displayScenario(userId, scenario):
         t1 = time.time()
         elapsedTime = {t1-t0}
         st.header(f"Elapsed time: {elapsedTime}")
-        print(elapsedTime)
+        print(f"Total time: {elapsedTime}")
 
     createContainer = st.container()
     with createContainer:

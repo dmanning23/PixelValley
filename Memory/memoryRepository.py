@@ -48,6 +48,8 @@ class MemoryRepository:
         self.chain = prompt | self.llm
 
     async def CreateMemory(self, agent, description):
+        #TODO: create index of memories by agentId/description
+
         #Check if that memory already exists
         result = self.collection.find_one({"agentId": agent._id, "description": description})
         if result is None:

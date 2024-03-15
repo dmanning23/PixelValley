@@ -17,6 +17,7 @@ class RetrievalStream():
         #Get the most relevent memories
         relevant = await self.memoryRepository.GetRelevantMemories(agent, numMemories * 4, query)
 
+        #TODO: append timestamp to beginning of each memory
         #sort by score and return the top 10 memories
         #memories = Enumerable(recent + important + relevant)
         memories = Enumerable(relevant)
