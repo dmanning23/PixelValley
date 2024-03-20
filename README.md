@@ -2,9 +2,13 @@
 
 Dive into the enchanting world of Pixel Valley, where pixels come to life, characters wander, and stories unfold in a cozy, virtual haven. This open-source game combines the magic of artificial intelligence with the charm of a village simulator to create a truly unique gaming experience.
 
+This is a virtual city completely created by AI from the prompt "pirate village". All the artwork, content, and game assets were created by AI and stitched together algorithmically:
 ![Overworld](./Screenshot.png?raw=true "Overworld")
 
+These are generative agents as video game NPCs. Characters in Pixel Valley can create short and long term goals, use tools, and talk with other characters to work together to accomplish those goals. In this screenshot, one of the pirate's has set herself the goal of "become the world's greatest swordsman" and has recruited two other pirates to help in the Blacksmith shop to help forge the perfect sword:
 ![Building Interior](./Screenshot2.png?raw=true "Building Interior")
+
+Characters in Pixel Valley remember their experiences in a long-term "memory stream" and use these memories to guide their actions moving forward. Here I am chatting with a pirate and ask who's she's talked to lately, and she summarizes her last few conversations:
 
 ## Try it now:
 
