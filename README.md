@@ -9,6 +9,7 @@ These are generative agents as video game NPCs. Characters in Pixel Valley can c
 ![Building Interior](./Screenshot2.png?raw=true "Building Interior")
 
 Characters in Pixel Valley remember their experiences in a long-term "memory stream" and use these memories to guide their actions moving forward. Here I ask a pirate who's she's talked to lately via a simple chat interface, and she summarizes her last few conversations:
+![Building Interior](./Screenshot3.png?raw=true "Chat")
 
 ## Try it now:
 
