@@ -44,7 +44,7 @@ class MemoryRepository:
         self.llm = llm
 
         #setup the prompt for memory importance
-        prompt = ChatPromptTemplate.from_template("You are: {agent}\n On a scale of 1.0 to 10.0, where 1 is pureliy mundane(e.g. brushing teeth, making bed) and 10 is a life-altering core memory (e.g. a breakup, college acceptance), rate the likely poignancy of the following peice of memory.\nMemory: {memory}\nRating: <fill in>")
+        prompt = ChatPromptTemplate.from_template("You are: {agent}\n On a scale of 1.0 to 10.0, where 1 is purely mundane(e.g. brushing teeth, making bed) and 10 is a life-altering core memory (e.g. a breakup, college acceptance), rate the likely poignancy of the following piece of memory.\nMemory: {memory}\nRating: <fill in>")
         self.chain = prompt | self.llm
 
     async def CreateMemory(self, agent, description):
