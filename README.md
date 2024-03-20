@@ -7,7 +7,7 @@ From just a short prompt, Pixel Valley can create an entire virtual city that pl
 This is a virtual city completely created by AI from the prompt "pirate village". All the artwork, content, and game assets were created by AI and stitched together algorithmically:
 ![Overworld](./Screenshot.png?raw=true "Overworld")
 
-These are generative agents as video game NPCs. Characters in Pixel Valley can create short and long term goals, use tools, and talk with other characters to work together to accomplish those goals. In this screenshot, one of the pirate's has set herself the goal of "become the world's greatest swordsman" and has recruited two other pirates to help in the Blacksmith shop to help forge the perfect sword:
+These are generative agents as video game NPCs. Characters in Pixel Valley can create short and long term goals, use tools, and talk with other characters to work together to accomplish those goals. In this screenshot, one of the pirate's has set herself the long-term goal of "become the world's greatest swordsman" and has recruited two other pirates to help in the Blacksmith shop to help with her short-term goal of "forge the perfect sword":
 ![Building Interior](./Screenshot2.png?raw=true "Building Interior")
 
 Characters in Pixel Valley remember their experiences in a long-term "memory stream" and use these memories to guide their actions moving forward. Here I ask a pirate who's she's talked to lately via a simple chat interface, and she summarizes her last few conversations:
