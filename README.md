@@ -2,6 +2,8 @@
 
 Dive into the enchanting world of Pixel Valley, where pixels come to life, characters wander, and stories unfold in a cozy, virtual haven. This open-source game combines the magic of artificial intelligence with the charm of a village simulator to create a truly unique gaming experience.
 
+From just a short prompt, Pixel Valley can create an entire virtual city that players can explore and interact with, filled with interesting locations and autonomous generative agents as NPCs.
+
 This is a virtual city completely created by AI from the prompt "pirate village". All the artwork, content, and game assets were created by AI and stitched together algorithmically:
 ![Overworld](./Screenshot.png?raw=true "Overworld")
 
