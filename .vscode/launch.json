@@ -9,7 +9,7 @@
             "type": "debugpy",
             "request": "launch",
             "module": "streamlit",
-            "args": ["run", "streamlit_app.py"],
+            "args": ["run", "app1.py"],
             "justMyCode": true,
         },
         {

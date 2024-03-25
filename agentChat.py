@@ -3,7 +3,7 @@ from keys import openAIapikey
 from keys import mongoUri
 from mongoengine import *
 import streamlit as st
-from langchain.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
 from langchain.memory import ConversationBufferMemory
 from langchain.schema import (SystemMessage, HumanMessage, AIMessage)
 from Repository.agentRepository import AgentRepository

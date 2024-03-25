@@ -2,6 +2,7 @@ import os
 import streamlit as st
 from keys import openAIapikey
 from keys import mongoUri
+from keys import cloudFrontUri
 from random import *
 from mongoengine import *
 from py_linq import *
@@ -66,17 +67,17 @@ def main():
     #spin up mongoDB
     connect(host=mongoUri, db="pixelValley") #connect for mongoengine
 
-    initializeScenario()
+    asyncio.run(initializeScenario())
 
 def clearSession():
     st.session_state["scenario"]=None
 
-def initializeScenario():
+async def initializeScenario():
     userId = st.session_state["userId"]
 
     if "scenario" in st.session_state and st.session_state['scenario'] is not None:
         scenario = st.session_state["scenario"]
-        displayScenario(userId, scenario)
+        await displayScenario(userId, scenario)
 
     else:
         st.subheader("Select an existing scenario, or create a new one")
@@ -104,7 +105,7 @@ def initializeScenario():
                 if create_button:
                     if not user_input:
                         user_input = f"A cozy little village"
-                    createScenario(userId, user_input)
+                    await createScenario(userId, user_input)
 
             with st.form(key="big create", clear_on_submit=True):
                 user_input  = st.text_area(label="Enter a short description of the scenario: ", key="bigInput", height = 100)
@@ -113,7 +114,7 @@ def initializeScenario():
                 if create_button:
                     if not user_input:
                         user_input = f"A cozy little village"
-                    bigCreate(userId, user_input)
+                    await bigCreate(userId, user_input)
 
 def fetchScenario(userId, scenarioId):
     
@@ -219,16 +220,16 @@ def createScenario(userId, scenarioDescription):
     st.session_state["scenario"] = scenario
     st.rerun()
 
-def bigCreate(userId, scenarioDescription):
+async def bigCreate(userId, scenarioDescription):
     simulator = Simulator()
     with st.spinner("Running the Big Create..."):
-        scenario = simulator.CreateScenario(userId, scenarioDescription)
+        scenario = await simulator.CreateScenario(userId, scenarioDescription)
     with st.spinner("Initializing the scenario..."):
-        simulator.InitializeScenario(userId, scenario)
+        await simulator.InitializeScenario(userId, scenario)
     st.session_state["scenario"] = scenario
     st.rerun()
 
-def displayScenario(userId, scenario):
+async def displayScenario(userId, scenario):
 
     memRepo = MemoryRepository()
     obsStream = ObservationStream(memRepo)
@@ -296,7 +297,7 @@ def displayScenario(userId, scenario):
     update_button = st.button(label="Run Update Loop")
     if update_button:
         t0 = time.time()
-        asyncio.run(simulator.AdvanceScenario(userId, scenario))
+        await simulator.AdvanceScenario(userId, scenario)
         t1 = time.time()
         elapsedTime = {t1-t0}
         st.header(f"Elapsed time: {elapsedTime}")
@@ -308,39 +309,39 @@ def displayScenario(userId, scenario):
         observe_button = st.button(label="Create Observations")
         if observe_button:
             #make some observations
-            obsStream.CreateScenarioObservations(scenario)
+            await obsStream.CreateScenarioObservations(scenario)
 
         reflect_button = st.button(label="Create Reflections")
         if reflect_button:
             for agent in scenario.GetAgents():
-                reflectionGen.CreateReflections(agent)
+                await reflectionGen.CreateReflections(agent)
 
         trigger_reflections_button = st.button(label="Trigger Reflections?")
         if trigger_reflections_button:
             for agent in scenario.GetAgents():
-                reflectionStream.TriggerReflection(agent)
+                await reflectionStream.TriggerReflection(agent)
 
         goals_button = st.button(label="Create Goals")
         if goals_button:
             for agent in scenario.GetAgents():
-                goalsStream.CreateGoals(agent, scenario)
+                await goalsStream.CreateGoals(agent, scenario)
 
         plans_button = st.button(label="Create Daily Planned Activities")
         if plans_button:
             for agent in scenario.GetAgents():
-                activityStream.CreatePlannedActivities(agent, scenario)
+                await activityStream.CreatePlannedActivities(agent, scenario)
 
     itemContainer = st.container()
     with itemContainer:
         change_item_button = st.button(label="Swap Items?")
         if change_item_button:
             for agent in scenario.GetAgents():
-                iteractionStream.SwapItems(agent, scenario)
+                await iteractionStream.SwapItems(agent, scenario)
 
         item_interaction_button = st.button(label="Use an item?")
         if item_interaction_button:
             for agent in scenario.GetAgents():
-                iteractionStream.UseItem(agent, scenario)
+                await iteractionStream.UseItem(agent, scenario)
 
     interactionContainer = st.container()
     with interactionContainer:
@@ -348,17 +349,17 @@ def displayScenario(userId, scenario):
         change_location_button = st.button(label="Change Agent Locations?")
         if change_location_button:
             for agent in scenario.GetAgents():
-                iteractionStream.ChangeLocation(agent, scenario)
+                await iteractionStream.ChangeLocation(agent, scenario)
 
         agent_status_button = st.button(label="Set Agent statuses")
         if agent_status_button:
             for agent in scenario.GetAgents():
-                iteractionStream.SetAgentStatus(agent, scenario)
+                await iteractionStream.SetAgentStatus(agent, scenario)
 
         action_button = st.button(label="Plan actions")
         if action_button:
             for agent in scenario.GetAgents():
-                iteractionStream.PlanActions(agent, scenario)
+                await iteractionStream.PlanActions(agent, scenario)
 
     conversationContainer = st.container()
     with conversationContainer:
@@ -366,44 +367,44 @@ def displayScenario(userId, scenario):
         choose_conversation_button = st.button(label="Choose conversation")
         if choose_conversation_button:
             agents = scenario.GetAgents()
-            conversation, agents = conversationStream.StartConversation(scenario, agents[0])
+            conversation, agents = await conversationStream.StartConversation(scenario, agents[0])
 
         conversation_button2 = st.button(label="Have conversation")
         if conversation_button2:
             #get the list of agents
             agents = scenario.GetAgents()
             conversationAgents = [ agents[0], agents[1] ]
-            conversationStream.CreateConversation(scenario, conversationAgents)
+            await conversationStream.CreateConversation(scenario, conversationAgents)
 
         conversation_button3 = st.button(label="Have group conversation")
         if conversation_button3:
             #get the list of agents
             agents = scenario.GetAgents()
             conversationAgents = [ agents[0], agents[1], agents[2] ]
-            conversationStream.CreateConversation(scenario, conversationAgents)
+            await conversationStream.CreateConversation(scenario, conversationAgents)
 
         conversation_button4 = st.button(label="Conversation Pipeline!")
         if conversation_button4:
             agents = scenario.GetAgents()
-            conversation = conversationStream.ConversationPipeline(scenario, agents[0])
+            conversation = await conversationStream.ConversationPipeline(scenario, agents[0])
 
     assetContainer = st.container()
     with assetContainer:
         profilePic_button = st.button(label="Populate missing profile pictures")
         if profilePic_button:
-            assetManager.PopulateMissingCharacterDescriptions(scenario, characterDescriptionGenerator)
+            await assetManager.PopulateMissingCharacterDescriptions(scenario, characterDescriptionGenerator)
             assetManager.PopulateMissingCharacterProfile(scenario, characterPortraitGenerator)
 
         #TODO: move agent images to description
             
         icon_button = st.button(label="Populate missing character icons")
         if icon_button:
-            assetManager.PopulateMissingCharacterDescriptions(scenario, characterDescriptionGenerator)
+            await assetManager.PopulateMissingCharacterDescriptions(scenario, characterDescriptionGenerator)
             assetManager.PopulateMissingCharacterIcons(scenario, characterIconGenerator)
 
         icon_button = st.button(label="Populate missing character chibis")
         if icon_button:
-            assetManager.PopulateMissingCharacterDescriptions(scenario, characterDescriptionGenerator)
+            await assetManager.PopulateMissingCharacterDescriptions(scenario, characterDescriptionGenerator)
             assetManager.PopulateMissingCharacterChibis(scenario, characterChibiGenerator)
 
         buildingExterior_button = st.button(label="Populate missing building exteriors")
@@ -427,17 +428,17 @@ def displayScenario(userId, scenario):
         describe_character = st.button(label="Create character descriptions")
         if describe_character:
             for agent in scenario.GetAgents():
-                result = characterDescriptionGenerator.DescribeCharacter(agent)
+                result = await characterDescriptionGenerator.DescribeCharacter(agent)
                 result.agentId = agent._id
                 AgentDescriptionModel.objects.insert(result)
 
         characterDescriptions_button = st.button(label="Populate missing character descriptions")
         if characterDescriptions_button:
-            assetManager.PopulateMissingCharacterDescriptions(scenario, characterDescriptionGenerator)
+            await assetManager.PopulateMissingCharacterDescriptions(scenario, characterDescriptionGenerator)
 
         populateMissingCharacterArtwork_button = st.button(label="Populate all missing character artwork")
         if populateMissingCharacterArtwork_button:
-            assetManager.PopulateMissingCharacterDescriptions(scenario, characterDescriptionGenerator)
+            await assetManager.PopulateMissingCharacterDescriptions(scenario, characterDescriptionGenerator)
             assetManager.PopulateMissingCharacterProfile(scenario, characterPortraitGenerator)
             assetManager.PopulateMissingCharacterIcons(scenario, characterIconGenerator)
             assetManager.PopulateMissingCharacterChibis(scenario, characterChibiGenerator)
@@ -447,7 +448,7 @@ def displayScenario(userId, scenario):
             assetManager.CreateScenarioBackground(userId, scenario, backgroundGenerator)
             assetManager.PopulateMissingBuildingExteriors(scenario, buildingExteriorGenerator)
             assetManager.PopulateMissingBuildingInteriors(scenario, buildingInteriorGenerator)
-            assetManager.PopulateMissingCharacterDescriptions(scenario, characterDescriptionGenerator)
+            await assetManager.PopulateMissingCharacterDescriptions(scenario, characterDescriptionGenerator)
             assetManager.PopulateMissingCharacterProfile(scenario, characterPortraitGenerator)
             assetManager.PopulateMissingCharacterIcons(scenario, characterIconGenerator)
             assetManager.PopulateMissingCharacterChibis(scenario, characterChibiGenerator)
@@ -462,7 +463,7 @@ def displayScenario(userId, scenario):
                 except:
                     pass
                 if description is None:
-                    description = characterDescriptionGenerator.DescribeCharacter(agent)
+                    description = await characterDescriptionGenerator.DescribeCharacter(agent)
                     description.agentId = agent._id
                     AgentDescriptionModel.objects.insert(description)
 
@@ -506,7 +507,7 @@ def displayScenario(userId, scenario):
     #output the user's prompt
     st.write(scenario)
     if scenario.imageFilename:
-        st.image(scenario.imageFilename)
+        st.image(f'{cloudFrontUri}{scenario.imageFilename}')
 
     st.subheader(f"Villagers in {scenario.name}:")
     for agent in scenario.GetAgents():
@@ -521,11 +522,11 @@ def displayScenario(userId, scenario):
         if agent.usingItem:
             st.write(f"{agent.name} is using the {agent.usingItem.NameWithStatus()}")
         if description is not None and description.portraitFilename:
-            st.image(description.portraitFilename)
+            st.image(f'{cloudFrontUri}{description.portraitFilename}')
         if description is not None and description.resizedIconFilename:
-            st.image(description.resizedIconFilename)
+            st.image(f'{cloudFrontUri}{description.resizedIconFilename}')
         if description is not None and description.resizedChibiFilename:
-            st.image(description.resizedChibiFilename)
+            st.image(f'{cloudFrontUri}{description.resizedChibiFilename}')
 
     st.subheader(f"Villagers that are standing outside:")
     if scenario.agents is not None:
@@ -539,9 +540,9 @@ def writeLocation(location, level = 0):
     #write the location
     st.header(f"{level}: {location}")
     if location.imageFilename:
-        st.image(location.imageFilename)
+        st.image(f'{cloudFrontUri}{location.imageFilename}')
     if location.imageInteriorFilename:
-        st.image(location.imageInteriorFilename)
+        st.image(f'{cloudFrontUri}{location.imageInteriorFilename}')
 
     #write all the items
     st.subheader(f"Items in {location.name}:")

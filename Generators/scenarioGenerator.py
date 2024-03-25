@@ -1,5 +1,5 @@
 from langchain.schema.messages import SystemMessage, HumanMessage
-from langchain.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
 from Simulation.scenario import Scenario
 import json
 from openai import AsyncOpenAI
@@ -76,7 +76,7 @@ class ScenarioGenerator:
         scenario = self._parseResponse(shortDescription, response.choices[0].message)
         if scenario is None:
             scenario = Scenario(shortDescription)
-        scenario.description = self.Generate(f"{scenario.name} in the year {scenario.currentDateTime.year}: {scenario.seed}")
+        scenario.description = await self.Generate(f"{scenario.name} in the year {scenario.currentDateTime.year}: {scenario.seed}")
         return scenario
 
     async def Generate(self, description, llm = None):

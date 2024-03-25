@@ -19,7 +19,7 @@ class PlannedActivityStream:
             self._planStorage(plan, agent, scenario)
 
             #Break down planned activities into smllaer chunks
-            subPlans = self.plannedActivityGenerator.BreakDownPlannedActivity(agent, plan)
+            subPlans = await self.plannedActivityGenerator.BreakDownPlannedActivity(agent, plan)
             for subPlan in subPlans:
                 #Increase the priority of sub plans
                 subPlan.priority = subPlan.priority + 1

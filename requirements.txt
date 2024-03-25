@@ -15,3 +15,5 @@ mongoengine
 pymongo
 boto3
 asyncio
+langchain-community
+langchain-openai

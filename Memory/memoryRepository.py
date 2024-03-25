@@ -4,10 +4,10 @@ from py_linq import *
 from keys import mongoUri
 import pymongo
 
-from langchain.vectorstores import MongoDBAtlasVectorSearch
-from langchain.chat_models import ChatOpenAI
+from langchain_community.vectorstores import MongoDBAtlasVectorSearch
+from langchain_openai import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
-from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain_openai import OpenAIEmbeddings
 
 from Memory.memory import Memory
 

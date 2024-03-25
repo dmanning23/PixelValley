@@ -85,24 +85,24 @@ class Simulator:
         #store the scenario
         return scenario
 
-    def CreateScenario(self, userId, scenarioDescription):
+    async def CreateScenario(self, userId, scenarioDescription):
 
         #expand the setting
         settingGen = ScenarioGenerator()
-        scenario = settingGen.GenerateScenario(scenarioDescription)
+        scenario = await settingGen.GenerateScenario(scenarioDescription)
 
         #create the initial list of locations
         locationGen = LocationGenerator()
-        scenario.locations = locationGen.Generate(scenario)
+        scenario.locations = await locationGen.Generate(scenario)
 
         #decompose each location into children if application
         for location in scenario.locations:
-            locationGen.GenerateChildLocations(location)
+            await locationGen.GenerateChildLocations(location)
 
         items = []
         itemGen = ItemGenerator()
         for location in scenario.locations:
-            items = items + itemGen.PopulateLocations(location)
+            items = items + await itemGen.PopulateLocations(location)
 
         for item in items:
             #We aren't using finite state machines in the final product.
@@ -111,7 +111,7 @@ class Simulator:
 
         #create all the villagers
         agentGen = AgentGenerator()
-        agents = agentGen.GenerateCharacters(scenario)
+        agents = await agentGen.GenerateCharacters(scenario)
         #place each villager somewhere
         for agent in agents:
             #put the agent outside?
@@ -137,7 +137,7 @@ class Simulator:
 
         return scenario
 
-    def InitializeScenario(self, userId, scenario):
+    async def InitializeScenario(self, userId, scenario):
         memRepo = MemoryRepository()
         obsStream = ObservationStream(memRepo)
         goalRepo = GoalsRepository()
@@ -157,21 +157,21 @@ class Simulator:
         assetManager = AssetManager()
 
         #Create some observational memories
-        obsStream.CreateScenarioObservations(scenario)
+        await obsStream.CreateScenarioObservations(scenario)
 
         #Create the agent goals
         for agent in scenario.GetAgents():
-            goalsStream.CreateGoals(agent, scenario)
+            await goalsStream.CreateGoals(agent, scenario)
 
         #Create the agent's daily plans
         for agent in scenario.GetAgents():
-            activityStream.CreatePlannedActivities(agent, scenario)
+            await activityStream.CreatePlannedActivities(agent, scenario)
 
         #Populate all the artwork
         assetManager.CreateScenarioBackground(userId, scenario, backgroundGenerator)
         assetManager.PopulateMissingBuildingExteriors(scenario, buildingExteriorGenerator)
         assetManager.PopulateMissingBuildingInteriors(scenario, buildingInteriorGenerator)
-        assetManager.PopulateMissingCharacterDescriptions(scenario, characterDescriptionGenerator)
+        await assetManager.PopulateMissingCharacterDescriptions(scenario, characterDescriptionGenerator)
         assetManager.PopulateMissingCharacterProfile(scenario, characterPortraitGenerator)
         assetManager.PopulateMissingCharacterIcons(scenario, characterIconGenerator)
         assetManager.PopulateMissingCharacterChibis(scenario, characterChibiGenerator)
@@ -180,7 +180,7 @@ class Simulator:
         assetManager.CreateScenarioBackground(userId, scenario, backgroundGenerator)
         assetManager.PopulateMissingBuildingExteriors(scenario, buildingExteriorGenerator)
         assetManager.PopulateMissingBuildingInteriors(scenario, buildingInteriorGenerator)
-        assetManager.PopulateMissingCharacterDescriptions(scenario, characterDescriptionGenerator)
+        await assetManager.PopulateMissingCharacterDescriptions(scenario, characterDescriptionGenerator)
         assetManager.PopulateMissingCharacterProfile(scenario, characterPortraitGenerator)
         assetManager.PopulateMissingCharacterIcons(scenario, characterIconGenerator)
         assetManager.PopulateMissingCharacterChibis(scenario, characterChibiGenerator)

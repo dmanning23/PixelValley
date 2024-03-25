@@ -37,6 +37,9 @@ class PlannedActivity(Document):
 
         #parse the time delta from the LLM
         parsedTimeDelta = pytimeparse.parse(self.timeframe)
+        if parsedTimeDelta is None:
+            #The LLM returned some crazy timeframe
+            parsedTimeDelta = 3600
         myDelta = dt.timedelta(seconds=parsedTimeDelta)
 
         #set the endtime

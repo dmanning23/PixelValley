@@ -6,7 +6,7 @@ from keys import s3Bucket
 
 class AssetManager:
 
-    def PopulateMissingCharacterDescriptions(self, scenario, characterDescriptionGenerator):
+    async def PopulateMissingCharacterDescriptions(self, scenario, characterDescriptionGenerator):
         for agent in scenario.GetAgents():
             #get a character description
             description = None
@@ -15,7 +15,7 @@ class AssetManager:
             except:
                 pass
             if description is None:
-                description = characterDescriptionGenerator.DescribeCharacter(agent)
+                description = await characterDescriptionGenerator.DescribeCharacter(agent)
                 if description is not None:
                     description.agentId = agent._id
                     AgentDescriptionModel.objects.insert(description)

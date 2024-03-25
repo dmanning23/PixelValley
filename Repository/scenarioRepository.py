@@ -15,8 +15,11 @@ class ScenarioRepository():
         model = ScenarioModel()
         model.Set(scenario)
 
-        #store the model in the database
-        ScenarioModel.objects.insert(model)
+        try:
+            #store the model in the database
+            ScenarioModel.objects.insert(model)
+        except Exception as ex:
+            print(ex)
 
         #update the object with the id so we can update it later
         scenario._id = model.id
